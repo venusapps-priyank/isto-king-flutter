@@ -1,0 +1,1046 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const IstoKingApp());
+}
+
+class IstoKingApp extends StatelessWidget {
+  const IstoKingApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Isto King',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF8E6B8),
+        colorScheme: ColorScheme.fromSeed(seedColor: RoyalColors.red),
+        fontFamily: 'Georgia',
+      ),
+      home: const IstoGameScreen(),
+    );
+  }
+}
+
+class RoyalColors {
+  static const parchment = Color(0xFFF8E6B8);
+  static const parchmentLight = Color(0xFFFFF4D6);
+  static const boardCell = Color(0xFFFFF0C8);
+  static const red = Color(0xFFD7262E);
+  static const green = Color(0xFF3B8E32);
+  static const blue = Color(0xFF006FBE);
+  static const yellow = Color(0xFFF5A400);
+  static const darkRed = Color(0xFF8B0000);
+  static const brown = Color(0xFF5A2A16);
+  static const darkBrown = Color(0xFF3A1E0F);
+  static const gold = Color(0xFFEBA318);
+}
+
+class IstoGameScreen extends StatelessWidget {
+  const IstoGameScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 1.15,
+            colors: [
+              Color(0xFFFFF7DE),
+              RoyalColors.parchment,
+              Color(0xFFECCF8A),
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            const Positioned.fill(child: CustomPaint(painter: ScreenOrnamentPainter())),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final height = constraints.maxHeight;
+                  final compact = height < 820;
+                  final horizontalPadding = width < 410 ? 12.0 : 16.0;
+                  final topBarHeight = compact ? 58.0 : 66.0;
+                  final cardHeight = compact ? 90.0 : 100.0;
+                  final bannerHeight = compact ? 42.0 : 48.0;
+                  const gap = 7.0;
+                  final boardMaxWidth = width - horizontalPadding * 2;
+                  final boardMaxHeight = height -
+                      topBarHeight -
+                      cardHeight * 2 -
+                      bannerHeight -
+                      gap * 6;
+                  final boardSize = math.max(
+                    280.0,
+                    math.min(boardMaxWidth, boardMaxHeight),
+                  );
+
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: topBarHeight,
+                          child: const TopGameBar(),
+                        ),
+                        const SizedBox(height: gap),
+                        SizedBox(
+                          height: cardHeight,
+                          child: const PlayerRow(
+                            left: PlayerCard(
+                              name: 'Rammohan',
+                              color: RoyalColors.red,
+                              avatarColor: Color(0xFFFFD8B2),
+                              accentColor: Color(0xFFFF6A67),
+                              gender: AvatarGender.male,
+                            ),
+                            right: PlayerCard(
+                              name: 'Chandrakishore',
+                              color: RoyalColors.green,
+                              avatarColor: Color(0xFFFFD6B0),
+                              accentColor: Color(0xFF69C15C),
+                              gender: AvatarGender.female,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: gap),
+                        Center(
+                          child: SizedBox.square(
+                            dimension: boardSize,
+                            child: const GameBoard(),
+                          ),
+                        ),
+                        const SizedBox(height: gap),
+                        SizedBox(
+                          height: cardHeight,
+                          child: const PlayerRow(
+                            left: PlayerCard(
+                              name: 'Aaradhya',
+                              color: RoyalColors.yellow,
+                              avatarColor: Color(0xFFFFD8B2),
+                              accentColor: Color(0xFFFFC64C),
+                              gender: AvatarGender.male,
+                            ),
+                            right: PlayerCard(
+                              name: 'Shaurya',
+                              color: RoyalColors.blue,
+                              avatarColor: Color(0xFFFFD6B0),
+                              accentColor: Color(0xFF42A5F5),
+                              gender: AvatarGender.female,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: gap),
+                        SizedBox(
+                          height: bannerHeight,
+                          child: const CurrentTurnBanner(),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TopGameBar extends StatelessWidget {
+  const TopGameBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          top: 2,
+          bottom: 5,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: RoyalColors.parchmentLight.withValues(alpha: 0.86),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+              border: Border.all(color: RoyalColors.gold, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: RoyalColors.brown.withValues(alpha: 0.16),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Positioned(left: 4, child: RoundIconButton(icon: Icons.arrow_back)),
+        const Positioned(right: 4, child: RoundIconButton(icon: Icons.settings)),
+        Positioned(right: 70, child: const CoinBalancePill()),
+        const Positioned(
+          bottom: 13,
+          child: SizedBox(
+            width: 160,
+            height: 16,
+            child: CustomPaint(painter: HeaderDividerPainter()),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class RoundIconButton extends StatelessWidget {
+  const RoundIconButton({required this.icon, super.key});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFC0202D), RoyalColors.darkRed],
+        ),
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: RoyalColors.brown.withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: Colors.white, size: 28),
+    );
+  }
+}
+
+class CoinBalancePill extends StatelessWidget {
+  const CoinBalancePill({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 39,
+      padding: const EdgeInsets.fromLTRB(7, 4, 4, 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFE1B2),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: RoyalColors.brown.withValues(alpha: 0.45), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: RoyalColors.brown.withValues(alpha: 0.18),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CoinIcon(size: 27),
+          SizedBox(width: 7),
+          Text(
+            '120',
+            style: TextStyle(
+              color: RoyalColors.darkBrown,
+              fontWeight: FontWeight.w900,
+              fontSize: 19,
+            ),
+          ),
+          SizedBox(width: 8),
+          CircleAvatar(
+            radius: 15,
+            backgroundColor: Color(0xFF3AAA45),
+            child: Icon(Icons.add, color: Colors.white, size: 22),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PlayerRow extends StatelessWidget {
+  const PlayerRow({required this.left, required this.right, super.key});
+
+  final PlayerCard left;
+  final PlayerCard right;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: left),
+        const SizedBox(width: 12),
+        Expanded(child: right),
+      ],
+    );
+  }
+}
+
+enum AvatarGender { male, female }
+
+class PlayerCard extends StatelessWidget {
+  const PlayerCard({
+    required this.name,
+    required this.color,
+    required this.avatarColor,
+    required this.accentColor,
+    required this.gender,
+    this.score = 0,
+    this.shellCount = 4,
+    super.key,
+  });
+
+  final String name;
+  final Color color;
+  final Color avatarColor;
+  final Color accentColor;
+  final AvatarGender gender;
+  final int score;
+  final int shellCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = constraints.maxHeight;
+        final avatarSize = height * 0.82;
+        final cardLeft = avatarSize * 0.34;
+        final nameSize = height < 96 ? 15.0 : 17.0;
+        final contentWidth = constraints.maxWidth - cardLeft - avatarSize * 0.58 - 16;
+        final shellSize = math.min(height < 96 ? 27.0 : 31.0, contentWidth / 4.35);
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              left: cardLeft,
+              top: height * 0.07,
+              bottom: height * 0.02,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [accentColor, color, Color.lerp(color, Colors.black, 0.24)!],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(left: avatarSize * 0.58, right: 8, top: 7, bottom: 7),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          name,
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: nameSize,
+                            height: 1,
+                            fontWeight: FontWeight.w900,
+                            shadows: const [
+                              Shadow(color: RoyalColors.brown, blurRadius: 2, offset: Offset(0, 1)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Flexible(
+                        child: FractionallySizedBox(
+                          widthFactor: 0.9,
+                          child: Container(
+                            height: 27,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Row(
+                              children: [
+                                const CoinIcon(size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '$score',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(
+                          shellCount,
+                          (index) => Transform.rotate(
+                            angle: (index.isEven ? -0.16 : 0.12),
+                            child: SizedBox(
+                              width: shellSize,
+                              height: shellSize,
+                              child: const CowrieShell(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: height * 0.08,
+              child: SizedBox(
+                width: avatarSize,
+                height: avatarSize,
+                child: CustomPaint(
+                  painter: AvatarPainter(
+                    skin: avatarColor,
+                    clothing: color,
+                    gender: gender,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: height * 0.01,
+              child: GiftBadge(size: height * 0.31),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class GiftBadge extends StatelessWidget {
+  const GiftBadge({required this.size, super.key});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: RoyalColors.red,
+        border: Border.all(color: RoyalColors.gold, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: RoyalColors.brown.withValues(alpha: 0.22),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Icon(Icons.card_giftcard, color: Colors.yellowAccent, size: size * 0.72),
+    );
+  }
+}
+
+class CoinIcon extends StatelessWidget {
+  const CoinIcon({required this.size, super.key});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size,
+      child: CustomPaint(painter: CoinPainter()),
+    );
+  }
+}
+
+class CowrieShell extends StatelessWidget {
+  const CowrieShell({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: CowrieShellPainter());
+  }
+}
+
+class GameBoard extends StatelessWidget {
+  const GameBoard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: RoyalColors.brown.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const CustomPaint(painter: GameBoardPainter()),
+    );
+  }
+}
+
+class CurrentTurnBanner extends StatelessWidget {
+  const CurrentTurnBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 330),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFF1CF), Color(0xFFFFD992)],
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: RoyalColors.gold, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: RoyalColors.brown.withValues(alpha: 0.16),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('✣', style: TextStyle(color: RoyalColors.gold, fontSize: 17)),
+              SizedBox(width: 10),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Current Turn:',
+                    style: TextStyle(
+                      color: RoyalColors.darkBrown,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 10),
+              CircleAvatar(radius: 8, backgroundColor: RoyalColors.red),
+              SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Rammohan',
+                    style: TextStyle(
+                      color: RoyalColors.red,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 10),
+              Text('✣', style: TextStyle(color: RoyalColors.gold, fontSize: 17)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GameBoardPainter extends CustomPainter {
+  const GameBoardPainter();
+
+  static const int gridCount = 11;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final shortest = math.min(size.width, size.height);
+    final boardRect = Rect.fromCenter(
+      center: size.center(Offset.zero),
+      width: shortest,
+      height: shortest,
+    ).deflate(1);
+    final outer = RRect.fromRectAndRadius(boardRect, const Radius.circular(19));
+    final inner = boardRect.deflate(shortest * 0.032);
+    final innerRRect = RRect.fromRectAndRadius(inner, const Radius.circular(12));
+    final cell = inner.width / gridCount;
+
+    canvas.drawRRect(outer, Paint()..color = RoyalColors.darkRed);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(boardRect.deflate(shortest * 0.011), const Radius.circular(15)),
+      Paint()..color = const Color(0xFFE9A329),
+    );
+    canvas.drawRRect(innerRRect, Paint()..color = RoyalColors.boardCell);
+
+    void homeCell(int col, int row, Color color) {
+      final rect = _cellRect(inner, cell, col, row).deflate(cell * 0.06);
+      canvas.drawRect(rect, Paint()..color = color.withValues(alpha: 0.9));
+    }
+
+    for (var row = 0; row < 3; row++) {
+      homeCell(5, row, RoyalColors.red);
+    }
+    for (var row = 8; row < 11; row++) {
+      homeCell(5, row, RoyalColors.blue);
+    }
+    for (var col = 0; col < 2; col++) {
+      for (var row = 5; row < 7; row++) {
+        homeCell(col, row, RoyalColors.yellow);
+        homeCell(col + 9, row, RoyalColors.green);
+      }
+    }
+
+    _drawGrid(canvas, inner, cell);
+    _drawCenterHome(canvas, _cellRect(inner, cell, 5, 5));
+    _drawCrossCell(canvas, _cellRect(inner, cell, 2, 1), RoyalColors.red);
+    _drawCrossCell(canvas, _cellRect(inner, cell, 8, 1), RoyalColors.green);
+    _drawCrossCell(canvas, _cellRect(inner, cell, 2, 9), RoyalColors.yellow);
+    _drawCrossCell(canvas, _cellRect(inner, cell, 8, 9), RoyalColors.blue);
+
+    _drawArrow(canvas, _cellRect(inner, cell, 5, 3), RoyalColors.red, math.pi / 2);
+    _drawArrow(canvas, _cellRect(inner, cell, 5, 8), RoyalColors.blue, -math.pi / 2);
+    _drawArrow(canvas, _cellRect(inner, cell, 3, 4), RoyalColors.yellow, 0);
+    _drawArrow(canvas, _cellRect(inner, cell, 7, 4), RoyalColors.green, math.pi);
+
+    for (var row = 0; row < 3; row++) {
+      _drawToken(canvas, _cellRect(inner, cell, 5, row).center, cell * 0.27, RoyalColors.red);
+    }
+    for (var row = 8; row < 11; row++) {
+      _drawToken(canvas, _cellRect(inner, cell, 5, row).center, cell * 0.27, RoyalColors.blue);
+    }
+    _drawHomeBlockTokens(canvas, inner, cell, 0, 5, RoyalColors.yellow);
+    _drawHomeBlockTokens(canvas, inner, cell, 9, 5, RoyalColors.green);
+
+    for (final point in [
+      const Offset(0.45, 0.45),
+      const Offset(10.55, 0.45),
+      const Offset(0.45, 10.55),
+      const Offset(10.55, 10.55),
+      const Offset(0.35, 1.35),
+      const Offset(10.65, 1.35),
+      const Offset(0.35, 9.65),
+      const Offset(10.65, 9.65),
+    ]) {
+      _drawFlower(
+        canvas,
+        Offset(inner.left + point.dx * cell, inner.top + point.dy * cell),
+        cell * 0.24,
+      );
+    }
+  }
+
+  Rect _cellRect(Rect board, double cell, int col, int row) {
+    return Rect.fromLTWH(board.left + col * cell, board.top + row * cell, cell, cell);
+  }
+
+  void _drawGrid(Canvas canvas, Rect board, double cell) {
+    final line = Paint()
+      ..color = RoyalColors.brown
+      ..strokeWidth = math.max(1.0, cell * 0.035);
+    for (var i = 0; i <= gridCount; i++) {
+      final offset = board.left + i * cell;
+      canvas.drawLine(Offset(offset, board.top), Offset(offset, board.bottom), line);
+      final y = board.top + i * cell;
+      canvas.drawLine(Offset(board.left, y), Offset(board.right, y), line);
+    }
+  }
+
+  void _drawCenterHome(Canvas canvas, Rect rect) {
+    final center = rect.center;
+    final colors = [RoyalColors.red, RoyalColors.green, RoyalColors.blue, RoyalColors.yellow];
+    final points = [
+      [rect.topLeft, rect.topRight, center],
+      [rect.topRight, rect.bottomRight, center],
+      [rect.bottomRight, rect.bottomLeft, center],
+      [rect.bottomLeft, rect.topLeft, center],
+    ];
+    for (var i = 0; i < 4; i++) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(points[i][0].dx, points[i][0].dy)
+          ..lineTo(points[i][1].dx, points[i][1].dy)
+          ..lineTo(points[i][2].dx, points[i][2].dy)
+          ..close(),
+        Paint()..color = colors[i],
+      );
+    }
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = rect.width * 0.05
+        ..color = Colors.white,
+    );
+  }
+
+  void _drawHomeBlockTokens(Canvas canvas, Rect board, double cell, int col, int row, Color color) {
+    for (var y = 0; y < 2; y++) {
+      for (var x = 0; x < 2; x++) {
+        _drawToken(
+          canvas,
+          _cellRect(board, cell, col + x, row + y).center,
+          cell * 0.27,
+          color,
+        );
+      }
+    }
+  }
+
+  void _drawToken(Canvas canvas, Offset center, double radius, Color color) {
+    canvas.drawShadow(
+      Path()..addOval(Rect.fromCircle(center: center, radius: radius)),
+      Colors.black,
+      2,
+      true,
+    );
+    canvas.drawCircle(center, radius, Paint()..color = Color.lerp(color, Colors.black, 0.12)!);
+    canvas.drawCircle(center.translate(-radius * 0.15, -radius * 0.15), radius * 0.78, Paint()..color = color);
+    canvas.drawCircle(
+      center,
+      radius * 0.76,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.18
+        ..color = Colors.white,
+    );
+    _drawStar(canvas, center, radius * 0.5, Colors.white);
+  }
+
+  void _drawStar(Canvas canvas, Offset center, double radius, Color color) {
+    final path = Path();
+    for (var i = 0; i < 10; i++) {
+      final r = i.isEven ? radius : radius * 0.45;
+      final angle = -math.pi / 2 + i * math.pi / 5;
+      final point = Offset(center.dx + math.cos(angle) * r, center.dy + math.sin(angle) * r);
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
+    canvas.save();
+    canvas.translate(rect.center.dx, rect.center.dy);
+    canvas.rotate(angle);
+    final length = rect.width * 0.72;
+    final shaft = Paint()
+      ..color = color
+      ..strokeWidth = rect.width * 0.16
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(-length * 0.35, 0), Offset(length * 0.22, 0), shaft);
+    final path = Path()
+      ..moveTo(length * 0.38, 0)
+      ..lineTo(length * 0.04, -length * 0.24)
+      ..lineTo(length * 0.04, length * 0.24)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = Colors.white.withValues(alpha: 0.75),
+    );
+    canvas.restore();
+  }
+
+  void _drawCrossCell(Canvas canvas, Rect rect, Color color) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = rect.width * 0.055
+      ..strokeCap = StrokeCap.round;
+    final inset = rect.width * 0.16;
+    canvas.drawLine(rect.topLeft.translate(inset, inset), rect.bottomRight.translate(-inset, -inset), paint);
+    canvas.drawLine(rect.topRight.translate(-inset, inset), rect.bottomLeft.translate(inset, -inset), paint);
+  }
+
+  void _drawFlower(Canvas canvas, Offset center, double radius) {
+    final petal = Paint()..color = const Color(0xFFB23A12);
+    final dot = Paint()..color = RoyalColors.gold;
+    for (var i = 0; i < 6; i++) {
+      final angle = i * math.pi / 3;
+      final petalCenter = Offset(
+        center.dx + math.cos(angle) * radius * 0.82,
+        center.dy + math.sin(angle) * radius * 0.82,
+      );
+      canvas.save();
+      canvas.translate(petalCenter.dx, petalCenter.dy);
+      canvas.rotate(angle);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: radius * 0.38, height: radius * 0.86),
+        petal,
+      );
+      canvas.restore();
+    }
+    canvas.drawCircle(center, radius * 0.24, dot);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class AvatarPainter extends CustomPainter {
+  const AvatarPainter({
+    required this.skin,
+    required this.clothing,
+    required this.gender,
+  });
+
+  final Color skin;
+  final Color clothing;
+  final AvatarGender gender;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width / 2;
+    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+    canvas.drawCircle(center, radius * 0.94, Paint()..color = const Color(0xFFFFE6C1));
+    canvas.drawCircle(
+      center,
+      radius * 0.94,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.055
+        ..color = RoyalColors.gold,
+    );
+
+    final hair = Paint()..color = const Color(0xFF20100C);
+    if (gender == AvatarGender.female) {
+      canvas.drawOval(
+        Rect.fromCenter(center: center.translate(0, radius * 0.02), width: radius * 1.2, height: radius * 1.45),
+        hair,
+      );
+    } else {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: center.translate(0, -radius * 0.36), width: radius * 1.05, height: radius * 0.56),
+          Radius.circular(radius * 0.23),
+        ),
+        hair,
+      );
+    }
+
+    canvas.drawOval(
+      Rect.fromCenter(center: center.translate(0, -radius * 0.06), width: radius * 0.92, height: radius * 1.02),
+      Paint()..color = skin,
+    );
+    canvas.drawArc(
+      Rect.fromCenter(center: center.translate(0, -radius * 0.33), width: radius * 0.98, height: radius * 0.55),
+      math.pi,
+      math.pi,
+      false,
+      hair..strokeWidth = radius * 0.12,
+    );
+    canvas.drawCircle(center.translate(-radius * 0.22, -radius * 0.05), radius * 0.045, Paint()..color = RoyalColors.darkBrown);
+    canvas.drawCircle(center.translate(radius * 0.22, -radius * 0.05), radius * 0.045, Paint()..color = RoyalColors.darkBrown);
+    canvas.drawArc(
+      Rect.fromCenter(center: center.translate(0, radius * 0.17), width: radius * 0.42, height: radius * 0.18),
+      0,
+      math.pi,
+      false,
+      Paint()
+        ..color = RoyalColors.darkRed
+        ..strokeWidth = radius * 0.035
+        ..style = PaintingStyle.stroke,
+    );
+    if (gender == AvatarGender.female) {
+      canvas.drawCircle(center.translate(0, -radius * 0.28), radius * 0.04, Paint()..color = RoyalColors.red);
+      canvas.drawCircle(center.translate(-radius * 0.5, radius * 0.06), radius * 0.055, Paint()..color = RoyalColors.gold);
+      canvas.drawCircle(center.translate(radius * 0.5, radius * 0.06), radius * 0.055, Paint()..color = RoyalColors.gold);
+    }
+    canvas.drawArc(
+      Rect.fromCenter(center: center.translate(0, radius * 0.9), width: radius * 1.35, height: radius * 0.85),
+      math.pi,
+      math.pi,
+      true,
+      Paint()..color = clothing,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant AvatarPainter oldDelegate) {
+    return skin != oldDelegate.skin || clothing != oldDelegate.clothing || gender != oldDelegate.gender;
+  }
+}
+
+class CoinPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
+    canvas.drawCircle(center, radius, Paint()..color = const Color(0xFFB86A00));
+    canvas.drawCircle(center.translate(-radius * 0.08, -radius * 0.08), radius * 0.82, Paint()..color = RoyalColors.gold);
+    canvas.drawCircle(
+      center,
+      radius * 0.66,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.13
+        ..color = const Color(0xFFFFF078),
+    );
+    const starColor = Color(0xFFFFF6A3);
+    final path = Path();
+    for (var i = 0; i < 10; i++) {
+      final r = i.isEven ? radius * 0.44 : radius * 0.2;
+      final angle = -math.pi / 2 + i * math.pi / 5;
+      final point = Offset(center.dx + math.cos(angle) * r, center.dy + math.sin(angle) * r);
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = starColor);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class CowrieShellPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final shell = Path()
+      ..moveTo(rect.width * 0.18, rect.height * 0.78)
+      ..cubicTo(rect.width * 0.02, rect.height * 0.38, rect.width * 0.33, rect.height * 0.02, rect.width * 0.64, rect.height * 0.08)
+      ..cubicTo(rect.width * 0.98, rect.height * 0.15, rect.width * 0.98, rect.height * 0.66, rect.width * 0.62, rect.height * 0.9)
+      ..cubicTo(rect.width * 0.45, rect.height, rect.width * 0.25, rect.height * 0.96, rect.width * 0.18, rect.height * 0.78)
+      ..close();
+    canvas.drawShadow(shell, Colors.black, 2, true);
+    canvas.drawPath(shell, Paint()..color = const Color(0xFFFFF4D7));
+    canvas.drawPath(
+      shell,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFF4C58B), Color(0xFFFFF3D1)],
+        ).createShader(rect),
+    );
+    final slit = Paint()
+      ..color = RoyalColors.brown
+      ..strokeWidth = size.width * 0.09
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(size.width * 0.58, size.height * 0.2), Offset(size.width * 0.36, size.height * 0.82), slit);
+    for (var i = 0; i < 6; i++) {
+      final y = size.height * (0.28 + i * 0.08);
+      canvas.drawLine(
+        Offset(size.width * 0.5, y),
+        Offset(size.width * 0.61, y + size.height * 0.04),
+        Paint()
+          ..color = RoyalColors.brown.withValues(alpha: 0.65)
+          ..strokeWidth = size.width * 0.025
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class ScreenOrnamentPainter extends CustomPainter {
+  const ScreenOrnamentPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final red = Paint()..color = RoyalColors.darkRed;
+    final gold = Paint()
+      ..color = RoyalColors.gold
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    for (final corner in [
+      Offset.zero,
+      Offset(size.width, 0),
+      Offset(0, size.height),
+      Offset(size.width, size.height),
+    ]) {
+      final sx = corner.dx == 0 ? 1.0 : -1.0;
+      final sy = corner.dy == 0 ? 1.0 : -1.0;
+      canvas.save();
+      canvas.translate(corner.dx, corner.dy);
+      canvas.scale(sx, sy);
+      final path = Path()
+        ..moveTo(0, 0)
+        ..lineTo(76, 0)
+        ..quadraticBezierTo(16, 16, 0, 86)
+        ..close();
+      canvas.drawPath(path, red);
+      for (var i = 0; i < 4; i++) {
+        canvas.drawArc(Rect.fromLTWH(10 + i * 13, 10 + i * 13, 42 + i * 18, 42 + i * 18), math.pi, math.pi / 2, false, gold);
+      }
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class HeaderDividerPainter extends CustomPainter {
+  const HeaderDividerPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = RoyalColors.brown.withValues(alpha: 0.55)
+      ..strokeWidth = 1.3;
+    canvas.drawLine(Offset(0, size.height / 2), Offset(size.width * 0.42, size.height / 2), paint);
+    canvas.drawLine(Offset(size.width * 0.58, size.height / 2), Offset(size.width, size.height / 2), paint);
+    final center = size.center(Offset.zero);
+    for (var i = 0; i < 4; i++) {
+      final angle = i * math.pi / 2 + math.pi / 4;
+      final point = Offset(center.dx + math.cos(angle) * 6, center.dy + math.sin(angle) * 6);
+      canvas.drawCircle(point, 2.2, Paint()..color = RoyalColors.red);
+    }
+    canvas.drawCircle(center, 2.5, Paint()..color = RoyalColors.gold);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
