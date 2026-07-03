@@ -630,6 +630,11 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
     if (oldWidget.shellCount != widget.shellCount) {
       _cowries = List<bool>.filled(widget.shellCount, true);
     }
+    if (oldWidget.isActive && !widget.isActive) {
+      _cowries = List<bool>.filled(widget.shellCount, true);
+      _rollingCowries = null;
+      _isRolling = false;
+    }
   }
 
   Future<void> _rollCowries() async {
@@ -676,66 +681,58 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.isActive) {
+      return SizedBox(height: widget.shellSize);
+    }
+
     return Semantics(
-      button: widget.isActive,
-      enabled: widget.isActive,
+      button: true,
+      enabled: true,
       label: 'Roll cowries',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: widget.isActive ? _rollCowries : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
+        onTap: _rollCowries,
+        child: SizedBox(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: widget.isActive ? 0.14 : 0),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: widget.isActive ? 0.9 : 0),
-              width: 1.4,
-            ),
-          ),
-          child: SizedBox(
-            height: widget.shellSize,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final shellWidth = widget.shellSize * 0.68;
-                final desiredGap = widget.shellSize * 0.2;
-                final fittedGap = widget.shellCount <= 1
-                    ? 0.0
-                    : (constraints.maxWidth - shellWidth * widget.shellCount) /
-                          (widget.shellCount - 1);
-                final gap = math.max(0.0, math.min(desiredGap, fittedGap));
-                final step = shellWidth + gap;
-                final rowWidth =
-                    shellWidth * widget.shellCount +
-                    gap * (widget.shellCount - 1);
-                final startX = widget.alignRight
-                    ? constraints.maxWidth - rowWidth
-                    : 0.0;
+          height: widget.shellSize,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final shellWidth = widget.shellSize * 0.68;
+              final desiredGap = widget.shellSize * 0.2;
+              final fittedGap = widget.shellCount <= 1
+                  ? 0.0
+                  : (constraints.maxWidth - shellWidth * widget.shellCount) /
+                        (widget.shellCount - 1);
+              final gap = math.max(0.0, math.min(desiredGap, fittedGap));
+              final step = shellWidth + gap;
+              final rowWidth =
+                  shellWidth * widget.shellCount +
+                  gap * (widget.shellCount - 1);
+              final startX = widget.alignRight
+                  ? constraints.maxWidth - rowWidth
+                  : 0.0;
 
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    for (var index = 0; index < widget.shellCount; index++)
-                      Positioned(
-                        left: startX + step * index,
-                        top: 0,
-                        child: CowrieShell(
-                          startOpen: _cowries[index],
-                          resultOpen:
-                              _rollingCowries?[index] ?? _cowries[index],
-                          isRolling: _isRolling,
-                          rollCycle: _rollCycle,
-                          delayIndex: index,
-                          size: widget.shellSize,
-                          width: shellWidth,
-                        ),
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  for (var index = 0; index < widget.shellCount; index++)
+                    Positioned(
+                      left: startX + step * index,
+                      top: 0,
+                      child: CowrieShell(
+                        startOpen: _cowries[index],
+                        resultOpen:
+                            _rollingCowries?[index] ?? _cowries[index],
+                        isRolling: _isRolling,
+                        rollCycle: _rollCycle,
+                        delayIndex: index,
+                        size: widget.shellSize,
+                        width: shellWidth,
                       ),
-                  ],
-                );
-              },
-            ),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),
