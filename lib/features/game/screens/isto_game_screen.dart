@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
+import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
@@ -20,16 +21,44 @@ class IstoGameScreen extends StatefulWidget {
 
 class _IstoGameScreenState extends State<IstoGameScreen> {
   final GameTurnController _turnController = GameTurnController();
+  bool _isMoveAnimating = false;
+  int _moveAnimationCycle = 0;
+  Map<int, List<BoardCell>> _activeMovePaths = {};
 
   void _handleRollComplete(int playerIndex, int value) {
+    if (_isMoveAnimating) return;
+
     setState(() {
       _turnController.handleRollComplete(playerIndex, value);
     });
   }
 
   void _handleTokenTap(int tokenId) {
+    if (_isMoveAnimating) return;
+
+    var didMove = false;
+    Map<int, List<BoardCell>> movePaths = {};
     setState(() {
-      _turnController.moveToken(tokenId);
+      final resolution = _turnController.moveToken(tokenId);
+      didMove = resolution != null;
+      if (didMove) {
+        movePaths = resolution!.animationPaths;
+        _activeMovePaths = movePaths;
+        _isMoveAnimating = true;
+        _moveAnimationCycle++;
+      }
+    });
+
+    if (!didMove) return;
+
+    final animationCycle = _moveAnimationCycle;
+    final animationDuration = GameBoard.moveAnimationDurationFor(movePaths);
+    Future<void>.delayed(animationDuration, () {
+      if (!mounted || animationCycle != _moveAnimationCycle) return;
+      setState(() {
+        _isMoveAnimating = false;
+        _activeMovePaths = {};
+      });
     });
   }
 
@@ -40,7 +69,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       avatarAsset: player.avatarAsset,
       avatarOnRight: player.avatarOnRight,
       isActive: _turnController.currentPlayerIndex == player.index,
-      canRoll: _turnController.canRoll(player.index),
+      canRoll: !_isMoveAnimating && _turnController.canRoll(player.index),
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }
@@ -102,7 +131,10 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             dimension: boardSize,
                             child: GameBoard(
                               tokens: _turnController.tokens,
-                              movableTokenIds: _turnController.legalTokenIds,
+                              movableTokenIds: _isMoveAnimating
+                                  ? const {}
+                                  : _turnController.legalTokenIds,
+                              movePaths: _activeMovePaths,
                               onTokenTap: _handleTokenTap,
                             ),
                           ),

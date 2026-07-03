@@ -11,12 +11,14 @@ class MoveResolution {
     required this.reachedCenter,
     required this.grantsExtraTurn,
     required this.gameFinished,
+    required this.animationPaths,
   });
 
   final int capturedCount;
   final bool reachedCenter;
   final bool grantsExtraTurn;
   final bool gameFinished;
+  final Map<int, List<BoardCell>> animationPaths;
 }
 
 class GameTurnController {
@@ -89,7 +91,19 @@ class GameTurnController {
 
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final destination = path[targetPathIndex];
-    final capturedTokens = _captureTokensAtDestination(token, destination);
+    final capturedTokens = _tokensToCapture(token, destination);
+    final animationPaths = <int, List<BoardCell>>{
+      token.id: _animationPathForMove(token, targetPathIndex),
+      for (final captured in capturedTokens)
+        captured.id: [
+          cellForToken(captured),
+          IstoBoardPaths.homeCellForPlayer(captured.playerIndex),
+        ],
+    };
+
+    for (final capturedToken in capturedTokens) {
+      capturedToken.sendToStart();
+    }
 
     token
       ..isAtStart = false
@@ -137,7 +151,40 @@ class GameTurnController {
       reachedCenter: reachedCenter,
       grantsExtraTurn: grantsExtraTurn,
       gameFinished: gameFinished,
+      animationPaths: animationPaths,
     );
+  }
+
+  List<BoardCell> _animationPathForMove(
+    TokenState token,
+    int targetPathIndex,
+  ) {
+    final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
+    final fromIndex = token.isAtStart ? -1 : token.pathIndex;
+    final waypoints = <BoardCell>[];
+
+    if (fromIndex < 0) {
+      waypoints.add(IstoBoardPaths.homeCellForPlayer(token.playerIndex));
+    } else {
+      waypoints.add(path[fromIndex]);
+    }
+
+    if (targetPathIndex < fromIndex) {
+      for (var index = fromIndex + 1;
+          index < IstoBoardPaths.outerPathLength;
+          index++) {
+        waypoints.add(path[index]);
+      }
+      for (var index = 0; index <= targetPathIndex; index++) {
+        waypoints.add(path[index]);
+      }
+    } else {
+      for (var index = fromIndex + 1; index <= targetPathIndex; index++) {
+        waypoints.add(path[index]);
+      }
+    }
+
+    return waypoints;
   }
 
   List<TokenState> _legalMovesFor(int playerIndex, int roll) {
@@ -199,7 +246,7 @@ class GameTurnController {
     return true;
   }
 
-  List<TokenState> _captureTokensAtDestination(
+  List<TokenState> _tokensToCapture(
     TokenState movingToken,
     BoardCell destination,
   ) {
@@ -230,9 +277,6 @@ class GameTurnController {
       }
     }
 
-    for (final token in captured) {
-      token.sendToStart();
-    }
     return captured;
   }
 

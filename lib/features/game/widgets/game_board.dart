@@ -7,18 +7,37 @@ import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
 import 'package:isto_king/features/game/painters/game_board_painter.dart';
 import 'package:isto_king/features/game/widgets/game_token.dart';
+import 'package:isto_king/features/game/widgets/path_animated_token.dart';
 
 class GameBoard extends StatelessWidget {
   const GameBoard({
     required this.tokens,
     required this.movableTokenIds,
+    this.movePaths = const {},
     this.onTokenTap,
     super.key,
   });
 
+  static const moveAnimationCurve = Curves.easeInOutCubic;
+  static const _millisecondsPerStep = 110;
+
   final List<TokenState> tokens;
   final Set<int> movableTokenIds;
+  final Map<int, List<BoardCell>> movePaths;
   final ValueChanged<int>? onTokenTap;
+
+  static Duration moveAnimationDurationFor(Map<int, List<BoardCell>> movePaths) {
+    if (movePaths.isEmpty) return const Duration(milliseconds: 420);
+
+    final longestPath = movePaths.values.fold<int>(
+      1,
+      (longest, path) => math.max(longest, path.length),
+    );
+    final segmentCount = math.max(1, longestPath - 1);
+    return Duration(
+      milliseconds: (segmentCount * _millisecondsPerStep).clamp(220, 900),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +70,10 @@ class GameBoard extends StatelessWidget {
   }
 
   List<Widget> _buildTokenWidgets(Rect board, double cellSize) {
+    final animatingTokenIds = movePaths.keys.toSet();
     final groupedTokens = <BoardCell, List<TokenState>>{};
     for (final token in tokens) {
+      if (animatingTokenIds.contains(token.id)) continue;
       groupedTokens.putIfAbsent(_cellForToken(token), () => []).add(token);
     }
 
@@ -74,26 +95,65 @@ class GameBoard extends StatelessWidget {
       for (var index = 0; index < cellTokens.length; index++) {
         final token = cellTokens[index];
         final center = centers[index];
-        final isMovable = movableTokenIds.contains(token.id);
         widgets.add(
-          Positioned(
+          _positionedToken(
+            token: token,
             left: center.dx - tokenSize / 2,
             top: center.dy - tokenSize / 2,
-            width: tokenSize,
-            height: tokenSize,
-            child: GameToken(
-              color: gamePlayers[token.playerIndex].color,
-              size: tokenSize,
-              isMovable: isMovable,
-              semanticLabel:
-                  '${gamePlayers[token.playerIndex].name} token ${token.tokenIndex + 1}',
-              onTap: () => onTokenTap?.call(token.id),
-            ),
+            tokenSize: tokenSize,
           ),
         );
       }
     }
+
+    for (final entry in movePaths.entries) {
+      final token = tokens.firstWhere((candidate) => candidate.id == entry.key);
+      final tokenSize = cellSize * 0.32;
+      widgets.add(
+        PathAnimatedToken(
+          key: ValueKey('move-${token.id}'),
+          waypoints: entry.value,
+          board: board,
+          cellSize: cellSize,
+          tokenSize: tokenSize,
+          duration: moveAnimationDurationFor({entry.key: entry.value}),
+          curve: moveAnimationCurve,
+          child: GameToken(
+            color: gamePlayers[token.playerIndex].color,
+            size: tokenSize,
+            isMovable: false,
+            semanticLabel:
+                '${gamePlayers[token.playerIndex].name} token ${token.tokenIndex + 1}',
+          ),
+        ),
+      );
+    }
+
     return widgets;
+  }
+
+  Widget _positionedToken({
+    required TokenState token,
+    required double left,
+    required double top,
+    required double tokenSize,
+  }) {
+    final isMovable = movableTokenIds.contains(token.id);
+    return Positioned(
+      key: ValueKey(token.id),
+      left: left,
+      top: top,
+      width: tokenSize,
+      height: tokenSize,
+      child: GameToken(
+        color: gamePlayers[token.playerIndex].color,
+        size: tokenSize,
+        isMovable: isMovable,
+        semanticLabel:
+            '${gamePlayers[token.playerIndex].name} token ${token.tokenIndex + 1}',
+        onTap: () => onTokenTap?.call(token.id),
+      ),
+    );
   }
 
   BoardCell _cellForToken(TokenState token) {
