@@ -143,26 +143,6 @@ class TopGameBar extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Positioned.fill(
-          top: 2,
-          bottom: 5,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: RoyalColors.parchmentLight.withValues(alpha: 0.86),
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(32),
-              ),
-              border: Border.all(color: RoyalColors.gold, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: RoyalColors.brown.withValues(alpha: 0.16),
-                  blurRadius: 12,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-          ),
-        ),
         const Positioned(
           left: 4,
           child: RoundIconButton(icon: Icons.arrow_back),
@@ -218,14 +198,14 @@ class CoinBalancePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 39,
-      padding: const EdgeInsets.fromLTRB(7, 4, 4, 4),
+      height: 34,
+      padding: const EdgeInsets.fromLTRB(6, 3, 3, 3),
       decoration: BoxDecoration(
         color: const Color(0xFFFFE1B2),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: RoyalColors.brown.withValues(alpha: 0.45),
-          width: 1.5,
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
@@ -238,21 +218,21 @@ class CoinBalancePill extends StatelessWidget {
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CoinIcon(size: 27),
-          SizedBox(width: 7),
+          CoinIcon(size: 24),
+          SizedBox(width: 6),
           Text(
             '120',
             style: TextStyle(
               color: RoyalColors.darkBrown,
               fontWeight: FontWeight.w900,
-              fontSize: 19,
+              fontSize: 17,
             ),
           ),
-          SizedBox(width: 8),
+          SizedBox(width: 7),
           CircleAvatar(
-            radius: 15,
+            radius: 13,
             backgroundColor: Color(0xFF3AAA45),
-            child: Icon(Icons.add, color: Colors.white, size: 22),
+            child: Icon(Icons.add, color: Colors.white, size: 19),
           ),
         ],
       ),
