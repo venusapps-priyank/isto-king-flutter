@@ -457,16 +457,7 @@ class GameBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: RoyalColors.brown.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
       child: const CustomPaint(painter: GameBoardPainter()),
     );
   }
@@ -588,7 +579,11 @@ class GameBoardPainter extends CustomPainter {
       width: shortest,
       height: shortest,
     ).deflate(1);
-    final outer = RRect.fromRectAndRadius(boardRect, const Radius.circular(19));
+    final borderWidth = math.max(4.0, shortest * 0.018);
+    final outer = RRect.fromRectAndRadius(
+      boardRect.deflate(borderWidth / 2),
+      const Radius.circular(19),
+    );
     final inner = boardRect.deflate(shortest * 0.032);
     final innerRRect = RRect.fromRectAndRadius(
       inner,
@@ -596,13 +591,12 @@ class GameBoardPainter extends CustomPainter {
     );
     final cell = inner.width / gridCount;
 
-    canvas.drawRRect(outer, Paint()..color = RoyalColors.darkRed);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        boardRect.deflate(shortest * 0.011),
-        const Radius.circular(15),
-      ),
-      Paint()..color = const Color(0xFFE9A329),
+      outer,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = borderWidth
+        ..color = RoyalColors.darkRed,
     );
     canvas.drawRRect(innerRRect, Paint()..color = RoyalColors.boardCell);
 
