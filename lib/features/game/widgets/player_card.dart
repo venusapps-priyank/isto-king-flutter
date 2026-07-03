@@ -48,6 +48,14 @@ class _PlayerCardState extends State<PlayerCard> {
   }
 
   @override
+  void didUpdateWidget(covariant PlayerCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showShells && !widget.showShells && _rollOverlayCount != null) {
+      setState(() => _rollOverlayCount = null);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -180,7 +188,7 @@ class _PlayerCardState extends State<PlayerCard> {
                       ),
                     ),
                   ),
-                  if (_rollOverlayCount != null)
+                  if (widget.showShells && _rollOverlayCount != null)
                     Positioned(
                       right: widget.avatarOnRight ? null : -overlayInset,
                       left: widget.avatarOnRight ? -overlayInset : null,
