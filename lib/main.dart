@@ -641,10 +641,7 @@ class GameBoardPainter extends CustomPainter {
   }
 
   void _drawPlayerHomeCell(Canvas canvas, Rect rect, Color color) {
-    canvas.drawRect(
-      rect.deflate(rect.width * 0.06),
-      Paint()..color = color.withValues(alpha: 0.9),
-    );
+    canvas.drawRect(rect, Paint()..color = color);
   }
 
   void _drawGrid(Canvas canvas, Rect board, double cell) {
