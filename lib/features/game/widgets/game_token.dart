@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 
-class GameToken extends StatelessWidget {
+class GameToken extends StatefulWidget {
   const GameToken({
     required this.color,
     required this.size,
@@ -20,24 +20,85 @@ class GameToken extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
+  State<GameToken> createState() => _GameTokenState();
+}
+
+class _GameTokenState extends State<GameToken> with SingleTickerProviderStateMixin {
+  static const _pulseDuration = Duration(milliseconds: 900);
+
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: _pulseDuration,
+    );
+    _pulseAnimation = CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    );
+    _syncPulseAnimation();
+  }
+
+  @override
+  void didUpdateWidget(GameToken oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isMovable != oldWidget.isMovable) {
+      _syncPulseAnimation();
+    }
+  }
+
+  void _syncPulseAnimation() {
+    if (widget.isMovable) {
+      _pulseController.repeat(reverse: true);
+      return;
+    }
+
+    _pulseController.stop();
+    _pulseController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Semantics(
-      button: isMovable,
-      enabled: isMovable,
-      label: semanticLabel,
+      button: widget.isMovable,
+      enabled: widget.isMovable,
+      label: widget.semanticLabel,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: isMovable ? onTap : null,
-        child: AnimatedScale(
-          scale: isMovable ? 1.12 : 1,
-          duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOut,
-          child: SizedBox.square(
-            dimension: size,
-            child: CustomPaint(
-              painter: _GameTokenPainter(color: color, isMovable: isMovable),
-            ),
-          ),
+        onTap: widget.isMovable ? widget.onTap : null,
+        child: AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            final pulse = widget.isMovable ? _pulseAnimation.value : 0.0;
+            final scale = 1.0 + pulse * 0.14;
+            return Transform.scale(
+              scale: scale,
+              child: SizedBox.square(
+                dimension: widget.size,
+                child: CustomPaint(
+                  painter: _GameTokenPainter(
+                    color: widget.color,
+                    isMovable: widget.isMovable,
+                    pulse: pulse,
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -45,10 +106,15 @@ class GameToken extends StatelessWidget {
 }
 
 class _GameTokenPainter extends CustomPainter {
-  const _GameTokenPainter({required this.color, required this.isMovable});
+  const _GameTokenPainter({
+    required this.color,
+    required this.isMovable,
+    required this.pulse,
+  });
 
   final Color color;
   final bool isMovable;
+  final double pulse;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,13 +122,14 @@ class _GameTokenPainter extends CustomPainter {
     final radius = size.shortestSide / 2;
 
     if (isMovable) {
+      final ringOpacity = 0.55 + pulse * 0.45;
       canvas.drawCircle(
         center,
-        radius * 0.98,
+        radius * (0.98 + pulse * 0.06),
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = radius * 0.16
-          ..color = RoyalColors.gold,
+          ..strokeWidth = radius * (0.14 + pulse * 0.06)
+          ..color = RoyalColors.gold.withValues(alpha: ringOpacity),
       );
       canvas.drawCircle(
         center,
@@ -70,7 +137,7 @@ class _GameTokenPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = radius * 0.08
-          ..color = RoyalColors.parchmentLight,
+          ..color = RoyalColors.parchmentLight.withValues(alpha: ringOpacity),
       );
     }
 
@@ -122,6 +189,8 @@ class _GameTokenPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GameTokenPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.isMovable != isMovable;
+    return oldDelegate.color != color ||
+        oldDelegate.isMovable != isMovable ||
+        oldDelegate.pulse != pulse;
   }
 }
