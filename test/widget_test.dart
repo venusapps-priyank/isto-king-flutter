@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isto_king/main.dart';
+import 'package:isto_king/app/isto_king_app.dart';
+import 'package:isto_king/features/game/painters/game_board_painter.dart';
+import 'package:isto_king/features/game/widgets/game_board.dart';
+import 'package:isto_king/features/game/widgets/player_card.dart';
 
 void main() {
   for (final size in [const Size(390, 844), const Size(430, 932)]) {
