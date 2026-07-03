@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 void main() {
   runApp(const IstoKingApp());
@@ -40,8 +42,27 @@ class RoyalColors {
   static const outerRed = Color(0xFF7B0D06);
 }
 
-class IstoGameScreen extends StatelessWidget {
+class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({super.key});
+
+  @override
+  State<IstoGameScreen> createState() => _IstoGameScreenState();
+}
+
+class _IstoGameScreenState extends State<IstoGameScreen> {
+  // Turn order: yellow → red → green → blue
+  static const _turnOrder = [2, 0, 1, 3];
+  int _currentPlayerIndex = _turnOrder.first;
+  final List<int?> _lastRolls = List<int?>.filled(4, null);
+
+  void _handleRollComplete(int playerIndex, int value) {
+    setState(() {
+      _lastRolls[playerIndex] = value;
+      final turnIndex = _turnOrder.indexOf(_currentPlayerIndex);
+      _currentPlayerIndex =
+          _turnOrder[(turnIndex + 1) % _turnOrder.length];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,17 +105,23 @@ class IstoGameScreen extends StatelessWidget {
                         const SizedBox(height: gap),
                         SizedBox(
                           height: cardHeight,
-                          child: const PlayerRow(
+                          child: PlayerRow(
                             left: PlayerCard(
                               name: 'Rammohan',
                               color: RoyalColors.red,
                               avatarAsset: 'assets/avatar/avatar-1.png',
+                              isActive: _currentPlayerIndex == 0,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(0, value),
                             ),
                             right: PlayerCard(
                               name: 'Chandrakishore',
                               color: RoyalColors.green,
                               avatarAsset: 'assets/avatar/avatar-f-1.png',
                               avatarOnRight: true,
+                              isActive: _currentPlayerIndex == 1,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(1, value),
                             ),
                           ),
                         ),
@@ -108,17 +135,23 @@ class IstoGameScreen extends StatelessWidget {
                         const SizedBox(height: gap),
                         SizedBox(
                           height: cardHeight,
-                          child: const PlayerRow(
+                          child: PlayerRow(
                             left: PlayerCard(
                               name: 'Aaradhya',
                               color: RoyalColors.yellow,
                               avatarAsset: 'assets/avatar/avatar-2.png',
+                              isActive: _currentPlayerIndex == 2,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(2, value),
                             ),
                             right: PlayerCard(
                               name: 'Shaurya',
                               color: RoyalColors.blue,
                               avatarAsset: 'assets/avatar/avatar-f-2.png',
                               avatarOnRight: true,
+                              isActive: _currentPlayerIndex == 3,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(3, value),
                             ),
                           ),
                         ),
@@ -257,6 +290,8 @@ class PlayerCard extends StatelessWidget {
     required this.avatarAsset,
     this.avatarOnRight = false,
     this.shellCount = 4,
+    this.isActive = false,
+    this.onRollComplete,
     super.key,
   });
 
@@ -265,6 +300,8 @@ class PlayerCard extends StatelessWidget {
   final String avatarAsset;
   final bool avatarOnRight;
   final int shellCount;
+  final bool isActive;
+  final ValueChanged<int>? onRollComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -277,10 +314,10 @@ class PlayerCard extends StatelessWidget {
         final cardBottom = height * 0.03;
         final contentLeft = avatarSize * 0.76;
         final nameSize = height < 96 ? 15.0 : 17.0;
-        final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 18;
+        final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 9;
         final shellSize = math.min(
-          height < 96 ? 25.0 : 29.0,
-          contentWidth / 4.35,
+          height < 96 ? 38.0 : 42.0,
+          contentWidth / 2.95,
         );
 
         return Stack(
@@ -298,8 +335,9 @@ class PlayerCard extends StatelessWidget {
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.35),
-                      blurRadius: 12,
+                      color: color.withValues(alpha: isActive ? 0.58 : 0.35),
+                      blurRadius: isActive ? 18 : 12,
+                      spreadRadius: isActive ? 1 : 0,
                       offset: const Offset(0, 5),
                     ),
                   ],
@@ -312,14 +350,18 @@ class PlayerCard extends StatelessWidget {
                     bottom: 8,
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: avatarOnRight
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
                     children: [
                       SizedBox(
                         height: nameSize + 4,
                         width: double.infinity,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
+                          alignment: avatarOnRight
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: Text(
                             name,
                             maxLines: 1,
@@ -340,19 +382,13 @@ class PlayerCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(
-                          shellCount,
-                          (index) => Transform.rotate(
-                            angle: (index.isEven ? -0.16 : 0.12),
-                            child: SizedBox(
-                              width: shellSize,
-                              height: shellSize,
-                              child: const CowrieShell(),
-                            ),
-                          ),
-                        ),
+                      CowrieRollPanel(
+                        playerColor: color,
+                        isActive: isActive,
+                        shellCount: shellCount,
+                        shellSize: shellSize,
+                        alignRight: avatarOnRight,
+                        onRollComplete: onRollComplete,
                       ),
                     ],
                   ),
@@ -405,12 +441,306 @@ class CoinIcon extends StatelessWidget {
   }
 }
 
-class CowrieShell extends StatelessWidget {
-  const CowrieShell({super.key});
+class CowrieShell extends StatefulWidget {
+  const CowrieShell({
+    required this.startOpen,
+    required this.resultOpen,
+    required this.isRolling,
+    required this.rollCycle,
+    required this.delayIndex,
+    required this.size,
+    required this.width,
+    super.key,
+  });
+
+  final bool startOpen;
+  final bool resultOpen;
+  final bool isRolling;
+  final int rollCycle;
+  final int delayIndex;
+  final double size;
+  final double width;
+
+  @override
+  State<CowrieShell> createState() => _CowrieShellState();
+}
+
+class _CowrieShellState extends State<CowrieShell> {
+  static const int _delayMs = 165;
+  static const int _spinMs = 1000;
+  static const int _settleMs = 160;
+  static const double _landingStart = 0.82;
+
+  bool? _spinStartOpen;
+  bool? _spinResultOpen;
+
+  int get _tumbleHalfFlips => 4 + (widget.delayIndex % 2);
+
+  @override
+  void didUpdateWidget(CowrieShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.rollCycle > oldWidget.rollCycle ||
+        (widget.isRolling && !oldWidget.isRolling)) {
+      _spinStartOpen = widget.startOpen;
+      _spinResultOpen = widget.resultOpen;
+    }
+  }
+
+  Widget _shellImage(bool isOpen) => Image.asset(
+    isOpen
+        ? 'assets/images/cowrie_open.png'
+        : 'assets/images/cowrie_closed.png',
+    width: widget.width,
+    height: widget.size,
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+  );
+
+  Widget _buildSettledShell() {
+    return SizedBox(
+      width: widget.width,
+      height: widget.size,
+      child: _shellImage(_spinResultOpen ?? widget.resultOpen),
+    );
+  }
+
+  bool _faceBeforeLanding(bool startOpen) {
+    return _tumbleHalfFlips.isEven ? startOpen : !startOpen;
+  }
+
+  Widget _buildFlipFrame(double value) {
+    final startOpen = _spinStartOpen ?? widget.startOpen;
+    final resultOpen = _spinResultOpen ?? widget.resultOpen;
+    final pop = math.sin(value * math.pi);
+    final wobble =
+        math.sin(value * math.pi * 4 + widget.delayIndex) * 1.8 * pop;
+    final scale = 1.0 + pop * 0.24;
+    final lift = -pop * 8;
+
+    late final double verticalSpin;
+    late final bool showOpen;
+
+    if (value >= _landingStart) {
+      final landValue = (value - _landingStart) / (1 - _landingStart);
+      final showingResult = landValue >= 0.5;
+      final halfProgress = showingResult ? (landValue - 0.5) * 2 : landValue * 2;
+      final landingSpin = showingResult
+          ? -math.pi / 2 + halfProgress * math.pi / 2
+          : halfProgress * math.pi / 2;
+      verticalSpin = _tumbleHalfFlips * math.pi / 2 + landingSpin;
+      showOpen = showingResult ? resultOpen : _faceBeforeLanding(startOpen);
+    } else {
+      final tumbleValue = Curves.easeOut.transform(value / _landingStart);
+      verticalSpin = tumbleValue * _tumbleHalfFlips * math.pi / 2;
+      final halfFlipIndex = (verticalSpin / (math.pi / 2)).floor();
+      showOpen = halfFlipIndex.isEven ? startOpen : !startOpen;
+    }
+
+    return Transform.translate(
+      offset: Offset(wobble, lift),
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.0016)
+          ..rotateY(verticalSpin),
+        child: Transform.scale(
+          scale: scale,
+          child: _shellImage(showOpen),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: CowrieShellPainter());
+    if (!widget.isRolling) {
+      return _buildSettledShell();
+    }
+
+    final startOpen = _spinStartOpen ?? widget.startOpen;
+    final totalMs = _spinMs + _settleMs;
+    final flipEnd = _spinMs / totalMs;
+
+    return SizedBox(
+      width: widget.width,
+      height: widget.size,
+      child: _shellImage(startOpen)
+          .animate(
+            key: ValueKey('cowrie-${widget.rollCycle}-${widget.delayIndex}'),
+            delay: (widget.delayIndex * _delayMs).ms,
+          )
+          .custom(
+            duration: totalMs.ms,
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              if (value >= flipEnd) {
+                final settleT = (value - flipEnd) / (1 - flipEnd);
+                final bounce = 1.0 + math.sin(settleT * math.pi) * 0.05;
+                final resultOpen = _spinResultOpen ?? widget.resultOpen;
+                return Transform.scale(
+                  scale: bounce,
+                  child: _shellImage(resultOpen),
+                );
+              }
+              return _buildFlipFrame(value / flipEnd);
+            },
+          ),
+    );
+  }
+}
+
+class CowrieRollPanel extends StatefulWidget {
+  const CowrieRollPanel({
+    required this.playerColor,
+    required this.isActive,
+    required this.shellCount,
+    required this.shellSize,
+    this.alignRight = false,
+    this.onRollComplete,
+    super.key,
+  });
+
+  final Color playerColor;
+  final bool isActive;
+  final int shellCount;
+  final double shellSize;
+  final bool alignRight;
+  final ValueChanged<int>? onRollComplete;
+
+  @override
+  State<CowrieRollPanel> createState() => _CowrieRollPanelState();
+}
+
+class _CowrieRollPanelState extends State<CowrieRollPanel> {
+  static const int _shellDelayMs = 165;
+  static const int _shellSpinMs = 1000;
+  static const int _shellSettleMs = 160;
+
+  final math.Random _random = math.Random();
+  late List<bool> _cowries;
+  List<bool>? _rollingCowries;
+  bool _isRolling = false;
+  int _rollCycle = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _cowries = List<bool>.filled(widget.shellCount, false);
+  }
+
+  @override
+  void didUpdateWidget(covariant CowrieRollPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shellCount != widget.shellCount) {
+      _cowries = List<bool>.filled(widget.shellCount, false);
+    }
+    if (oldWidget.isActive && !widget.isActive) {
+      _cowries = List<bool>.filled(widget.shellCount, false);
+      _rollingCowries = null;
+      _isRolling = false;
+    }
+  }
+
+  Future<void> _rollCowries() async {
+    if (!widget.isActive || _isRolling) return;
+
+    final finalCowries = _generateFinalCowries();
+    final result = _calculateIstoValue(finalCowries);
+    final nextRollCycle = _rollCycle + 1;
+
+    setState(() {
+      _isRolling = true;
+      _rollCycle = nextRollCycle;
+      _rollingCowries = finalCowries;
+    });
+
+    await Future<void>.delayed(
+      Duration(
+        milliseconds:
+            _shellDelayMs * (widget.shellCount - 1) +
+            _shellSpinMs +
+            _shellSettleMs +
+            80,
+      ),
+    );
+    if (!mounted || _rollCycle != nextRollCycle) return;
+
+    setState(() {
+      _cowries = finalCowries;
+      _rollingCowries = null;
+      _isRolling = false;
+    });
+
+    widget.onRollComplete?.call(result);
+  }
+
+  List<bool> _generateFinalCowries() {
+    return List<bool>.generate(widget.shellCount, (_) => _random.nextBool());
+  }
+
+  int _calculateIstoValue(List<bool> cowries) {
+    final openCount = cowries.where((isOpen) => isOpen).length;
+    return openCount == 0 ? 8 : openCount;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isActive) {
+      return SizedBox(height: widget.shellSize);
+    }
+
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: 'Roll cowries',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _rollCowries,
+        child: SizedBox(
+          width: double.infinity,
+          height: widget.shellSize,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final shellWidth = widget.shellSize * 0.68;
+              final desiredGap = widget.shellSize * 0.2;
+              final fittedGap = widget.shellCount <= 1
+                  ? 0.0
+                  : (constraints.maxWidth - shellWidth * widget.shellCount) /
+                        (widget.shellCount - 1);
+              final gap = math.max(0.0, math.min(desiredGap, fittedGap));
+              final step = shellWidth + gap;
+              final rowWidth =
+                  shellWidth * widget.shellCount +
+                  gap * (widget.shellCount - 1);
+              final startX = widget.alignRight
+                  ? constraints.maxWidth - rowWidth
+                  : 0.0;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  for (var index = 0; index < widget.shellCount; index++)
+                    Positioned(
+                      left: startX + step * index,
+                      top: 0,
+                      child: CowrieShell(
+                        startOpen: _cowries[index],
+                        resultOpen:
+                            _rollingCowries?[index] ?? _cowries[index],
+                        isRolling: _isRolling,
+                        rollCycle: _rollCycle,
+                        delayIndex: index,
+                        size: widget.shellSize,
+                        width: shellWidth,
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -737,35 +1067,46 @@ class GameBoardPainter extends CustomPainter {
   }
 
   void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
+    final tipDir = Offset(math.cos(angle), math.sin(angle));
+    final length = rect.width * 0.85;
+    final tipX = length * 0.35;
+    final tailX = length * 0.65;
+    final arrowMidX = (tipX - tailX) / 2;
+    final boundary = rect.center + Offset(
+      tipDir.dx * rect.width / 2,
+      tipDir.dy * rect.height / 2,
+    );
     canvas.save();
-    canvas.translate(rect.center.dx, rect.center.dy);
+    canvas.translate(
+      boundary.dx - tipDir.dx * arrowMidX,
+      boundary.dy - tipDir.dy * arrowMidX,
+    );
     canvas.rotate(angle);
-    final length = rect.width * 0.78;
     final shadowPath = Path()
-      ..moveTo(length * 0.42, 0)
-      ..lineTo(length * 0.03, -length * 0.27)
-      ..lineTo(length * 0.1, -length * 0.1)
-      ..lineTo(-length * 0.36, -length * 0.1)
-      ..lineTo(-length * 0.36, length * 0.1)
-      ..lineTo(length * 0.1, length * 0.1)
-      ..lineTo(length * 0.03, length * 0.27)
+      ..moveTo(tipX, 0)
+      ..lineTo(length * 0.02, -length * 0.20)
+      ..lineTo(length * 0.08, -length * 0.075)
+      ..lineTo(-tailX, -length * 0.075)
+      ..lineTo(-tailX, length * 0.075)
+      ..lineTo(length * 0.08, length * 0.075)
+      ..lineTo(length * 0.02, length * 0.20)
       ..close();
     canvas.drawShadow(shadowPath, Colors.black, 2, true);
     final path = Path()
-      ..moveTo(length * 0.42, 0)
-      ..lineTo(length * 0.03, -length * 0.27)
-      ..lineTo(length * 0.1, -length * 0.1)
-      ..lineTo(-length * 0.36, -length * 0.1)
-      ..lineTo(-length * 0.36, length * 0.1)
-      ..lineTo(length * 0.1, length * 0.1)
-      ..lineTo(length * 0.03, length * 0.27)
+      ..moveTo(tipX, 0)
+      ..lineTo(length * 0.02, -length * 0.20)
+      ..lineTo(length * 0.08, -length * 0.075)
+      ..lineTo(-tailX, -length * 0.075)
+      ..lineTo(-tailX, length * 0.075)
+      ..lineTo(length * 0.08, length * 0.075)
+      ..lineTo(length * 0.02, length * 0.20)
       ..close();
     canvas.drawPath(path, Paint()..color = color);
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.2, rect.width * 0.028)
+        ..strokeWidth = math.max(1.0, rect.width * 0.024)
         ..strokeJoin = StrokeJoin.round
         ..color = Colors.white.withValues(alpha: 0.75),
     );
