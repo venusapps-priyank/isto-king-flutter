@@ -111,6 +111,33 @@ void main() {
       expect(controller.currentPlayerIndex, 2);
       expect(controller.pendingRoll, isNull);
     });
+
+    test('animates captured tokens back along the reverse path', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final redPath = IstoBoardPaths.pathForPlayer(0);
+      final destination = redPath[2];
+      final movingRed = tokenFor(controller, 0, 0);
+      final capturedGreen = tokenFor(controller, 1, 0);
+      final greenPath = IstoBoardPaths.pathForPlayer(1);
+      final greenPathIndex = pathIndexForCell(1, destination);
+      placeToken(movingRed, 1);
+      placeToken(capturedGreen, greenPathIndex);
+
+      controller.handleRollComplete(0, 1);
+      final result = controller.moveToken(movingRed.id);
+
+      final capturePath = result!.animationPaths[capturedGreen.id]!;
+      expect(capturePath.first, greenPath[greenPathIndex]);
+      expect(capturePath.last, IstoBoardPaths.homeCellForPlayer(1));
+      expect(
+        capturePath,
+        [
+          for (var index = greenPathIndex; index >= 0; index--)
+            greenPath[index],
+          IstoBoardPaths.homeCellForPlayer(1),
+        ],
+      );
+    });
   });
 }
 

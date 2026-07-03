@@ -95,10 +95,7 @@ class GameTurnController {
     final animationPaths = <int, List<BoardCell>>{
       token.id: _animationPathForMove(token, targetPathIndex),
       for (final captured in capturedTokens)
-        captured.id: [
-          cellForToken(captured),
-          IstoBoardPaths.homeCellForPlayer(captured.playerIndex),
-        ],
+        captured.id: _animationPathToStart(captured),
     };
 
     for (final capturedToken in capturedTokens) {
@@ -184,6 +181,20 @@ class GameTurnController {
       }
     }
 
+    return waypoints;
+  }
+
+  List<BoardCell> _animationPathToStart(TokenState token) {
+    final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
+    final home = IstoBoardPaths.homeCellForPlayer(token.playerIndex);
+
+    if (token.isAtStart) return [home];
+
+    final waypoints = <BoardCell>[path[token.pathIndex]];
+    for (var index = token.pathIndex - 1; index >= 0; index--) {
+      waypoints.add(path[index]);
+    }
+    waypoints.add(home);
     return waypoints;
   }
 
