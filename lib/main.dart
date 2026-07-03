@@ -144,14 +144,14 @@ class TopGameBar extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         const Positioned(
-          left: 4,
+          left: 0,
           child: RoundIconButton(icon: Icons.arrow_back),
         ),
         const Positioned(
-          right: 4,
+          right: 0,
           child: RoundIconButton(icon: Icons.settings),
         ),
-        Positioned(right: 70, child: const CoinBalancePill()),
+        Positioned(right: 48, child: const CoinBalancePill()),
         const Positioned(
           bottom: 13,
           child: SizedBox(
@@ -173,21 +173,21 @@ class RoundIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 50,
-      height: 50,
+      width: 38,
+      height: 38,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: RoyalColors.outerRed,
-        border: Border.all(color: Colors.white, width: 3),
+        border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
           BoxShadow(
             color: RoyalColors.brown.withValues(alpha: 0.35),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Icon(icon, color: Colors.white, size: 28),
+      child: Icon(icon, color: Colors.white, size: 22),
     );
   }
 }
