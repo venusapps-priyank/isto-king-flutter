@@ -386,10 +386,7 @@ class PlayerCard extends StatelessWidget {
               left: 0,
               top: height * 0.14,
               child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: RoyalColors.gold,
-                ),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
                 child: Padding(
                   padding: EdgeInsets.all(avatarSize * 0.04),
                   child: ClipOval(
