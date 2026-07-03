@@ -554,6 +554,7 @@ class GameBoardPainter extends CustomPainter {
       row: 0,
       color: RoyalColors.red,
       arrowAngle: math.pi / 2,
+      arrowCol: 3,
     ),
     BoardPlayerHome(
       col: 2,
