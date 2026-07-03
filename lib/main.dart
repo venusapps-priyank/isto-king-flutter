@@ -1068,39 +1068,45 @@ class GameBoardPainter extends CustomPainter {
 
   void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
     final tipDir = Offset(math.cos(angle), math.sin(angle));
-    final center = rect.center + Offset(
+    final length = rect.width * 0.85;
+    final tipX = length * 0.35;
+    final tailX = length * 0.65;
+    final arrowMidX = (tipX - tailX) / 2;
+    final boundary = rect.center + Offset(
       tipDir.dx * rect.width / 2,
       tipDir.dy * rect.height / 2,
     );
     canvas.save();
-    canvas.translate(center.dx, center.dy);
+    canvas.translate(
+      boundary.dx - tipDir.dx * arrowMidX,
+      boundary.dy - tipDir.dy * arrowMidX,
+    );
     canvas.rotate(angle);
-    final length = rect.width * 0.78;
     final shadowPath = Path()
-      ..moveTo(length * 0.42, 0)
-      ..lineTo(length * 0.03, -length * 0.27)
-      ..lineTo(length * 0.1, -length * 0.1)
-      ..lineTo(-length * 0.36, -length * 0.1)
-      ..lineTo(-length * 0.36, length * 0.1)
-      ..lineTo(length * 0.1, length * 0.1)
-      ..lineTo(length * 0.03, length * 0.27)
+      ..moveTo(tipX, 0)
+      ..lineTo(length * 0.02, -length * 0.20)
+      ..lineTo(length * 0.08, -length * 0.075)
+      ..lineTo(-tailX, -length * 0.075)
+      ..lineTo(-tailX, length * 0.075)
+      ..lineTo(length * 0.08, length * 0.075)
+      ..lineTo(length * 0.02, length * 0.20)
       ..close();
     canvas.drawShadow(shadowPath, Colors.black, 2, true);
     final path = Path()
-      ..moveTo(length * 0.42, 0)
-      ..lineTo(length * 0.03, -length * 0.27)
-      ..lineTo(length * 0.1, -length * 0.1)
-      ..lineTo(-length * 0.36, -length * 0.1)
-      ..lineTo(-length * 0.36, length * 0.1)
-      ..lineTo(length * 0.1, length * 0.1)
-      ..lineTo(length * 0.03, length * 0.27)
+      ..moveTo(tipX, 0)
+      ..lineTo(length * 0.02, -length * 0.20)
+      ..lineTo(length * 0.08, -length * 0.075)
+      ..lineTo(-tailX, -length * 0.075)
+      ..lineTo(-tailX, length * 0.075)
+      ..lineTo(length * 0.08, length * 0.075)
+      ..lineTo(length * 0.02, length * 0.20)
       ..close();
     canvas.drawPath(path, Paint()..color = color);
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.2, rect.width * 0.028)
+        ..strokeWidth = math.max(1.0, rect.width * 0.024)
         ..strokeJoin = StrokeJoin.round
         ..color = Colors.white.withValues(alpha: 0.75),
     );
