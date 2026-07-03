@@ -317,18 +317,21 @@ class PlayerCard extends StatelessWidget {
       builder: (context, constraints) {
         final height = constraints.maxHeight;
         final avatarSize = height * 0.82;
-        final cardLeft = avatarSize * 0.34;
+        final cardLeft = avatarSize * 0.32;
+        final cardTop = height * 0.12;
+        final cardBottom = height * 0.03;
+        final contentLeft = avatarSize * 0.68;
         final nameSize = height < 96 ? 15.0 : 17.0;
-        final contentWidth = constraints.maxWidth - cardLeft - avatarSize * 0.58 - 16;
-        final shellSize = math.min(height < 96 ? 27.0 : 31.0, contentWidth / 4.35);
+        final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 18;
+        final shellSize = math.min(height < 96 ? 25.0 : 29.0, contentWidth / 4.35);
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
               left: cardLeft,
-              top: height * 0.07,
-              bottom: height * 0.02,
+              top: cardTop,
+              bottom: cardBottom,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -347,24 +350,28 @@ class PlayerCard extends StatelessWidget {
                   ],
                 ),
                 child: Padding(
-                  padding: EdgeInsets.only(left: avatarSize * 0.58, right: 8, top: 7, bottom: 7),
+                  padding: EdgeInsets.only(left: contentLeft, right: 9, top: 8, bottom: 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          name,
-                          maxLines: 1,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: nameSize,
-                            height: 1,
-                            fontWeight: FontWeight.w900,
-                            shadows: const [
-                              Shadow(color: RoyalColors.brown, blurRadius: 2, offset: Offset(0, 1)),
-                            ],
+                      SizedBox(
+                        height: nameSize + 4,
+                        width: double.infinity,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: nameSize,
+                              height: 1,
+                              fontWeight: FontWeight.w900,
+                              shadows: const [
+                                Shadow(color: RoyalColors.brown, blurRadius: 2, offset: Offset(0, 1)),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -390,7 +397,7 @@ class PlayerCard extends StatelessWidget {
             ),
             Positioned(
               left: 0,
-              top: height * 0.08,
+              top: height * 0.07,
               child: SizedBox(
                 width: avatarSize,
                 height: avatarSize,
@@ -560,9 +567,9 @@ class GameBoardPainter extends CustomPainter {
     _drawGrid(canvas, inner, cell);
     _drawCenterHome(canvas, _cellRect(inner, cell, 2, 2));
 
-    _drawArrow(canvas, _cellRect(inner, cell, 2, 1), RoyalColors.red, math.pi / 2);
-    _drawArrow(canvas, _cellRect(inner, cell, 2, 3), RoyalColors.blue, -math.pi / 2);
-    _drawArrow(canvas, _cellRect(inner, cell, 1, 2), RoyalColors.yellow, 0);
+    _drawArrow(canvas, _cellRect(inner, cell, 1, 0), RoyalColors.red, math.pi / 2);
+    _drawArrow(canvas, _cellRect(inner, cell, 1, 4), RoyalColors.blue, -math.pi / 2);
+    _drawSideArrow(canvas, _cellRect(inner, cell, 0, 2), RoyalColors.yellow, 0);
     _drawArrow(canvas, _cellRect(inner, cell, 3, 2), RoyalColors.green, math.pi);
 
     _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 0), RoyalColors.red);
@@ -674,26 +681,45 @@ class GameBoardPainter extends CustomPainter {
     canvas.save();
     canvas.translate(rect.center.dx, rect.center.dy);
     canvas.rotate(angle);
-    final length = rect.width * 0.72;
-    final shaft = Paint()
-      ..color = color
-      ..strokeWidth = rect.width * 0.16
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(-length * 0.35, 0), Offset(length * 0.22, 0), shaft);
+    final length = rect.width * 0.78;
+    final shadowPath = Path()
+      ..moveTo(length * 0.42, 0)
+      ..lineTo(length * 0.03, -length * 0.27)
+      ..lineTo(length * 0.1, -length * 0.1)
+      ..lineTo(-length * 0.36, -length * 0.1)
+      ..lineTo(-length * 0.36, length * 0.1)
+      ..lineTo(length * 0.1, length * 0.1)
+      ..lineTo(length * 0.03, length * 0.27)
+      ..close();
+    canvas.drawShadow(shadowPath, Colors.black, 2, true);
     final path = Path()
-      ..moveTo(length * 0.38, 0)
-      ..lineTo(length * 0.04, -length * 0.24)
-      ..lineTo(length * 0.04, length * 0.24)
+      ..moveTo(length * 0.42, 0)
+      ..lineTo(length * 0.03, -length * 0.27)
+      ..lineTo(length * 0.1, -length * 0.1)
+      ..lineTo(-length * 0.36, -length * 0.1)
+      ..lineTo(-length * 0.36, length * 0.1)
+      ..lineTo(length * 0.1, length * 0.1)
+      ..lineTo(length * 0.03, length * 0.27)
       ..close();
     canvas.drawPath(path, Paint()..color = color);
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
+        ..strokeWidth = math.max(1.2, rect.width * 0.028)
+        ..strokeJoin = StrokeJoin.round
         ..color = Colors.white.withValues(alpha: 0.75),
     );
     canvas.restore();
+  }
+
+  void _drawSideArrow(Canvas canvas, Rect rect, Color color, double angle) {
+    final sideRect = Rect.fromCenter(
+      center: Offset(rect.left + rect.width * 0.2, rect.center.dy),
+      width: rect.width * 0.34,
+      height: rect.height * 0.34,
+    );
+    _drawArrow(canvas, sideRect, color, angle);
   }
 
   @override
