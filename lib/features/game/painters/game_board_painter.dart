@@ -92,14 +92,6 @@ class GameBoardPainter extends CustomPainter {
         home.arrowAngle,
       );
     }
-
-    for (final home in playerHomes) {
-      _drawTokenCluster(
-        canvas,
-        _cellRect(inner, cell, home.col, home.row),
-        home.color,
-      );
-    }
   }
 
   Rect _cellRect(Rect board, double cell, int col, int row) {
@@ -171,87 +163,15 @@ class GameBoardPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawTokenCluster(
-    Canvas canvas,
-    Rect rect,
-    Color color, [
-    int count = 4,
-  ]) {
-    final radius = rect.width * 0.13;
-    final offsets = count == 3
-        ? [
-            Offset(rect.center.dx, rect.top + rect.height * 0.24),
-            Offset(rect.center.dx, rect.center.dy),
-            Offset(rect.center.dx, rect.bottom - rect.height * 0.24),
-          ]
-        : [
-            Offset(rect.center.dx - rect.width / 3, rect.center.dy),
-            Offset(rect.center.dx, rect.center.dy - rect.height / 3),
-            Offset(rect.center.dx, rect.center.dy + rect.height / 3),
-            Offset(rect.center.dx + rect.width / 3, rect.center.dy),
-          ];
-    for (final offset in offsets) {
-      _drawToken(canvas, offset, radius, color);
-    }
-  }
-
-  void _drawToken(Canvas canvas, Offset center, double radius, Color color) {
-    canvas.drawShadow(
-      Path()..addOval(Rect.fromCircle(center: center, radius: radius)),
-      Colors.black,
-      2,
-      true,
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()..color = Color.lerp(color, Colors.black, 0.12)!,
-    );
-    canvas.drawCircle(
-      center.translate(-radius * 0.15, -radius * 0.15),
-      radius * 0.78,
-      Paint()..color = color,
-    );
-    canvas.drawCircle(
-      center,
-      radius * 0.76,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.18
-        ..color = Colors.white,
-    );
-    _drawStar(canvas, center, radius * 0.5, Colors.white);
-  }
-
-  void _drawStar(Canvas canvas, Offset center, double radius, Color color) {
-    final path = Path();
-    for (var i = 0; i < 10; i++) {
-      final r = i.isEven ? radius : radius * 0.45;
-      final angle = -math.pi / 2 + i * math.pi / 5;
-      final point = Offset(
-        center.dx + math.cos(angle) * r,
-        center.dy + math.sin(angle) * r,
-      );
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
   void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
     final tipDir = Offset(math.cos(angle), math.sin(angle));
     final length = rect.width * 0.85;
     final tipX = length * 0.35;
     final tailX = length * 0.65;
     final arrowMidX = (tipX - tailX) / 2;
-    final boundary = rect.center + Offset(
-      tipDir.dx * rect.width / 2,
-      tipDir.dy * rect.height / 2,
-    );
+    final boundary =
+        rect.center +
+        Offset(tipDir.dx * rect.width / 2, tipDir.dy * rect.height / 2);
     canvas.save();
     canvas.translate(
       boundary.dx - tipDir.dx * arrowMidX,

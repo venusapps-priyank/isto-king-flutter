@@ -27,6 +27,12 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     });
   }
 
+  void _handleTokenTap(int tokenId) {
+    setState(() {
+      _turnController.moveToken(tokenId);
+    });
+  }
+
   PlayerCard _buildPlayerCard(PlayerInfo player) {
     return PlayerCard(
       name: player.name,
@@ -34,6 +40,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       avatarAsset: player.avatarAsset,
       avatarOnRight: player.avatarOnRight,
       isActive: _turnController.currentPlayerIndex == player.index,
+      canRoll: _turnController.canRoll(player.index),
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }
@@ -74,7 +81,12 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                       children: [
                         SizedBox(
                           height: topBarHeight,
-                          child: const TopGameBar(),
+                          child: TopGameBar(
+                            message: _turnController.statusMessage,
+                            activeColor:
+                                gamePlayers[_turnController.currentPlayerIndex]
+                                    .color,
+                          ),
                         ),
                         const SizedBox(height: gap),
                         SizedBox(
@@ -88,7 +100,11 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                         Center(
                           child: SizedBox.square(
                             dimension: boardSize,
-                            child: const GameBoard(),
+                            child: GameBoard(
+                              tokens: _turnController.tokens,
+                              movableTokenIds: _turnController.legalTokenIds,
+                              onTokenTap: _handleTokenTap,
+                            ),
                           ),
                         ),
                         const SizedBox(height: gap),
