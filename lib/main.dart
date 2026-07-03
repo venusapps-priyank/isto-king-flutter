@@ -431,61 +431,153 @@ class CoinIcon extends StatelessWidget {
   }
 }
 
-class CowrieShell extends StatelessWidget {
+class CowrieShell extends StatefulWidget {
   const CowrieShell({
-    required this.isOpen,
-    required this.isRolling,
-    required this.animation,
+    required this.startOpen,
+    required this.resultOpen,
+    required this.rollCycle,
     required this.delayIndex,
     required this.size,
     required this.width,
     super.key,
   });
 
-  final bool isOpen;
-  final bool isRolling;
-  final Animation<double> animation;
+  final bool startOpen;
+  final bool resultOpen;
+  final int rollCycle;
   final int delayIndex;
   final double size;
   final double width;
 
   @override
-  Widget build(BuildContext context) {
-    final assetPath = isOpen
+  State<CowrieShell> createState() => _CowrieShellState();
+}
+
+class _CowrieShellState extends State<CowrieShell>
+    with SingleTickerProviderStateMixin {
+  static const int _delayMs = 135;
+  static const int _spinMs = 560;
+
+  late final AnimationController _controller;
+  late final Animation<double> _spin;
+  int _activeRollCycle = 0;
+  bool? _spinStartOpen;
+  bool? _spinResultOpen;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: _spinMs),
+    );
+    _spin = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    if (widget.rollCycle > 0) {
+      _startSpin(widget.rollCycle);
+    }
+  }
+
+  @override
+  void didUpdateWidget(CowrieShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.rollCycle != oldWidget.rollCycle) {
+      _startSpin(widget.rollCycle);
+    }
+  }
+
+  void _startSpin(int rollCycle) {
+    _activeRollCycle = rollCycle;
+    _spinStartOpen = widget.startOpen;
+    _spinResultOpen = widget.resultOpen;
+    _controller.stop();
+    _controller.value = 0;
+    Future<void>.delayed(
+      Duration(milliseconds: widget.delayIndex * _delayMs),
+      () {
+        if (!mounted ||
+            _activeRollCycle != rollCycle ||
+            widget.rollCycle != rollCycle) {
+          return;
+        }
+        _controller.forward(from: 0);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _shellImage(bool isOpen) => Image.asset(
+    isOpen
         ? 'assets/images/cowrie_open.png'
-        : 'assets/images/cowrie_closed.png';
+        : 'assets/images/cowrie_closed.png',
+    width: widget.width,
+    height: widget.size,
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+  );
 
-    return AnimatedBuilder(
-      animation: animation,
-      child: Image.asset(
-        assetPath,
-        width: width,
-        height: size,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
+  Widget _buildSettledShell() {
+    return SizedBox(
+      width: widget.width,
+      height: widget.size,
+      child: _shellImage(_spinResultOpen ?? widget.resultOpen),
+    );
+  }
+
+  Widget _buildFlipFrame(double value) {
+    final pop = math.sin(value * math.pi);
+    final wobble =
+        math.sin(value * math.pi * 4 + widget.delayIndex) * 1.8 * pop;
+    final scale = 1.0 + pop * 0.22;
+    final showingResult = value >= 0.5;
+    final halfProgress = showingResult ? (value - 0.5) * 2 : value * 2;
+    final verticalSpin = showingResult
+        ? -math.pi / 2 + halfProgress * math.pi / 2
+        : halfProgress * math.pi / 2;
+    final lift = -pop * 6;
+    final visibleShell = _shellImage(
+      showingResult
+          ? (_spinResultOpen ?? widget.resultOpen)
+          : (_spinStartOpen ?? widget.startOpen),
+    );
+
+    return SizedBox(
+      width: widget.width,
+      height: widget.size,
+      child: Transform.translate(
+        offset: Offset(wobble, lift),
+        child: Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.0016)
+            ..rotateY(verticalSpin),
+          child: Transform.scale(scale: scale, child: visibleShell),
+        ),
       ),
-      builder: (context, child) {
-        final value = animation.value;
-        final shakeX = isRolling
-            ? math.sin((value * math.pi * 12) + delayIndex) * 4
-            : 0.0;
-        final shakeY = isRolling
-            ? math.cos((value * math.pi * 10) + delayIndex) * 3
-            : 0.0;
-        final rotation = isRolling
-            ? (value * math.pi * 4) + delayIndex * 0.25
-            : 0.0;
-        final scale = isRolling
-            ? 1.0 + math.sin(value * math.pi * 8) * 0.08
-            : 1.0;
+    );
+  }
 
-        return Transform.translate(
-          offset: Offset(shakeX, shakeY),
-          child: Transform.rotate(
-            angle: rotation,
-            child: Transform.scale(scale: scale, child: child),
-          ),
-        );
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _spin,
+      builder: (context, _) {
+        final value = _spin.value;
+        final isIdle = !_controller.isAnimating && value == 0;
+        if (isIdle) {
+          return _buildSettledShell();
+        }
+        if (value >= 1.0) {
+          return _buildSettledShell();
+        }
+        return _buildFlipFrame(value);
       },
     );
   }
@@ -511,22 +603,20 @@ class CowrieRollPanel extends StatefulWidget {
   State<CowrieRollPanel> createState() => _CowrieRollPanelState();
 }
 
-class _CowrieRollPanelState extends State<CowrieRollPanel>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+class _CowrieRollPanelState extends State<CowrieRollPanel> {
+  static const int _shellDelayMs = 135;
+  static const int _shellSpinMs = 560;
+
   final math.Random _random = math.Random();
   late List<bool> _cowries;
-  Timer? _flipTimer;
+  List<bool>? _rollingCowries;
   bool _isRolling = false;
+  int _rollCycle = 0;
 
   @override
   void initState() {
     super.initState();
     _cowries = List<bool>.filled(widget.shellCount, true);
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 950),
-    );
   }
 
   @override
@@ -537,46 +627,32 @@ class _CowrieRollPanelState extends State<CowrieRollPanel>
     }
   }
 
-  @override
-  void dispose() {
-    _flipTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
   Future<void> _rollCowries() async {
     if (!widget.isActive || _isRolling) return;
 
-    setState(() => _isRolling = true);
-    _controller.repeat();
-    _flipTimer?.cancel();
-    _flipTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
-      if (!mounted) return;
-      setState(() {
-        _cowries = List<bool>.generate(
-          widget.shellCount,
-          (_) => _random.nextBool(),
-        );
-      });
-    });
-
-    await Future<void>.delayed(const Duration(milliseconds: 1100));
-    if (!mounted) return;
-
-    _flipTimer?.cancel();
     final finalCowries = _generateFinalCowries();
     final result = _calculateIstoValue(finalCowries);
+    final nextRollCycle = _rollCycle + 1;
+
+    setState(() {
+      _isRolling = true;
+      _rollCycle = nextRollCycle;
+      _rollingCowries = finalCowries;
+    });
+
+    await Future<void>.delayed(
+      Duration(
+        milliseconds:
+            _shellDelayMs * (widget.shellCount - 1) + _shellSpinMs + 80,
+      ),
+    );
+    if (!mounted || _rollCycle != nextRollCycle) return;
 
     setState(() {
       _cowries = finalCowries;
+      _rollingCowries = null;
       _isRolling = false;
     });
-    _controller.stop();
-    await _controller.animateTo(
-      0,
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-    );
 
     widget.onRollComplete?.call(result);
   }
@@ -636,9 +712,10 @@ class _CowrieRollPanelState extends State<CowrieRollPanel>
                         left: startX + step * index,
                         top: 0,
                         child: CowrieShell(
-                          isOpen: _cowries[index],
-                          isRolling: _isRolling,
-                          animation: _controller,
+                          startOpen: _cowries[index],
+                          resultOpen:
+                              _rollingCowries?[index] ?? _cowries[index],
+                          rollCycle: _rollCycle,
                           delayIndex: index,
                           size: widget.shellSize,
                           width: shellWidth,
