@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/logic/isto_board_paths.dart';
+import 'package:isto_king/features/game/logic/move_animation_timing.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
 import 'package:isto_king/features/game/painters/game_board_painter.dart';
@@ -14,28 +15,26 @@ class GameBoard extends StatelessWidget {
     required this.tokens,
     required this.movableTokenIds,
     this.movePaths = const {},
+    this.moveDelays = const {},
     this.onTokenTap,
     super.key,
   });
 
   static const moveAnimationCurve = Curves.easeInOutCubic;
-  static const _millisecondsPerStep = 180;
 
   final List<TokenState> tokens;
   final Set<int> movableTokenIds;
   final Map<int, List<BoardCell>> movePaths;
+  final Map<int, Duration> moveDelays;
   final ValueChanged<int>? onTokenTap;
 
-  static Duration moveAnimationDurationFor(Map<int, List<BoardCell>> movePaths) {
-    if (movePaths.isEmpty) return const Duration(milliseconds: 420);
-
-    final longestPath = movePaths.values.fold<int>(
-      1,
-      (longest, path) => math.max(longest, path.length),
-    );
-    final segmentCount = math.max(1, longestPath - 1);
-    return Duration(
-      milliseconds: (segmentCount * _millisecondsPerStep).clamp(360, 1200),
+  static Duration moveAnimationDurationFor(
+    Map<int, List<BoardCell>> movePaths, {
+    Map<int, Duration> moveDelays = const {},
+  }) {
+    return MoveAnimationTiming.totalDurationFor(
+      paths: movePaths,
+      delays: moveDelays,
     );
   }
 
@@ -116,7 +115,8 @@ class GameBoard extends StatelessWidget {
           board: board,
           cellSize: cellSize,
           tokenSize: tokenSize,
-          duration: moveAnimationDurationFor({entry.key: entry.value}),
+          duration: MoveAnimationTiming.durationForPath(entry.value),
+          startDelay: moveDelays[token.id] ?? Duration.zero,
           curve: moveAnimationCurve,
           child: GameToken(
             color: gamePlayers[token.playerIndex].color,

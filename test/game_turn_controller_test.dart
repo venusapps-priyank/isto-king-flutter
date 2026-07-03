@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
 import 'package:isto_king/features/game/logic/cowrie_logic.dart';
 import 'package:isto_king/features/game/logic/isto_board_paths.dart';
+import 'package:isto_king/features/game/logic/move_animation_timing.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
 
@@ -146,6 +147,24 @@ void main() {
           IstoBoardPaths.homeCellForPlayer(1),
         ],
       );
+    });
+
+    test('delays captured token animation until killer arrives', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final redPath = IstoBoardPaths.pathForPlayer(0);
+      final destination = redPath[2];
+      final movingRed = tokenFor(controller, 0, 0);
+      final capturedGreen = tokenFor(controller, 1, 0);
+      final greenPathIndex = pathIndexForCell(1, destination);
+      placeToken(movingRed, 1);
+      placeToken(capturedGreen, greenPathIndex);
+
+      controller.handleRollComplete(0, 1);
+      final result = controller.moveToken(movingRed.id);
+
+      final killerPath = result!.animationPaths[movingRed.id]!;
+      final killerDuration = MoveAnimationTiming.durationForPath(killerPath);
+      expect(result.animationDelays[capturedGreen.id], killerDuration);
     });
   });
 }

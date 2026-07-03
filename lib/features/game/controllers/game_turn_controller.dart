@@ -1,6 +1,7 @@
 import 'package:isto_king/data/game_constants.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/logic/isto_board_paths.dart';
+import 'package:isto_king/features/game/logic/move_animation_timing.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/player_game_state.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
@@ -12,6 +13,7 @@ class MoveResolution {
     required this.grantsExtraTurn,
     required this.gameFinished,
     required this.animationPaths,
+    this.animationDelays = const {},
   });
 
   final int capturedCount;
@@ -19,6 +21,7 @@ class MoveResolution {
   final bool grantsExtraTurn;
   final bool gameFinished;
   final Map<int, List<BoardCell>> animationPaths;
+  final Map<int, Duration> animationDelays;
 }
 
 class GameTurnController {
@@ -92,10 +95,15 @@ class GameTurnController {
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final destination = path[targetPathIndex];
     final capturedTokens = _tokensToCapture(token, destination);
+    final killerPath = _animationPathForMove(token, targetPathIndex);
     final animationPaths = <int, List<BoardCell>>{
-      token.id: _animationPathForMove(token, targetPathIndex),
+      token.id: killerPath,
       for (final captured in capturedTokens)
         captured.id: _animationPathToStart(captured),
+    };
+    final killerDuration = MoveAnimationTiming.durationForPath(killerPath);
+    final animationDelays = {
+      for (final captured in capturedTokens) captured.id: killerDuration,
     };
 
     for (final capturedToken in capturedTokens) {
@@ -149,6 +157,7 @@ class GameTurnController {
       grantsExtraTurn: grantsExtraTurn,
       gameFinished: gameFinished,
       animationPaths: animationPaths,
+      animationDelays: animationDelays,
     );
   }
 

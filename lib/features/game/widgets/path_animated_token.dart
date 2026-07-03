@@ -12,6 +12,7 @@ class PathAnimatedToken extends StatefulWidget {
     required this.duration,
     required this.curve,
     required this.child,
+    this.startDelay = Duration.zero,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class PathAnimatedToken extends StatefulWidget {
   final double cellSize;
   final double tokenSize;
   final Duration duration;
+  final Duration startDelay;
   final Curve curve;
   final Widget child;
 
@@ -34,8 +36,15 @@ class _PathAnimatedTokenState extends State<PathAnimatedToken>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: widget.duration, vsync: this)
-      ..forward();
+    _controller = AnimationController(duration: widget.duration, vsync: this);
+    if (widget.startDelay == Duration.zero) {
+      _controller.forward();
+    } else {
+      Future<void>.delayed(widget.startDelay, () {
+        if (!mounted) return;
+        _controller.forward();
+      });
+    }
   }
 
   @override

@@ -24,6 +24,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   Map<int, List<BoardCell>> _activeMovePaths = {};
+  Map<int, Duration> _activeMoveDelays = {};
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
@@ -38,12 +39,15 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
     var didMove = false;
     Map<int, List<BoardCell>> movePaths = {};
+    Map<int, Duration> moveDelays = {};
     setState(() {
       final resolution = _turnController.moveToken(tokenId);
       didMove = resolution != null;
       if (didMove) {
         movePaths = resolution!.animationPaths;
+        moveDelays = resolution.animationDelays;
         _activeMovePaths = movePaths;
+        _activeMoveDelays = moveDelays;
         _isMoveAnimating = true;
         _moveAnimationCycle++;
       }
@@ -52,12 +56,16 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     if (!didMove) return;
 
     final animationCycle = _moveAnimationCycle;
-    final animationDuration = GameBoard.moveAnimationDurationFor(movePaths);
+    final animationDuration = GameBoard.moveAnimationDurationFor(
+      movePaths,
+      moveDelays: moveDelays,
+    );
     Future<void>.delayed(animationDuration, () {
       if (!mounted || animationCycle != _moveAnimationCycle) return;
       setState(() {
         _isMoveAnimating = false;
         _activeMovePaths = {};
+        _activeMoveDelays = {};
       });
     });
   }
@@ -135,6 +143,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                                   ? const {}
                                   : _turnController.legalTokenIds,
                               movePaths: _activeMovePaths,
+                              moveDelays: _activeMoveDelays,
                               onTokenTap: _handleTokenTap,
                             ),
                           ),
