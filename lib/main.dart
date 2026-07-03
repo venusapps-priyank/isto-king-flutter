@@ -300,7 +300,6 @@ class PlayerCard extends StatelessWidget {
     required this.avatarColor,
     required this.accentColor,
     required this.gender,
-    this.score = 0,
     this.shellCount = 4,
     super.key,
   });
@@ -310,7 +309,6 @@ class PlayerCard extends StatelessWidget {
   final Color avatarColor;
   final Color accentColor;
   final AvatarGender gender;
-  final int score;
   final int shellCount;
 
   @override
@@ -370,35 +368,6 @@ class PlayerCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Flexible(
-                        child: FractionallySizedBox(
-                          widthFactor: 0.9,
-                          child: Container(
-                            height: 27,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.45),
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: Row(
-                              children: [
-                                const CoinIcon(size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '$score',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                       const Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -434,41 +403,9 @@ class PlayerCard extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned(
-              left: 0,
-              top: height * 0.01,
-              child: GiftBadge(size: height * 0.31),
-            ),
           ],
         );
       },
-    );
-  }
-}
-
-class GiftBadge extends StatelessWidget {
-  const GiftBadge({required this.size, super.key});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: RoyalColors.red,
-        border: Border.all(color: RoyalColors.gold, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: RoyalColors.brown.withValues(alpha: 0.22),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Icon(Icons.card_giftcard, color: Colors.yellowAccent, size: size * 0.72),
     );
   }
 }
@@ -622,33 +559,16 @@ class GameBoardPainter extends CustomPainter {
 
     _drawGrid(canvas, inner, cell);
     _drawCenterHome(canvas, _cellRect(inner, cell, 2, 2));
-    _drawCrossCell(canvas, _cellRect(inner, cell, 1, 1), RoyalColors.red);
-    _drawCrossCell(canvas, _cellRect(inner, cell, 3, 1), RoyalColors.green);
-    _drawCrossCell(canvas, _cellRect(inner, cell, 1, 3), RoyalColors.yellow);
-    _drawCrossCell(canvas, _cellRect(inner, cell, 3, 3), RoyalColors.blue);
 
     _drawArrow(canvas, _cellRect(inner, cell, 2, 1), RoyalColors.red, math.pi / 2);
     _drawArrow(canvas, _cellRect(inner, cell, 2, 3), RoyalColors.blue, -math.pi / 2);
     _drawArrow(canvas, _cellRect(inner, cell, 1, 2), RoyalColors.yellow, 0);
     _drawArrow(canvas, _cellRect(inner, cell, 3, 2), RoyalColors.green, math.pi);
 
-    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 0), RoyalColors.red, 3);
-    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 4), RoyalColors.blue, 3);
+    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 0), RoyalColors.red);
+    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 4), RoyalColors.blue);
     _drawTokenCluster(canvas, _cellRect(inner, cell, 0, 2), RoyalColors.yellow, 4);
     _drawTokenCluster(canvas, _cellRect(inner, cell, 4, 2), RoyalColors.green, 4);
-
-    for (final point in [
-      const Offset(0.34, 0.34),
-      const Offset(4.66, 0.34),
-      const Offset(0.34, 4.66),
-      const Offset(4.66, 4.66),
-    ]) {
-      _drawFlower(
-        canvas,
-        Offset(inner.left + point.dx * cell, inner.top + point.dy * cell),
-        cell * 0.12,
-      );
-    }
   }
 
   Rect _cellRect(Rect board, double cell, int col, int row) {
@@ -695,7 +615,7 @@ class GameBoardPainter extends CustomPainter {
     );
   }
 
-  void _drawTokenCluster(Canvas canvas, Rect rect, Color color, int count) {
+  void _drawTokenCluster(Canvas canvas, Rect rect, Color color, [int count = 4]) {
     final radius = rect.width * 0.13;
     final offsets = count == 3
         ? [
@@ -774,37 +694,6 @@ class GameBoardPainter extends CustomPainter {
         ..color = Colors.white.withValues(alpha: 0.75),
     );
     canvas.restore();
-  }
-
-  void _drawCrossCell(Canvas canvas, Rect rect, Color color) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = rect.width * 0.055
-      ..strokeCap = StrokeCap.round;
-    final inset = rect.width * 0.16;
-    canvas.drawLine(rect.topLeft.translate(inset, inset), rect.bottomRight.translate(-inset, -inset), paint);
-    canvas.drawLine(rect.topRight.translate(-inset, inset), rect.bottomLeft.translate(inset, -inset), paint);
-  }
-
-  void _drawFlower(Canvas canvas, Offset center, double radius) {
-    final petal = Paint()..color = const Color(0xFFB23A12);
-    final dot = Paint()..color = RoyalColors.gold;
-    for (var i = 0; i < 6; i++) {
-      final angle = i * math.pi / 3;
-      final petalCenter = Offset(
-        center.dx + math.cos(angle) * radius * 0.82,
-        center.dy + math.sin(angle) * radius * 0.82,
-      );
-      canvas.save();
-      canvas.translate(petalCenter.dx, petalCenter.dy);
-      canvas.rotate(angle);
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset.zero, width: radius * 0.38, height: radius * 0.86),
-        petal,
-      );
-      canvas.restore();
-    }
-    canvas.drawCircle(center, radius * 0.24, dot);
   }
 
   @override
