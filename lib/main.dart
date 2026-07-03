@@ -50,13 +50,17 @@ class IstoGameScreen extends StatefulWidget {
 }
 
 class _IstoGameScreenState extends State<IstoGameScreen> {
-  int _currentPlayerIndex = 0;
+  // Turn order: yellow → red → green → blue
+  static const _turnOrder = [2, 0, 1, 3];
+  int _currentPlayerIndex = _turnOrder.first;
   final List<int?> _lastRolls = List<int?>.filled(4, null);
 
   void _handleRollComplete(int playerIndex, int value) {
     setState(() {
       _lastRolls[playerIndex] = value;
-      _currentPlayerIndex = (_currentPlayerIndex + 1) % _lastRolls.length;
+      final turnIndex = _turnOrder.indexOf(_currentPlayerIndex);
+      _currentPlayerIndex =
+          _turnOrder[(turnIndex + 1) % _turnOrder.length];
     });
   }
 
