@@ -575,6 +575,10 @@ class GameBoardPainter extends CustomPainter {
     _drawCenterHome(canvas, _cellRect(inner, cell, 2, 2));
 
     for (final home in playerHomes) {
+      _drawCrossLines(canvas, _cellRect(inner, cell, home.col, home.row));
+    }
+
+    for (final home in playerHomes) {
       _drawArrow(
         canvas,
         _cellRect(inner, cell, home.arrowCol, home.arrowRow),
@@ -646,6 +650,10 @@ class GameBoardPainter extends CustomPainter {
         Paint()..color = colors[i],
       );
     }
+    _drawCrossLines(canvas, rect);
+  }
+
+  void _drawCrossLines(Canvas canvas, Rect rect) {
     final cross = Paint()
       ..color = Colors.white
       ..strokeWidth = math.max(1.5, rect.width * 0.035)
@@ -668,22 +676,10 @@ class GameBoardPainter extends CustomPainter {
             Offset(rect.center.dx, rect.bottom - rect.height * 0.24),
           ]
         : [
-            Offset(
-              rect.left + rect.width * 0.32,
-              rect.top + rect.height * 0.32,
-            ),
-            Offset(
-              rect.right - rect.width * 0.32,
-              rect.top + rect.height * 0.32,
-            ),
-            Offset(
-              rect.left + rect.width * 0.32,
-              rect.bottom - rect.height * 0.32,
-            ),
-            Offset(
-              rect.right - rect.width * 0.32,
-              rect.bottom - rect.height * 0.32,
-            ),
+            Offset(rect.center.dx - rect.width / 3, rect.center.dy),
+            Offset(rect.center.dx, rect.center.dy - rect.height / 3),
+            Offset(rect.center.dx, rect.center.dy + rect.height / 3),
+            Offset(rect.center.dx + rect.width / 3, rect.center.dy),
           ];
     for (final offset in offsets) {
       _drawToken(canvas, offset, radius, color);
