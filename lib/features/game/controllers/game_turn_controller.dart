@@ -232,28 +232,7 @@ class GameTurnController {
   }
 
   bool _canLandOn(TokenState movingToken, BoardCell destination) {
-    if (IstoBoardPaths.isSafeCell(destination) ||
-        destination == IstoBoardPaths.centerCell) {
-      return true;
-    }
-
-    final incomingStrength =
-        _activeStackStrength(
-          movingToken.playerIndex,
-          destination,
-          excludingTokenId: movingToken.id,
-        ) +
-        1;
-
-    for (
-      var playerIndex = 0;
-      playerIndex < playerStates.length;
-      playerIndex++
-    ) {
-      if (playerIndex == movingToken.playerIndex) continue;
-      final opponentStrength = _activeStackStrength(playerIndex, destination);
-      if (opponentStrength > incomingStrength) return false;
-    }
+    // Landing is always allowed; capture strength is enforced in _tokensToCapture.
     return true;
   }
 

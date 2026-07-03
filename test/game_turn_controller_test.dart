@@ -42,18 +42,27 @@ void main() {
       expect(controller.cellForToken(redToken), const BoardCell(3, 1));
     });
 
-    test('blocks a single token from killing a two-token stack', () {
+    test('allows a single token to land on a two-token stack without capturing', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;
       final redPath = IstoBoardPaths.pathForPlayer(0);
       final destination = redPath[1];
       final redToken = tokenFor(controller, 0, 0);
+      final firstGreen = tokenFor(controller, 1, 0);
+      final secondGreen = tokenFor(controller, 1, 1);
       placeToken(redToken, 0);
-      placeToken(tokenFor(controller, 1, 0), pathIndexForCell(1, destination));
-      placeToken(tokenFor(controller, 1, 1), pathIndexForCell(1, destination));
+      placeToken(firstGreen, pathIndexForCell(1, destination));
+      placeToken(secondGreen, pathIndexForCell(1, destination));
 
       controller.handleRollComplete(0, 1);
 
-      expect(controller.legalTokenIds, isNot(contains(redToken.id)));
+      expect(controller.legalTokenIds, contains(redToken.id));
+
+      final result = controller.moveToken(redToken.id);
+
+      expect(result?.capturedCount, 0);
+      expect(firstGreen.isAtStart, isFalse);
+      expect(secondGreen.isAtStart, isFalse);
+      expect(controller.cellForToken(redToken), destination);
     });
 
     test(
