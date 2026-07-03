@@ -71,13 +71,20 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   }
 
   PlayerCard _buildPlayerCard(PlayerInfo player) {
+    final isCurrentPlayer =
+        _turnController.currentPlayerIndex == player.index;
+    final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
+    final showShells = isCurrentPlayer &&
+        (canRoll || _turnController.pendingRoll != null);
+
     return PlayerCard(
       name: player.name,
       color: player.color,
       avatarAsset: player.avatarAsset,
       avatarOnRight: player.avatarOnRight,
-      isActive: _turnController.currentPlayerIndex == player.index,
-      canRoll: !_isMoveAnimating && _turnController.canRoll(player.index),
+      isActive: isCurrentPlayer,
+      showShells: showShells,
+      canRoll: canRoll,
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }

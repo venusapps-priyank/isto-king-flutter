@@ -14,6 +14,7 @@ class PlayerCard extends StatefulWidget {
     this.avatarOnRight = false,
     this.shellCount = defaultShellCount,
     this.isActive = false,
+    this.showShells = false,
     this.canRoll = true,
     this.onRollComplete,
     super.key,
@@ -25,6 +26,7 @@ class PlayerCard extends StatefulWidget {
   final bool avatarOnRight;
   final int shellCount;
   final bool isActive;
+  final bool showShells;
   final bool canRoll;
   final ValueChanged<int>? onRollComplete;
 
@@ -131,7 +133,8 @@ class _PlayerCardState extends State<PlayerCard> {
                       const Spacer(),
                       CowrieRollPanel(
                         playerColor: widget.color,
-                        isActive: widget.isActive && widget.canRoll,
+                        showShells: widget.showShells,
+                        canRoll: widget.isActive && widget.canRoll,
                         shellCount: widget.shellCount,
                         shellSize: shellSize,
                         alignRight: widget.avatarOnRight,

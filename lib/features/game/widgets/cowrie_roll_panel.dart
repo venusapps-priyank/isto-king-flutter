@@ -8,7 +8,8 @@ import 'package:isto_king/features/game/widgets/cowrie_shell.dart';
 class CowrieRollPanel extends StatefulWidget {
   const CowrieRollPanel({
     required this.playerColor,
-    required this.isActive,
+    required this.showShells,
+    required this.canRoll,
     required this.shellCount,
     required this.shellSize,
     this.alignRight = false,
@@ -18,7 +19,8 @@ class CowrieRollPanel extends StatefulWidget {
   });
 
   final Color playerColor;
-  final bool isActive;
+  final bool showShells;
+  final bool canRoll;
   final int shellCount;
   final double shellSize;
   final bool alignRight;
@@ -48,7 +50,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
     if (oldWidget.shellCount != widget.shellCount) {
       _cowries = List<bool>.filled(widget.shellCount, false);
     }
-    if (oldWidget.isActive && !widget.isActive) {
+    if (oldWidget.showShells && !widget.showShells) {
       _cowries = List<bool>.filled(widget.shellCount, false);
       _rollingCowries = null;
       _isRolling = false;
@@ -56,7 +58,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
   }
 
   Future<void> _rollCowries() async {
-    if (!widget.isActive || _isRolling) return;
+    if (!widget.canRoll || _isRolling) return;
 
     final finalCowries =
         CowrieLogic.generateFinalCowries(widget.shellCount, _random);
@@ -92,7 +94,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.isActive) {
+    if (!widget.showShells) {
       return SizedBox(height: widget.shellSize);
     }
 
