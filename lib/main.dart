@@ -1067,8 +1067,13 @@ class GameBoardPainter extends CustomPainter {
   }
 
   void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
+    final tipDir = Offset(math.cos(angle), math.sin(angle));
+    final center = rect.center + Offset(
+      tipDir.dx * rect.width / 2,
+      tipDir.dy * rect.height / 2,
+    );
     canvas.save();
-    canvas.translate(rect.center.dx, rect.center.dy);
+    canvas.translate(center.dx, center.dy);
     canvas.rotate(angle);
     final length = rect.width * 0.78;
     final shadowPath = Path()
