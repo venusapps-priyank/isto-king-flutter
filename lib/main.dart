@@ -944,10 +944,10 @@ class ScreenOrnamentPainter extends CustomPainter {
       canvas.scale(sx, sy);
       final path = Path()
         ..moveTo(0, 0)
-        ..lineTo(132, 0)
-        ..cubicTo(102, 4, 90, 20, 84, 42)
-        ..cubicTo(76, 72, 54, 86, 28, 88)
-        ..cubicTo(12, 89, 2, 101, 0, 120)
+        ..lineTo(96, 0)
+        ..cubicTo(74, 3, 65, 15, 61, 31)
+        ..cubicTo(55, 52, 39, 63, 20, 64)
+        ..cubicTo(9, 65, 2, 74, 0, 88)
         ..close();
       canvas.drawPath(path, red);
       canvas.restore();
