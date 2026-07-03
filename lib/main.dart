@@ -588,7 +588,7 @@ class CurrentTurnBanner extends StatelessWidget {
 class GameBoardPainter extends CustomPainter {
   const GameBoardPainter();
 
-  static const int gridCount = 11;
+  static const int gridCount = 5;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -615,54 +615,38 @@ class GameBoardPainter extends CustomPainter {
       canvas.drawRect(rect, Paint()..color = color.withValues(alpha: 0.9));
     }
 
-    for (var row = 0; row < 3; row++) {
-      homeCell(5, row, RoyalColors.red);
-    }
-    for (var row = 8; row < 11; row++) {
-      homeCell(5, row, RoyalColors.blue);
-    }
-    for (var col = 0; col < 2; col++) {
-      for (var row = 5; row < 7; row++) {
-        homeCell(col, row, RoyalColors.yellow);
-        homeCell(col + 9, row, RoyalColors.green);
-      }
-    }
+    homeCell(2, 0, RoyalColors.red);
+    homeCell(2, 4, RoyalColors.blue);
+    homeCell(0, 2, RoyalColors.yellow);
+    homeCell(4, 2, RoyalColors.green);
 
     _drawGrid(canvas, inner, cell);
-    _drawCenterHome(canvas, _cellRect(inner, cell, 5, 5));
-    _drawCrossCell(canvas, _cellRect(inner, cell, 2, 1), RoyalColors.red);
-    _drawCrossCell(canvas, _cellRect(inner, cell, 8, 1), RoyalColors.green);
-    _drawCrossCell(canvas, _cellRect(inner, cell, 2, 9), RoyalColors.yellow);
-    _drawCrossCell(canvas, _cellRect(inner, cell, 8, 9), RoyalColors.blue);
+    _drawCenterHome(canvas, _cellRect(inner, cell, 2, 2));
+    _drawCrossCell(canvas, _cellRect(inner, cell, 1, 1), RoyalColors.red);
+    _drawCrossCell(canvas, _cellRect(inner, cell, 3, 1), RoyalColors.green);
+    _drawCrossCell(canvas, _cellRect(inner, cell, 1, 3), RoyalColors.yellow);
+    _drawCrossCell(canvas, _cellRect(inner, cell, 3, 3), RoyalColors.blue);
 
-    _drawArrow(canvas, _cellRect(inner, cell, 5, 3), RoyalColors.red, math.pi / 2);
-    _drawArrow(canvas, _cellRect(inner, cell, 5, 8), RoyalColors.blue, -math.pi / 2);
-    _drawArrow(canvas, _cellRect(inner, cell, 3, 4), RoyalColors.yellow, 0);
-    _drawArrow(canvas, _cellRect(inner, cell, 7, 4), RoyalColors.green, math.pi);
+    _drawArrow(canvas, _cellRect(inner, cell, 2, 1), RoyalColors.red, math.pi / 2);
+    _drawArrow(canvas, _cellRect(inner, cell, 2, 3), RoyalColors.blue, -math.pi / 2);
+    _drawArrow(canvas, _cellRect(inner, cell, 1, 2), RoyalColors.yellow, 0);
+    _drawArrow(canvas, _cellRect(inner, cell, 3, 2), RoyalColors.green, math.pi);
 
-    for (var row = 0; row < 3; row++) {
-      _drawToken(canvas, _cellRect(inner, cell, 5, row).center, cell * 0.27, RoyalColors.red);
-    }
-    for (var row = 8; row < 11; row++) {
-      _drawToken(canvas, _cellRect(inner, cell, 5, row).center, cell * 0.27, RoyalColors.blue);
-    }
-    _drawHomeBlockTokens(canvas, inner, cell, 0, 5, RoyalColors.yellow);
-    _drawHomeBlockTokens(canvas, inner, cell, 9, 5, RoyalColors.green);
+    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 0), RoyalColors.red, 3);
+    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 4), RoyalColors.blue, 3);
+    _drawTokenCluster(canvas, _cellRect(inner, cell, 0, 2), RoyalColors.yellow, 4);
+    _drawTokenCluster(canvas, _cellRect(inner, cell, 4, 2), RoyalColors.green, 4);
 
     for (final point in [
-      const Offset(0.45, 0.45),
-      const Offset(10.55, 0.45),
-      const Offset(0.45, 10.55),
-      const Offset(10.55, 10.55),
-      const Offset(0.35, 1.35),
-      const Offset(10.65, 1.35),
-      const Offset(0.35, 9.65),
-      const Offset(10.65, 9.65),
+      const Offset(0.34, 0.34),
+      const Offset(4.66, 0.34),
+      const Offset(0.34, 4.66),
+      const Offset(4.66, 4.66),
     ]) {
       _drawFlower(
         canvas,
         Offset(inner.left + point.dx * cell, inner.top + point.dy * cell),
-        cell * 0.24,
+        cell * 0.12,
       );
     }
   }
@@ -711,16 +695,22 @@ class GameBoardPainter extends CustomPainter {
     );
   }
 
-  void _drawHomeBlockTokens(Canvas canvas, Rect board, double cell, int col, int row, Color color) {
-    for (var y = 0; y < 2; y++) {
-      for (var x = 0; x < 2; x++) {
-        _drawToken(
-          canvas,
-          _cellRect(board, cell, col + x, row + y).center,
-          cell * 0.27,
-          color,
-        );
-      }
+  void _drawTokenCluster(Canvas canvas, Rect rect, Color color, int count) {
+    final radius = rect.width * 0.13;
+    final offsets = count == 3
+        ? [
+            Offset(rect.center.dx, rect.top + rect.height * 0.24),
+            Offset(rect.center.dx, rect.center.dy),
+            Offset(rect.center.dx, rect.bottom - rect.height * 0.24),
+          ]
+        : [
+            Offset(rect.left + rect.width * 0.32, rect.top + rect.height * 0.32),
+            Offset(rect.right - rect.width * 0.32, rect.top + rect.height * 0.32),
+            Offset(rect.left + rect.width * 0.32, rect.bottom - rect.height * 0.32),
+            Offset(rect.right - rect.width * 0.32, rect.bottom - rect.height * 0.32),
+          ];
+    for (final offset in offsets) {
+      _drawToken(canvas, offset, radius, color);
     }
   }
 

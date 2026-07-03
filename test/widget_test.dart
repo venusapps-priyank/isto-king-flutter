@@ -20,6 +20,7 @@ void main() {
       expect(find.text('120'), findsOneWidget);
 
       final boardRect = tester.getRect(find.byType(GameBoard));
+      expect(GameBoardPainter.gridCount, 5);
       expect(boardRect.width, closeTo(boardRect.height, 0.01));
       expect(boardRect.center.dx, closeTo(size.width / 2, 1));
 
