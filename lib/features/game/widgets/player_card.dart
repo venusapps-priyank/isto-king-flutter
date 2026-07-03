@@ -3,9 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/game_constants.dart';
+import 'package:isto_king/features/game/widgets/cowrie_count_overlay.dart';
 import 'package:isto_king/features/game/widgets/cowrie_roll_panel.dart';
 
-class PlayerCard extends StatelessWidget {
+class PlayerCard extends StatefulWidget {
   const PlayerCard({
     required this.name,
     required this.color,
@@ -26,6 +27,23 @@ class PlayerCard extends StatelessWidget {
   final ValueChanged<int>? onRollComplete;
 
   @override
+  State<PlayerCard> createState() => _PlayerCardState();
+}
+
+class _PlayerCardState extends State<PlayerCard> {
+  int? _rollOverlayCount;
+
+  void _handleRollStarted() {
+    if (_rollOverlayCount == null) return;
+    setState(() => _rollOverlayCount = null);
+  }
+
+  void _handleRollComplete(int value) {
+    setState(() => _rollOverlayCount = value);
+    widget.onRollComplete?.call(value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -41,38 +59,43 @@ class PlayerCard extends StatelessWidget {
           height < 96 ? 38.0 : 42.0,
           contentWidth / 2.95,
         );
+        final avatarTop = height * 0.14;
+        final overlaySize = avatarSize * 0.4;
+        final overlayInset = overlaySize * 0.12;
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              left: avatarOnRight ? 0 : cardLeft,
-              right: avatarOnRight ? cardLeft : 0,
+              left: widget.avatarOnRight ? 0 : cardLeft,
+              right: widget.avatarOnRight ? cardLeft : 0,
               top: cardTop,
               bottom: cardBottom,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: color,
+                  color: widget.color,
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: isActive ? 0.58 : 0.35),
-                      blurRadius: isActive ? 18 : 12,
-                      spreadRadius: isActive ? 1 : 0,
+                      color: widget.color.withValues(
+                        alpha: widget.isActive ? 0.58 : 0.35,
+                      ),
+                      blurRadius: widget.isActive ? 18 : 12,
+                      spreadRadius: widget.isActive ? 1 : 0,
                       offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: Padding(
                   padding: EdgeInsets.only(
-                    left: avatarOnRight ? 9 : contentLeft,
-                    right: avatarOnRight ? contentLeft : 9,
+                    left: widget.avatarOnRight ? 9 : contentLeft,
+                    right: widget.avatarOnRight ? contentLeft : 9,
                     top: 8,
                     bottom: 8,
                   ),
                   child: Column(
-                    crossAxisAlignment: avatarOnRight
+                    crossAxisAlignment: widget.avatarOnRight
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
                     children: [
@@ -81,11 +104,11 @@ class PlayerCard extends StatelessWidget {
                         width: double.infinity,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          alignment: avatarOnRight
+                          alignment: widget.avatarOnRight
                               ? Alignment.centerRight
                               : Alignment.centerLeft,
                           child: Text(
-                            name,
+                            widget.name,
                             maxLines: 1,
                             style: TextStyle(
                               color: Colors.white,
@@ -105,12 +128,17 @@ class PlayerCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       CowrieRollPanel(
-                        playerColor: color,
-                        isActive: isActive,
-                        shellCount: shellCount,
+                        playerColor: widget.color,
+                        isActive: widget.isActive,
+                        shellCount: widget.shellCount,
                         shellSize: shellSize,
-                        alignRight: avatarOnRight,
-                        onRollComplete: onRollComplete,
+                        alignRight: widget.avatarOnRight,
+                        onRollStarted: widget.isActive
+                            ? _handleRollStarted
+                            : null,
+                        onRollComplete: widget.isActive
+                            ? _handleRollComplete
+                            : null,
                       ),
                     ],
                   ),
@@ -118,28 +146,46 @@ class PlayerCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: avatarOnRight ? null : 0,
-              right: avatarOnRight ? 0 : null,
-              top: height * 0.14,
-              child: DecoratedBox(
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-                child: Padding(
-                  padding: EdgeInsets.all(avatarSize * 0.04),
-                  child: ClipOval(
-                    clipBehavior: Clip.antiAliasWithSaveLayer,
-                    child: ColoredBox(
-                      color: RoyalColors.parchmentLight,
-                      child: SizedBox.square(
-                        dimension: avatarSize * 0.92,
-                        child: Image.asset(
-                          avatarAsset,
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.high,
+              left: widget.avatarOnRight ? null : 0,
+              right: widget.avatarOnRight ? 0 : null,
+              top: avatarTop,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: widget.color,
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(avatarSize * 0.04),
+                      child: ClipOval(
+                        clipBehavior: Clip.antiAliasWithSaveLayer,
+                        child: ColoredBox(
+                          color: RoyalColors.parchmentLight,
+                          child: SizedBox.square(
+                            dimension: avatarSize * 0.92,
+                            child: Image.asset(
+                              widget.avatarAsset,
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.high,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  if (_rollOverlayCount != null)
+                    Positioned(
+                      right: widget.avatarOnRight ? null : -overlayInset,
+                      left: widget.avatarOnRight ? -overlayInset : null,
+                      bottom: -overlayInset,
+                      child: CowrieCountOverlay(
+                        value: _rollOverlayCount!,
+                        size: overlaySize,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],

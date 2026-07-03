@@ -12,6 +12,7 @@ class CowrieRollPanel extends StatefulWidget {
     required this.shellCount,
     required this.shellSize,
     this.alignRight = false,
+    this.onRollStarted,
     this.onRollComplete,
     super.key,
   });
@@ -21,6 +22,7 @@ class CowrieRollPanel extends StatefulWidget {
   final int shellCount;
   final double shellSize;
   final bool alignRight;
+  final VoidCallback? onRollStarted;
   final ValueChanged<int>? onRollComplete;
 
   @override
@@ -66,6 +68,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
       _rollCycle = nextRollCycle;
       _rollingCowries = finalCowries;
     });
+    widget.onRollStarted?.call();
 
     await Future<void>.delayed(
       Duration(
