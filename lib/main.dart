@@ -438,6 +438,7 @@ class CowrieShell extends StatelessWidget {
     required this.animation,
     required this.delayIndex,
     required this.size,
+    required this.width,
     super.key,
   });
 
@@ -446,6 +447,7 @@ class CowrieShell extends StatelessWidget {
   final Animation<double> animation;
   final int delayIndex;
   final double size;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -457,7 +459,7 @@ class CowrieShell extends StatelessWidget {
       animation: animation,
       child: Image.asset(
         assetPath,
-        width: size,
+        width: width,
         height: size,
         fit: BoxFit.contain,
         filterQuality: FilterQuality.high,
@@ -613,15 +615,17 @@ class _CowrieRollPanelState extends State<CowrieRollPanel>
             height: widget.shellSize,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final naturalGap = widget.shellSize * 0.34;
-                final maxStep = widget.shellSize + naturalGap;
-                final fittedStep = widget.shellCount <= 1
+                final shellWidth = widget.shellSize * 0.68;
+                final desiredGap = widget.shellSize * 0.2;
+                final fittedGap = widget.shellCount <= 1
                     ? 0.0
-                    : (constraints.maxWidth - widget.shellSize) /
+                    : (constraints.maxWidth - shellWidth * widget.shellCount) /
                           (widget.shellCount - 1);
-                final step = math.min(maxStep, fittedStep);
+                final gap = math.max(0.0, math.min(desiredGap, fittedGap));
+                final step = shellWidth + gap;
                 final rowWidth =
-                    widget.shellSize + step * (widget.shellCount - 1);
+                    shellWidth * widget.shellCount +
+                    gap * (widget.shellCount - 1);
                 final startX = (constraints.maxWidth - rowWidth) / 2;
 
                 return Stack(
@@ -637,6 +641,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel>
                           animation: _controller,
                           delayIndex: index,
                           size: widget.shellSize,
+                          width: shellWidth,
                         ),
                       ),
                   ],
