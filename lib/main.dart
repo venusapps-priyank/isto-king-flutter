@@ -94,6 +94,7 @@ class IstoGameScreen extends StatelessWidget {
                               name: 'Chandrakishore',
                               color: RoyalColors.green,
                               avatarAsset: 'assets/avatar/avatar-f-1.png',
+                              avatarOnRight: true,
                             ),
                           ),
                         ),
@@ -117,6 +118,7 @@ class IstoGameScreen extends StatelessWidget {
                               name: 'Shaurya',
                               color: RoyalColors.blue,
                               avatarAsset: 'assets/avatar/avatar-f-2.png',
+                              avatarOnRight: true,
                             ),
                           ),
                         ),
@@ -281,6 +283,7 @@ class PlayerCard extends StatelessWidget {
     required this.name,
     required this.color,
     required this.avatarAsset,
+    this.avatarOnRight = false,
     this.shellCount = 4,
     super.key,
   });
@@ -288,6 +291,7 @@ class PlayerCard extends StatelessWidget {
   final String name;
   final Color color;
   final String avatarAsset;
+  final bool avatarOnRight;
   final int shellCount;
 
   @override
@@ -311,7 +315,8 @@ class PlayerCard extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              left: cardLeft,
+              left: avatarOnRight ? 0 : cardLeft,
+              right: avatarOnRight ? cardLeft : 0,
               top: cardTop,
               bottom: cardBottom,
               child: DecoratedBox(
@@ -329,8 +334,8 @@ class PlayerCard extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: EdgeInsets.only(
-                    left: contentLeft,
-                    right: 9,
+                    left: avatarOnRight ? 9 : contentLeft,
+                    right: avatarOnRight ? contentLeft : 9,
                     top: 8,
                     bottom: 8,
                   ),
@@ -383,7 +388,8 @@ class PlayerCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 0,
+              left: avatarOnRight ? null : 0,
+              right: avatarOnRight ? 0 : null,
               top: height * 0.14,
               child: DecoratedBox(
                 decoration: BoxDecoration(shape: BoxShape.circle, color: color),
