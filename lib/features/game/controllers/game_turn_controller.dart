@@ -1,5 +1,4 @@
 import 'package:isto_king/data/game_constants.dart';
-import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/logic/isto_board_paths.dart';
 import 'package:isto_king/features/game/logic/move_animation_timing.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
@@ -25,10 +24,6 @@ class MoveResolution {
 }
 
 class GameTurnController {
-  GameTurnController() {
-    statusMessage = '${_playerName(currentPlayerIndex)} rolls first';
-  }
-
   int currentPlayerIndex = turnOrder.first;
   final List<int?> lastRolls = List<int?>.filled(4, null);
   final List<PlayerGameState> playerStates = List<PlayerGameState>.generate(
@@ -43,7 +38,6 @@ class GameTurnController {
   int? pendingRoll;
   int? winnerIndex;
   Set<int> legalTokenIds = {};
-  late String statusMessage;
 
   List<TokenState> get tokens => List<TokenState>.unmodifiable(_tokens);
 
@@ -75,11 +69,7 @@ class GameTurnController {
 
     if (legalTokenIds.isEmpty) {
       _handleNoLegalMove(playerIndex, value);
-      return;
     }
-
-    statusMessage =
-        '${_playerName(playerIndex)} rolled $value. Tap a highlighted token';
   }
 
   MoveResolution? moveToken(int tokenId) {
@@ -136,19 +126,8 @@ class GameTurnController {
 
     if (gameFinished) {
       winnerIndex = token.playerIndex;
-      statusMessage = '${_playerName(token.playerIndex)} wins the game';
-    } else if (grantsExtraTurn) {
-      statusMessage = _extraTurnMessage(
-        token.playerIndex,
-        roll,
-        capturedTokens.length,
-        reachedCenter,
-      );
-    } else {
-      final movedPlayerName = _playerName(token.playerIndex);
+    } else if (!grantsExtraTurn) {
       _advanceTurn();
-      statusMessage =
-          '$movedPlayerName moved $roll. ${_playerName(currentPlayerIndex)} rolls next';
     }
 
     return MoveResolution(
@@ -305,16 +284,9 @@ class GameTurnController {
     pendingRoll = null;
     legalTokenIds = {};
 
-    if (_rollGrantsExtraTurn(value)) {
-      statusMessage =
-          '${_playerName(playerIndex)} rolled $value with no move. Roll again';
-      return;
-    }
+    if (_rollGrantsExtraTurn(value)) return;
 
-    final skippedPlayerName = _playerName(playerIndex);
     _advanceTurn();
-    statusMessage =
-        '$skippedPlayerName rolled $value with no move. ${_playerName(currentPlayerIndex)} rolls next';
   }
 
   void _advanceTurn() {
@@ -333,27 +305,10 @@ class GameTurnController {
 
   bool _rollGrantsExtraTurn(int value) => value == 4 || value == 8;
 
-  String _extraTurnMessage(
-    int playerIndex,
-    int roll,
-    int capturedCount,
-    bool reachedCenter,
-  ) {
-    if (reachedCenter) {
-      return '${_playerName(playerIndex)} reached home. Roll again';
-    }
-    if (capturedCount > 0) {
-      return '${_playerName(playerIndex)} captured $capturedCount. Roll again';
-    }
-    return '${_playerName(playerIndex)} rolled $roll. Roll again';
-  }
-
   TokenState? _tokenById(int tokenId) {
     for (final token in _tokens) {
       if (token.id == tokenId) return token;
     }
     return null;
   }
-
-  String _playerName(int playerIndex) => gamePlayers[playerIndex].name;
 }

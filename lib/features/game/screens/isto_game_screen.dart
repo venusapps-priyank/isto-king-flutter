@@ -125,12 +125,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                       children: [
                         SizedBox(
                           height: topBarHeight,
-                          child: TopGameBar(
-                            message: _turnController.statusMessage,
-                            activeColor:
-                                gamePlayers[_turnController.currentPlayerIndex]
-                                    .color,
-                          ),
+                          child: const TopGameBar(),
                         ),
                         const SizedBox(height: gap),
                         SizedBox(
