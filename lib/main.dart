@@ -621,17 +621,17 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
   @override
   void initState() {
     super.initState();
-    _cowries = List<bool>.filled(widget.shellCount, true);
+    _cowries = List<bool>.filled(widget.shellCount, false);
   }
 
   @override
   void didUpdateWidget(covariant CowrieRollPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.shellCount != widget.shellCount) {
-      _cowries = List<bool>.filled(widget.shellCount, true);
+      _cowries = List<bool>.filled(widget.shellCount, false);
     }
     if (oldWidget.isActive && !widget.isActive) {
-      _cowries = List<bool>.filled(widget.shellCount, true);
+      _cowries = List<bool>.filled(widget.shellCount, false);
       _rollingCowries = null;
       _isRolling = false;
     }
