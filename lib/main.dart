@@ -62,15 +62,10 @@ class IstoGameScreen extends StatelessWidget {
                   final horizontalPadding = width < 410 ? 12.0 : 16.0;
                   final topBarHeight = compact ? 58.0 : 66.0;
                   final cardHeight = compact ? 90.0 : 100.0;
-                  final bannerHeight = compact ? 42.0 : 48.0;
                   const gap = 7.0;
                   final boardMaxWidth = width - horizontalPadding * 2;
                   final boardMaxHeight =
-                      height -
-                      topBarHeight -
-                      cardHeight * 2 -
-                      bannerHeight -
-                      gap * 6;
+                      height - topBarHeight - cardHeight * 2 - gap * 3;
                   final boardSize = math.max(
                     280.0,
                     math.min(boardMaxWidth, boardMaxHeight),
@@ -132,11 +127,6 @@ class IstoGameScreen extends StatelessWidget {
                               gender: AvatarGender.female,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: gap),
-                        SizedBox(
-                          height: bannerHeight,
-                          child: const CurrentTurnBanner(),
                         ),
                       ],
                     ),
@@ -608,7 +598,7 @@ class GameBoardPainter extends CustomPainter {
       );
     }
 
-    _drawGrid(canvas, inner, cell);
+    _drawGrid(canvas, inner, innerRRect, cell);
     _drawCenterHome(canvas, _cellRect(inner, cell, 2, 2));
 
     for (final home in playerHomes) {
@@ -642,11 +632,11 @@ class GameBoardPainter extends CustomPainter {
     canvas.drawRect(rect, Paint()..color = color);
   }
 
-  void _drawGrid(Canvas canvas, Rect board, double cell) {
+  void _drawGrid(Canvas canvas, Rect board, RRect border, double cell) {
     final line = Paint()
       ..color = RoyalColors.brown
       ..strokeWidth = math.max(1.0, cell * 0.035);
-    for (var i = 0; i <= gridCount; i++) {
+    for (var i = 1; i < gridCount; i++) {
       final offset = board.left + i * cell;
       canvas.drawLine(
         Offset(offset, board.top),
@@ -656,6 +646,7 @@ class GameBoardPainter extends CustomPainter {
       final y = board.top + i * cell;
       canvas.drawLine(Offset(board.left, y), Offset(board.right, y), line);
     }
+    canvas.drawRRect(border, line..style = PaintingStyle.stroke);
   }
 
   void _drawCenterHome(Canvas canvas, Rect rect) {

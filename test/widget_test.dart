@@ -12,11 +12,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Rammohan'), findsNWidgets(2));
+      expect(find.text('Rammohan'), findsOneWidget);
       expect(find.text('Chandrakishore'), findsOneWidget);
       expect(find.text('Aaradhya'), findsOneWidget);
       expect(find.text('Shaurya'), findsOneWidget);
-      expect(find.text('Current Turn:'), findsOneWidget);
+      expect(find.text('Current Turn:'), findsNothing);
       expect(find.text('120'), findsOneWidget);
 
       final boardRect = tester.getRect(find.byType(GameBoard));
