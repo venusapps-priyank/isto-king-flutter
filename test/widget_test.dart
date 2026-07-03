@@ -25,9 +25,13 @@ void main() {
       for (final home in GameBoardPainter.playerHomes) {
         expect(home.arrowCol, greaterThanOrEqualTo(0));
         expect(home.arrowCol, lessThan(GameBoardPainter.gridCount));
+        expect(home.arrowRow, greaterThanOrEqualTo(0));
+        expect(home.arrowRow, lessThan(GameBoardPainter.gridCount));
         expect(home.col, inInclusiveRange(0, GameBoardPainter.gridCount - 1));
         expect(home.row, inInclusiveRange(0, GameBoardPainter.gridCount - 1));
-        expect((home.arrowCol - home.col).abs(), 1);
+        final columnDistance = (home.arrowCol - home.col).abs();
+        final rowDistance = (home.arrowRow - home.row).abs();
+        expect(columnDistance + rowDistance, 1);
       }
       expect(boardRect.width, closeTo(boardRect.height, 0.01));
       expect(boardRect.center.dx, closeTo(size.width / 2, 1));

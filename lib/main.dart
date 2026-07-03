@@ -567,13 +567,16 @@ class GameBoardPainter extends CustomPainter {
       row: 2,
       color: RoyalColors.yellow,
       arrowAngle: 0,
-      arrowCol: 1,
+      arrowCol: 0,
+      arrowRow: 1,
     ),
     BoardPlayerHome(
       col: 4,
       row: 2,
       color: RoyalColors.green,
       arrowAngle: math.pi,
+      arrowCol: 4,
+      arrowRow: 3,
     ),
   ];
 
@@ -617,7 +620,7 @@ class GameBoardPainter extends CustomPainter {
     for (final home in playerHomes) {
       _drawArrow(
         canvas,
-        _cellRect(inner, cell, home.arrowCol, home.row),
+        _cellRect(inner, cell, home.arrowCol, home.arrowRow),
         home.color,
         home.arrowAngle,
       );
@@ -817,13 +820,16 @@ class BoardPlayerHome {
     required this.color,
     required this.arrowAngle,
     int? arrowCol,
-  }) : arrowCol = arrowCol ?? col - 1;
+    int? arrowRow,
+  }) : arrowCol = arrowCol ?? col - 1,
+       arrowRow = arrowRow ?? row;
 
   final int col;
   final int row;
   final Color color;
   final double arrowAngle;
   final int arrowCol;
+  final int arrowRow;
 }
 
 class AvatarPainter extends CustomPainter {
