@@ -346,14 +346,18 @@ class PlayerCard extends StatelessWidget {
                     bottom: 8,
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: avatarOnRight
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
                     children: [
                       SizedBox(
                         height: nameSize + 4,
                         width: double.infinity,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
+                          alignment: avatarOnRight
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: Text(
                             name,
                             maxLines: 1,
@@ -379,6 +383,7 @@ class PlayerCard extends StatelessWidget {
                         isActive: isActive,
                         shellCount: shellCount,
                         shellSize: shellSize,
+                        alignRight: avatarOnRight,
                         onRollComplete: onRollComplete,
                       ),
                     ],
@@ -586,6 +591,7 @@ class CowrieRollPanel extends StatefulWidget {
     required this.isActive,
     required this.shellCount,
     required this.shellSize,
+    this.alignRight = false,
     this.onRollComplete,
     super.key,
   });
@@ -594,6 +600,7 @@ class CowrieRollPanel extends StatefulWidget {
   final bool isActive;
   final int shellCount;
   final double shellSize;
+  final bool alignRight;
   final ValueChanged<int>? onRollComplete;
 
   @override
@@ -703,7 +710,9 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
                 final rowWidth =
                     shellWidth * widget.shellCount +
                     gap * (widget.shellCount - 1);
-                final startX = (constraints.maxWidth - rowWidth) / 2;
+                final startX = widget.alignRight
+                    ? constraints.maxWidth - rowWidth
+                    : 0.0;
 
                 return Stack(
                   clipBehavior: Clip.none,
