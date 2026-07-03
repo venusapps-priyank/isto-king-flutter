@@ -152,14 +152,6 @@ class TopGameBar extends StatelessWidget {
           child: RoundIconButton(icon: Icons.settings),
         ),
         Positioned(right: 48, child: const CoinBalancePill()),
-        const Positioned(
-          bottom: 13,
-          child: SizedBox(
-            width: 160,
-            height: 16,
-            child: CustomPaint(painter: HeaderDividerPainter()),
-          ),
-        ),
       ],
     );
   }
@@ -932,40 +924,6 @@ class ScreenOrnamentPainter extends CustomPainter {
       canvas.drawPath(path, red);
       canvas.restore();
     }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class HeaderDividerPainter extends CustomPainter {
-  const HeaderDividerPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = RoyalColors.brown.withValues(alpha: 0.55)
-      ..strokeWidth = 1.3;
-    canvas.drawLine(
-      Offset(0, size.height / 2),
-      Offset(size.width * 0.42, size.height / 2),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.58, size.height / 2),
-      Offset(size.width, size.height / 2),
-      paint,
-    );
-    final center = size.center(Offset.zero);
-    for (var i = 0; i < 4; i++) {
-      final angle = i * math.pi / 2 + math.pi / 4;
-      final point = Offset(
-        center.dx + math.cos(angle) * 6,
-        center.dy + math.sin(angle) * 6,
-      );
-      canvas.drawCircle(point, 2.2, Paint()..color = RoyalColors.red);
-    }
-    canvas.drawCircle(center, 2.5, Paint()..color = RoyalColors.gold);
   }
 
   @override
