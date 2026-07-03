@@ -657,9 +657,12 @@ class GameBoardPainter extends CustomPainter {
     final cross = Paint()
       ..color = Colors.white
       ..strokeWidth = math.max(1.5, rect.width * 0.035)
-      ..strokeCap = StrokeCap.square;
+      ..strokeCap = StrokeCap.butt;
+    canvas.save();
+    canvas.clipRect(rect);
     canvas.drawLine(rect.topLeft, rect.bottomRight, cross);
     canvas.drawLine(rect.topRight, rect.bottomLeft, cross);
+    canvas.restore();
   }
 
   void _drawTokenCluster(
