@@ -16,7 +16,7 @@ class IstoKingApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF8E6B8),
+        scaffoldBackgroundColor: RoyalColors.parchment,
         colorScheme: ColorScheme.fromSeed(seedColor: RoyalColors.red),
         fontFamily: 'Georgia',
       ),
@@ -26,17 +26,18 @@ class IstoKingApp extends StatelessWidget {
 }
 
 class RoyalColors {
-  static const parchment = Color(0xFFF8E6B8);
+  static const parchment = Color(0xFFFBE9C9);
   static const parchmentLight = Color(0xFFFFF4D6);
-  static const boardCell = Color(0xFFFFF0C8);
+  static const boardCell = Color(0xFFFDE7C2);
   static const red = Color(0xFFD7262E);
   static const green = Color(0xFF3B8E32);
   static const blue = Color(0xFF006FBE);
   static const yellow = Color(0xFFF5A400);
-  static const darkRed = Color(0xFF8B0000);
-  static const brown = Color(0xFF5A2A16);
+  static const darkRed = Color(0xFF700000);
+  static const brown = Color(0xFF6B3A1E);
   static const darkBrown = Color(0xFF3A1E0F);
   static const gold = Color(0xFFEBA318);
+  static const outerRed = Color(0xFF7B0D06);
 }
 
 class IstoGameScreen extends StatelessWidget {
@@ -46,20 +47,12 @@ class IstoGameScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.15,
-            colors: [
-              Color(0xFFFFF7DE),
-              RoyalColors.parchment,
-              Color(0xFFECCF8A),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(color: RoyalColors.parchment),
         child: Stack(
           children: [
-            const Positioned.fill(child: CustomPaint(painter: ScreenOrnamentPainter())),
+            const Positioned.fill(
+              child: CustomPaint(painter: ScreenOrnamentPainter()),
+            ),
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -72,7 +65,8 @@ class IstoGameScreen extends StatelessWidget {
                   final bannerHeight = compact ? 42.0 : 48.0;
                   const gap = 7.0;
                   final boardMaxWidth = width - horizontalPadding * 2;
-                  final boardMaxHeight = height -
+                  final boardMaxHeight =
+                      height -
                       topBarHeight -
                       cardHeight * 2 -
                       bannerHeight -
@@ -83,7 +77,9 @@ class IstoGameScreen extends StatelessWidget {
                   );
 
                   return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
                     child: Column(
                       children: [
                         SizedBox(
@@ -169,7 +165,9 @@ class TopGameBar extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: RoyalColors.parchmentLight.withValues(alpha: 0.86),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(32),
+              ),
               border: Border.all(color: RoyalColors.gold, width: 2),
               boxShadow: [
                 BoxShadow(
@@ -181,8 +179,14 @@ class TopGameBar extends StatelessWidget {
             ),
           ),
         ),
-        const Positioned(left: 4, child: RoundIconButton(icon: Icons.arrow_back)),
-        const Positioned(right: 4, child: RoundIconButton(icon: Icons.settings)),
+        const Positioned(
+          left: 4,
+          child: RoundIconButton(icon: Icons.arrow_back),
+        ),
+        const Positioned(
+          right: 4,
+          child: RoundIconButton(icon: Icons.settings),
+        ),
         Positioned(right: 70, child: const CoinBalancePill()),
         const Positioned(
           bottom: 13,
@@ -209,11 +213,7 @@ class RoundIconButton extends StatelessWidget {
       height: 50,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFC0202D), RoyalColors.darkRed],
-        ),
+        color: RoyalColors.outerRed,
         border: Border.all(color: Colors.white, width: 3),
         boxShadow: [
           BoxShadow(
@@ -239,7 +239,10 @@ class CoinBalancePill extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFE1B2),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: RoyalColors.brown.withValues(alpha: 0.45), width: 1.5),
+        border: Border.all(
+          color: RoyalColors.brown.withValues(alpha: 0.45),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: RoyalColors.brown.withValues(alpha: 0.18),
@@ -323,7 +326,10 @@ class PlayerCard extends StatelessWidget {
         final contentLeft = avatarSize * 0.68;
         final nameSize = height < 96 ? 15.0 : 17.0;
         final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 18;
-        final shellSize = math.min(height < 96 ? 25.0 : 29.0, contentWidth / 4.35);
+        final shellSize = math.min(
+          height < 96 ? 25.0 : 29.0,
+          contentWidth / 4.35,
+        );
 
         return Stack(
           clipBehavior: Clip.none,
@@ -334,11 +340,7 @@ class PlayerCard extends StatelessWidget {
               bottom: cardBottom,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [accentColor, color, Color.lerp(color, Colors.black, 0.24)!],
-                  ),
+                  color: color,
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
@@ -350,7 +352,12 @@ class PlayerCard extends StatelessWidget {
                   ],
                 ),
                 child: Padding(
-                  padding: EdgeInsets.only(left: contentLeft, right: 9, top: 8, bottom: 8),
+                  padding: EdgeInsets.only(
+                    left: contentLeft,
+                    right: 9,
+                    top: 8,
+                    bottom: 8,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -369,7 +376,11 @@ class PlayerCard extends StatelessWidget {
                               height: 1,
                               fontWeight: FontWeight.w900,
                               shadows: const [
-                                Shadow(color: RoyalColors.brown, blurRadius: 2, offset: Offset(0, 1)),
+                                Shadow(
+                                  color: RoyalColors.brown,
+                                  blurRadius: 2,
+                                  offset: Offset(0, 1),
+                                ),
                               ],
                             ),
                           ),
@@ -472,9 +483,7 @@ class CurrentTurnBanner extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFF1CF), Color(0xFFFFD992)],
-            ),
+            color: RoyalColors.boardCell,
             borderRadius: BorderRadius.circular(28),
             border: Border.all(color: RoyalColors.gold, width: 1.5),
             boxShadow: [
@@ -488,7 +497,10 @@ class CurrentTurnBanner extends StatelessWidget {
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('✣', style: TextStyle(color: RoyalColors.gold, fontSize: 17)),
+              Text(
+                '✣',
+                style: TextStyle(color: RoyalColors.gold, fontSize: 17),
+              ),
               SizedBox(width: 10),
               Flexible(
                 child: FittedBox(
@@ -520,7 +532,10 @@ class CurrentTurnBanner extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 10),
-              Text('✣', style: TextStyle(color: RoyalColors.gold, fontSize: 17)),
+              Text(
+                '✣',
+                style: TextStyle(color: RoyalColors.gold, fontSize: 17),
+              ),
             ],
           ),
         ),
@@ -533,6 +548,33 @@ class GameBoardPainter extends CustomPainter {
   const GameBoardPainter();
 
   static const int gridCount = 5;
+  static const playerHomes = [
+    BoardPlayerHome(
+      col: 2,
+      row: 0,
+      color: RoyalColors.red,
+      arrowAngle: math.pi / 2,
+    ),
+    BoardPlayerHome(
+      col: 2,
+      row: 4,
+      color: RoyalColors.blue,
+      arrowAngle: -math.pi / 2,
+    ),
+    BoardPlayerHome(
+      col: 0,
+      row: 2,
+      color: RoyalColors.yellow,
+      arrowAngle: 0,
+      arrowCol: 1,
+    ),
+    BoardPlayerHome(
+      col: 4,
+      row: 2,
+      color: RoyalColors.green,
+      arrowAngle: math.pi,
+    ),
+  ];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -544,42 +586,65 @@ class GameBoardPainter extends CustomPainter {
     ).deflate(1);
     final outer = RRect.fromRectAndRadius(boardRect, const Radius.circular(19));
     final inner = boardRect.deflate(shortest * 0.032);
-    final innerRRect = RRect.fromRectAndRadius(inner, const Radius.circular(12));
+    final innerRRect = RRect.fromRectAndRadius(
+      inner,
+      const Radius.circular(12),
+    );
     final cell = inner.width / gridCount;
 
     canvas.drawRRect(outer, Paint()..color = RoyalColors.darkRed);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(boardRect.deflate(shortest * 0.011), const Radius.circular(15)),
+      RRect.fromRectAndRadius(
+        boardRect.deflate(shortest * 0.011),
+        const Radius.circular(15),
+      ),
       Paint()..color = const Color(0xFFE9A329),
     );
     canvas.drawRRect(innerRRect, Paint()..color = RoyalColors.boardCell);
 
-    void homeCell(int col, int row, Color color) {
-      final rect = _cellRect(inner, cell, col, row).deflate(cell * 0.06);
-      canvas.drawRect(rect, Paint()..color = color.withValues(alpha: 0.9));
+    for (final home in playerHomes) {
+      _drawPlayerHomeCell(
+        canvas,
+        _cellRect(inner, cell, home.col, home.row),
+        home.color,
+      );
     }
-
-    homeCell(2, 0, RoyalColors.red);
-    homeCell(2, 4, RoyalColors.blue);
-    homeCell(0, 2, RoyalColors.yellow);
-    homeCell(4, 2, RoyalColors.green);
 
     _drawGrid(canvas, inner, cell);
     _drawCenterHome(canvas, _cellRect(inner, cell, 2, 2));
 
-    _drawArrow(canvas, _cellRect(inner, cell, 1, 0), RoyalColors.red, math.pi / 2);
-    _drawArrow(canvas, _cellRect(inner, cell, 1, 4), RoyalColors.blue, -math.pi / 2);
-    _drawSideArrow(canvas, _cellRect(inner, cell, 0, 2), RoyalColors.yellow, 0);
-    _drawArrow(canvas, _cellRect(inner, cell, 3, 2), RoyalColors.green, math.pi);
+    for (final home in playerHomes) {
+      _drawArrow(
+        canvas,
+        _cellRect(inner, cell, home.arrowCol, home.row),
+        home.color,
+        home.arrowAngle,
+      );
+    }
 
-    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 0), RoyalColors.red);
-    _drawTokenCluster(canvas, _cellRect(inner, cell, 2, 4), RoyalColors.blue);
-    _drawTokenCluster(canvas, _cellRect(inner, cell, 0, 2), RoyalColors.yellow, 4);
-    _drawTokenCluster(canvas, _cellRect(inner, cell, 4, 2), RoyalColors.green, 4);
+    for (final home in playerHomes) {
+      _drawTokenCluster(
+        canvas,
+        _cellRect(inner, cell, home.col, home.row),
+        home.color,
+      );
+    }
   }
 
   Rect _cellRect(Rect board, double cell, int col, int row) {
-    return Rect.fromLTWH(board.left + col * cell, board.top + row * cell, cell, cell);
+    return Rect.fromLTWH(
+      board.left + col * cell,
+      board.top + row * cell,
+      cell,
+      cell,
+    );
+  }
+
+  void _drawPlayerHomeCell(Canvas canvas, Rect rect, Color color) {
+    canvas.drawRect(
+      rect.deflate(rect.width * 0.06),
+      Paint()..color = color.withValues(alpha: 0.9),
+    );
   }
 
   void _drawGrid(Canvas canvas, Rect board, double cell) {
@@ -588,7 +653,11 @@ class GameBoardPainter extends CustomPainter {
       ..strokeWidth = math.max(1.0, cell * 0.035);
     for (var i = 0; i <= gridCount; i++) {
       final offset = board.left + i * cell;
-      canvas.drawLine(Offset(offset, board.top), Offset(offset, board.bottom), line);
+      canvas.drawLine(
+        Offset(offset, board.top),
+        Offset(offset, board.bottom),
+        line,
+      );
       final y = board.top + i * cell;
       canvas.drawLine(Offset(board.left, y), Offset(board.right, y), line);
     }
@@ -596,7 +665,12 @@ class GameBoardPainter extends CustomPainter {
 
   void _drawCenterHome(Canvas canvas, Rect rect) {
     final center = rect.center;
-    final colors = [RoyalColors.red, RoyalColors.green, RoyalColors.blue, RoyalColors.yellow];
+    final colors = [
+      RoyalColors.red,
+      RoyalColors.green,
+      RoyalColors.blue,
+      RoyalColors.yellow,
+    ];
     final points = [
       [rect.topLeft, rect.topRight, center],
       [rect.topRight, rect.bottomRight, center],
@@ -622,7 +696,12 @@ class GameBoardPainter extends CustomPainter {
     );
   }
 
-  void _drawTokenCluster(Canvas canvas, Rect rect, Color color, [int count = 4]) {
+  void _drawTokenCluster(
+    Canvas canvas,
+    Rect rect,
+    Color color, [
+    int count = 4,
+  ]) {
     final radius = rect.width * 0.13;
     final offsets = count == 3
         ? [
@@ -631,10 +710,22 @@ class GameBoardPainter extends CustomPainter {
             Offset(rect.center.dx, rect.bottom - rect.height * 0.24),
           ]
         : [
-            Offset(rect.left + rect.width * 0.32, rect.top + rect.height * 0.32),
-            Offset(rect.right - rect.width * 0.32, rect.top + rect.height * 0.32),
-            Offset(rect.left + rect.width * 0.32, rect.bottom - rect.height * 0.32),
-            Offset(rect.right - rect.width * 0.32, rect.bottom - rect.height * 0.32),
+            Offset(
+              rect.left + rect.width * 0.32,
+              rect.top + rect.height * 0.32,
+            ),
+            Offset(
+              rect.right - rect.width * 0.32,
+              rect.top + rect.height * 0.32,
+            ),
+            Offset(
+              rect.left + rect.width * 0.32,
+              rect.bottom - rect.height * 0.32,
+            ),
+            Offset(
+              rect.right - rect.width * 0.32,
+              rect.bottom - rect.height * 0.32,
+            ),
           ];
     for (final offset in offsets) {
       _drawToken(canvas, offset, radius, color);
@@ -648,8 +739,16 @@ class GameBoardPainter extends CustomPainter {
       2,
       true,
     );
-    canvas.drawCircle(center, radius, Paint()..color = Color.lerp(color, Colors.black, 0.12)!);
-    canvas.drawCircle(center.translate(-radius * 0.15, -radius * 0.15), radius * 0.78, Paint()..color = color);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = Color.lerp(color, Colors.black, 0.12)!,
+    );
+    canvas.drawCircle(
+      center.translate(-radius * 0.15, -radius * 0.15),
+      radius * 0.78,
+      Paint()..color = color,
+    );
     canvas.drawCircle(
       center,
       radius * 0.76,
@@ -666,7 +765,10 @@ class GameBoardPainter extends CustomPainter {
     for (var i = 0; i < 10; i++) {
       final r = i.isEven ? radius : radius * 0.45;
       final angle = -math.pi / 2 + i * math.pi / 5;
-      final point = Offset(center.dx + math.cos(angle) * r, center.dy + math.sin(angle) * r);
+      final point = Offset(
+        center.dx + math.cos(angle) * r,
+        center.dy + math.sin(angle) * r,
+      );
       if (i == 0) {
         path.moveTo(point.dx, point.dy);
       } else {
@@ -713,17 +815,24 @@ class GameBoardPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawSideArrow(Canvas canvas, Rect rect, Color color, double angle) {
-    final sideRect = Rect.fromCenter(
-      center: Offset(rect.left + rect.width * 0.2, rect.center.dy),
-      width: rect.width * 0.34,
-      height: rect.height * 0.34,
-    );
-    _drawArrow(canvas, sideRect, color, angle);
-  }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class BoardPlayerHome {
+  const BoardPlayerHome({
+    required this.col,
+    required this.row,
+    required this.color,
+    required this.arrowAngle,
+    int? arrowCol,
+  }) : arrowCol = arrowCol ?? col - 1;
+
+  final int col;
+  final int row;
+  final Color color;
+  final double arrowAngle;
+  final int arrowCol;
 }
 
 class AvatarPainter extends CustomPainter {
@@ -742,7 +851,11 @@ class AvatarPainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = size.width / 2;
     canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-    canvas.drawCircle(center, radius * 0.94, Paint()..color = const Color(0xFFFFE6C1));
+    canvas.drawCircle(
+      center,
+      radius * 0.94,
+      Paint()..color = const Color(0xFFFFE6C1),
+    );
     canvas.drawCircle(
       center,
       radius * 0.94,
@@ -755,13 +868,21 @@ class AvatarPainter extends CustomPainter {
     final hair = Paint()..color = const Color(0xFF20100C);
     if (gender == AvatarGender.female) {
       canvas.drawOval(
-        Rect.fromCenter(center: center.translate(0, radius * 0.02), width: radius * 1.2, height: radius * 1.45),
+        Rect.fromCenter(
+          center: center.translate(0, radius * 0.02),
+          width: radius * 1.2,
+          height: radius * 1.45,
+        ),
         hair,
       );
     } else {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromCenter(center: center.translate(0, -radius * 0.36), width: radius * 1.05, height: radius * 0.56),
+          Rect.fromCenter(
+            center: center.translate(0, -radius * 0.36),
+            width: radius * 1.05,
+            height: radius * 0.56,
+          ),
           Radius.circular(radius * 0.23),
         ),
         hair,
@@ -769,20 +890,40 @@ class AvatarPainter extends CustomPainter {
     }
 
     canvas.drawOval(
-      Rect.fromCenter(center: center.translate(0, -radius * 0.06), width: radius * 0.92, height: radius * 1.02),
+      Rect.fromCenter(
+        center: center.translate(0, -radius * 0.06),
+        width: radius * 0.92,
+        height: radius * 1.02,
+      ),
       Paint()..color = skin,
     );
     canvas.drawArc(
-      Rect.fromCenter(center: center.translate(0, -radius * 0.33), width: radius * 0.98, height: radius * 0.55),
+      Rect.fromCenter(
+        center: center.translate(0, -radius * 0.33),
+        width: radius * 0.98,
+        height: radius * 0.55,
+      ),
       math.pi,
       math.pi,
       false,
       hair..strokeWidth = radius * 0.12,
     );
-    canvas.drawCircle(center.translate(-radius * 0.22, -radius * 0.05), radius * 0.045, Paint()..color = RoyalColors.darkBrown);
-    canvas.drawCircle(center.translate(radius * 0.22, -radius * 0.05), radius * 0.045, Paint()..color = RoyalColors.darkBrown);
+    canvas.drawCircle(
+      center.translate(-radius * 0.22, -radius * 0.05),
+      radius * 0.045,
+      Paint()..color = RoyalColors.darkBrown,
+    );
+    canvas.drawCircle(
+      center.translate(radius * 0.22, -radius * 0.05),
+      radius * 0.045,
+      Paint()..color = RoyalColors.darkBrown,
+    );
     canvas.drawArc(
-      Rect.fromCenter(center: center.translate(0, radius * 0.17), width: radius * 0.42, height: radius * 0.18),
+      Rect.fromCenter(
+        center: center.translate(0, radius * 0.17),
+        width: radius * 0.42,
+        height: radius * 0.18,
+      ),
       0,
       math.pi,
       false,
@@ -792,12 +933,28 @@ class AvatarPainter extends CustomPainter {
         ..style = PaintingStyle.stroke,
     );
     if (gender == AvatarGender.female) {
-      canvas.drawCircle(center.translate(0, -radius * 0.28), radius * 0.04, Paint()..color = RoyalColors.red);
-      canvas.drawCircle(center.translate(-radius * 0.5, radius * 0.06), radius * 0.055, Paint()..color = RoyalColors.gold);
-      canvas.drawCircle(center.translate(radius * 0.5, radius * 0.06), radius * 0.055, Paint()..color = RoyalColors.gold);
+      canvas.drawCircle(
+        center.translate(0, -radius * 0.28),
+        radius * 0.04,
+        Paint()..color = RoyalColors.red,
+      );
+      canvas.drawCircle(
+        center.translate(-radius * 0.5, radius * 0.06),
+        radius * 0.055,
+        Paint()..color = RoyalColors.gold,
+      );
+      canvas.drawCircle(
+        center.translate(radius * 0.5, radius * 0.06),
+        radius * 0.055,
+        Paint()..color = RoyalColors.gold,
+      );
     }
     canvas.drawArc(
-      Rect.fromCenter(center: center.translate(0, radius * 0.9), width: radius * 1.35, height: radius * 0.85),
+      Rect.fromCenter(
+        center: center.translate(0, radius * 0.9),
+        width: radius * 1.35,
+        height: radius * 0.85,
+      ),
       math.pi,
       math.pi,
       true,
@@ -807,7 +964,9 @@ class AvatarPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant AvatarPainter oldDelegate) {
-    return skin != oldDelegate.skin || clothing != oldDelegate.clothing || gender != oldDelegate.gender;
+    return skin != oldDelegate.skin ||
+        clothing != oldDelegate.clothing ||
+        gender != oldDelegate.gender;
   }
 }
 
@@ -817,7 +976,11 @@ class CoinPainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = size.shortestSide / 2;
     canvas.drawCircle(center, radius, Paint()..color = const Color(0xFFB86A00));
-    canvas.drawCircle(center.translate(-radius * 0.08, -radius * 0.08), radius * 0.82, Paint()..color = RoyalColors.gold);
+    canvas.drawCircle(
+      center.translate(-radius * 0.08, -radius * 0.08),
+      radius * 0.82,
+      Paint()..color = RoyalColors.gold,
+    );
     canvas.drawCircle(
       center,
       radius * 0.66,
@@ -831,7 +994,10 @@ class CoinPainter extends CustomPainter {
     for (var i = 0; i < 10; i++) {
       final r = i.isEven ? radius * 0.44 : radius * 0.2;
       final angle = -math.pi / 2 + i * math.pi / 5;
-      final point = Offset(center.dx + math.cos(angle) * r, center.dy + math.sin(angle) * r);
+      final point = Offset(
+        center.dx + math.cos(angle) * r,
+        center.dy + math.sin(angle) * r,
+      );
       if (i == 0) {
         path.moveTo(point.dx, point.dy);
       } else {
@@ -852,26 +1018,42 @@ class CowrieShellPainter extends CustomPainter {
     final rect = Offset.zero & size;
     final shell = Path()
       ..moveTo(rect.width * 0.18, rect.height * 0.78)
-      ..cubicTo(rect.width * 0.02, rect.height * 0.38, rect.width * 0.33, rect.height * 0.02, rect.width * 0.64, rect.height * 0.08)
-      ..cubicTo(rect.width * 0.98, rect.height * 0.15, rect.width * 0.98, rect.height * 0.66, rect.width * 0.62, rect.height * 0.9)
-      ..cubicTo(rect.width * 0.45, rect.height, rect.width * 0.25, rect.height * 0.96, rect.width * 0.18, rect.height * 0.78)
+      ..cubicTo(
+        rect.width * 0.02,
+        rect.height * 0.38,
+        rect.width * 0.33,
+        rect.height * 0.02,
+        rect.width * 0.64,
+        rect.height * 0.08,
+      )
+      ..cubicTo(
+        rect.width * 0.98,
+        rect.height * 0.15,
+        rect.width * 0.98,
+        rect.height * 0.66,
+        rect.width * 0.62,
+        rect.height * 0.9,
+      )
+      ..cubicTo(
+        rect.width * 0.45,
+        rect.height,
+        rect.width * 0.25,
+        rect.height * 0.96,
+        rect.width * 0.18,
+        rect.height * 0.78,
+      )
       ..close();
     canvas.drawShadow(shell, Colors.black, 2, true);
     canvas.drawPath(shell, Paint()..color = const Color(0xFFFFF4D7));
-    canvas.drawPath(
-      shell,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFF4C58B), Color(0xFFFFF3D1)],
-        ).createShader(rect),
-    );
     final slit = Paint()
       ..color = RoyalColors.brown
       ..strokeWidth = size.width * 0.09
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(size.width * 0.58, size.height * 0.2), Offset(size.width * 0.36, size.height * 0.82), slit);
+    canvas.drawLine(
+      Offset(size.width * 0.58, size.height * 0.2),
+      Offset(size.width * 0.36, size.height * 0.82),
+      slit,
+    );
     for (var i = 0; i < 6; i++) {
       final y = size.height * (0.28 + i * 0.08);
       canvas.drawLine(
@@ -894,7 +1076,7 @@ class ScreenOrnamentPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final red = Paint()..color = RoyalColors.darkRed;
+    final red = Paint()..color = RoyalColors.outerRed;
     final gold = Paint()
       ..color = RoyalColors.gold
       ..style = PaintingStyle.stroke
@@ -917,7 +1099,13 @@ class ScreenOrnamentPainter extends CustomPainter {
         ..close();
       canvas.drawPath(path, red);
       for (var i = 0; i < 4; i++) {
-        canvas.drawArc(Rect.fromLTWH(10 + i * 13, 10 + i * 13, 42 + i * 18, 42 + i * 18), math.pi, math.pi / 2, false, gold);
+        canvas.drawArc(
+          Rect.fromLTWH(10 + i * 13, 10 + i * 13, 42 + i * 18, 42 + i * 18),
+          math.pi,
+          math.pi / 2,
+          false,
+          gold,
+        );
       }
       canvas.restore();
     }
@@ -935,12 +1123,23 @@ class HeaderDividerPainter extends CustomPainter {
     final paint = Paint()
       ..color = RoyalColors.brown.withValues(alpha: 0.55)
       ..strokeWidth = 1.3;
-    canvas.drawLine(Offset(0, size.height / 2), Offset(size.width * 0.42, size.height / 2), paint);
-    canvas.drawLine(Offset(size.width * 0.58, size.height / 2), Offset(size.width, size.height / 2), paint);
+    canvas.drawLine(
+      Offset(0, size.height / 2),
+      Offset(size.width * 0.42, size.height / 2),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.58, size.height / 2),
+      Offset(size.width, size.height / 2),
+      paint,
+    );
     final center = size.center(Offset.zero);
     for (var i = 0; i < 4; i++) {
       final angle = i * math.pi / 2 + math.pi / 4;
-      final point = Offset(center.dx + math.cos(angle) * 6, center.dy + math.sin(angle) * 6);
+      final point = Offset(
+        center.dx + math.cos(angle) * 6,
+        center.dy + math.sin(angle) * 6,
+      );
       canvas.drawCircle(point, 2.2, Paint()..color = RoyalColors.red);
     }
     canvas.drawCircle(center, 2.5, Paint()..color = RoyalColors.gold);
