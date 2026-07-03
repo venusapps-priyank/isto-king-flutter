@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -40,8 +41,23 @@ class RoyalColors {
   static const outerRed = Color(0xFF7B0D06);
 }
 
-class IstoGameScreen extends StatelessWidget {
+class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({super.key});
+
+  @override
+  State<IstoGameScreen> createState() => _IstoGameScreenState();
+}
+
+class _IstoGameScreenState extends State<IstoGameScreen> {
+  int _currentPlayerIndex = 0;
+  final List<int?> _lastRolls = List<int?>.filled(4, null);
+
+  void _handleRollComplete(int playerIndex, int value) {
+    setState(() {
+      _lastRolls[playerIndex] = value;
+      _currentPlayerIndex = (_currentPlayerIndex + 1) % _lastRolls.length;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,17 +100,23 @@ class IstoGameScreen extends StatelessWidget {
                         const SizedBox(height: gap),
                         SizedBox(
                           height: cardHeight,
-                          child: const PlayerRow(
+                          child: PlayerRow(
                             left: PlayerCard(
                               name: 'Rammohan',
                               color: RoyalColors.red,
                               avatarAsset: 'assets/avatar/avatar-1.png',
+                              isActive: _currentPlayerIndex == 0,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(0, value),
                             ),
                             right: PlayerCard(
                               name: 'Chandrakishore',
                               color: RoyalColors.green,
                               avatarAsset: 'assets/avatar/avatar-f-1.png',
                               avatarOnRight: true,
+                              isActive: _currentPlayerIndex == 1,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(1, value),
                             ),
                           ),
                         ),
@@ -108,17 +130,23 @@ class IstoGameScreen extends StatelessWidget {
                         const SizedBox(height: gap),
                         SizedBox(
                           height: cardHeight,
-                          child: const PlayerRow(
+                          child: PlayerRow(
                             left: PlayerCard(
                               name: 'Aaradhya',
                               color: RoyalColors.yellow,
                               avatarAsset: 'assets/avatar/avatar-2.png',
+                              isActive: _currentPlayerIndex == 2,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(2, value),
                             ),
                             right: PlayerCard(
                               name: 'Shaurya',
                               color: RoyalColors.blue,
                               avatarAsset: 'assets/avatar/avatar-f-2.png',
                               avatarOnRight: true,
+                              isActive: _currentPlayerIndex == 3,
+                              onRollComplete: (value) =>
+                                  _handleRollComplete(3, value),
                             ),
                           ),
                         ),
@@ -257,6 +285,8 @@ class PlayerCard extends StatelessWidget {
     required this.avatarAsset,
     this.avatarOnRight = false,
     this.shellCount = 4,
+    this.isActive = false,
+    this.onRollComplete,
     super.key,
   });
 
@@ -265,6 +295,8 @@ class PlayerCard extends StatelessWidget {
   final String avatarAsset;
   final bool avatarOnRight;
   final int shellCount;
+  final bool isActive;
+  final ValueChanged<int>? onRollComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -277,10 +309,10 @@ class PlayerCard extends StatelessWidget {
         final cardBottom = height * 0.03;
         final contentLeft = avatarSize * 0.76;
         final nameSize = height < 96 ? 15.0 : 17.0;
-        final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 18;
+        final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 9;
         final shellSize = math.min(
-          height < 96 ? 25.0 : 29.0,
-          contentWidth / 4.35,
+          height < 96 ? 38.0 : 42.0,
+          contentWidth / 2.95,
         );
 
         return Stack(
@@ -298,8 +330,9 @@ class PlayerCard extends StatelessWidget {
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.35),
-                      blurRadius: 12,
+                      color: color.withValues(alpha: isActive ? 0.58 : 0.35),
+                      blurRadius: isActive ? 18 : 12,
+                      spreadRadius: isActive ? 1 : 0,
                       offset: const Offset(0, 5),
                     ),
                   ],
@@ -340,19 +373,12 @@ class PlayerCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(
-                          shellCount,
-                          (index) => Transform.rotate(
-                            angle: (index.isEven ? -0.16 : 0.12),
-                            child: SizedBox(
-                              width: shellSize,
-                              height: shellSize,
-                              child: const CowrieShell(),
-                            ),
-                          ),
-                        ),
+                      CowrieRollPanel(
+                        playerColor: color,
+                        isActive: isActive,
+                        shellCount: shellCount,
+                        shellSize: shellSize,
+                        onRollComplete: onRollComplete,
                       ),
                     ],
                   ),
@@ -406,11 +432,221 @@ class CoinIcon extends StatelessWidget {
 }
 
 class CowrieShell extends StatelessWidget {
-  const CowrieShell({super.key});
+  const CowrieShell({
+    required this.isOpen,
+    required this.isRolling,
+    required this.animation,
+    required this.delayIndex,
+    required this.size,
+    super.key,
+  });
+
+  final bool isOpen;
+  final bool isRolling;
+  final Animation<double> animation;
+  final int delayIndex;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: CowrieShellPainter());
+    final assetPath = isOpen
+        ? 'assets/images/cowrie_open.png'
+        : 'assets/images/cowrie_closed.png';
+
+    return AnimatedBuilder(
+      animation: animation,
+      child: Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      ),
+      builder: (context, child) {
+        final value = animation.value;
+        final shakeX = isRolling
+            ? math.sin((value * math.pi * 12) + delayIndex) * 4
+            : 0.0;
+        final shakeY = isRolling
+            ? math.cos((value * math.pi * 10) + delayIndex) * 3
+            : 0.0;
+        final rotation = isRolling
+            ? (value * math.pi * 4) + delayIndex * 0.25
+            : 0.0;
+        final scale = isRolling
+            ? 1.0 + math.sin(value * math.pi * 8) * 0.08
+            : 1.0;
+
+        return Transform.translate(
+          offset: Offset(shakeX, shakeY),
+          child: Transform.rotate(
+            angle: rotation,
+            child: Transform.scale(scale: scale, child: child),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class CowrieRollPanel extends StatefulWidget {
+  const CowrieRollPanel({
+    required this.playerColor,
+    required this.isActive,
+    required this.shellCount,
+    required this.shellSize,
+    this.onRollComplete,
+    super.key,
+  });
+
+  final Color playerColor;
+  final bool isActive;
+  final int shellCount;
+  final double shellSize;
+  final ValueChanged<int>? onRollComplete;
+
+  @override
+  State<CowrieRollPanel> createState() => _CowrieRollPanelState();
+}
+
+class _CowrieRollPanelState extends State<CowrieRollPanel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  final math.Random _random = math.Random();
+  late List<bool> _cowries;
+  Timer? _flipTimer;
+  bool _isRolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cowries = List<bool>.filled(widget.shellCount, true);
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 950),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant CowrieRollPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shellCount != widget.shellCount) {
+      _cowries = List<bool>.filled(widget.shellCount, true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _flipTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _rollCowries() async {
+    if (!widget.isActive || _isRolling) return;
+
+    setState(() => _isRolling = true);
+    _controller.repeat();
+    _flipTimer?.cancel();
+    _flipTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
+      if (!mounted) return;
+      setState(() {
+        _cowries = List<bool>.generate(
+          widget.shellCount,
+          (_) => _random.nextBool(),
+        );
+      });
+    });
+
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    if (!mounted) return;
+
+    _flipTimer?.cancel();
+    final finalCowries = _generateFinalCowries();
+    final result = _calculateIstoValue(finalCowries);
+
+    setState(() {
+      _cowries = finalCowries;
+      _isRolling = false;
+    });
+    _controller.stop();
+    await _controller.animateTo(
+      0,
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+    );
+
+    widget.onRollComplete?.call(result);
+  }
+
+  List<bool> _generateFinalCowries() {
+    return List<bool>.generate(widget.shellCount, (_) => _random.nextBool());
+  }
+
+  int _calculateIstoValue(List<bool> cowries) {
+    final openCount = cowries.where((isOpen) => isOpen).length;
+    return openCount == 0 ? 8 : openCount;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: widget.isActive,
+      enabled: widget.isActive,
+      label: 'Roll cowries',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.isActive ? _rollCowries : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: widget.isActive ? 0.14 : 0),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: widget.isActive ? 0.9 : 0),
+              width: 1.4,
+            ),
+          ),
+          child: SizedBox(
+            height: widget.shellSize,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final naturalGap = widget.shellSize * 0.34;
+                final maxStep = widget.shellSize + naturalGap;
+                final fittedStep = widget.shellCount <= 1
+                    ? 0.0
+                    : (constraints.maxWidth - widget.shellSize) /
+                          (widget.shellCount - 1);
+                final step = math.min(maxStep, fittedStep);
+                final rowWidth =
+                    widget.shellSize + step * (widget.shellCount - 1);
+                final startX = (constraints.maxWidth - rowWidth) / 2;
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    for (var index = 0; index < widget.shellCount; index++)
+                      Positioned(
+                        left: startX + step * index,
+                        top: 0,
+                        child: CowrieShell(
+                          isOpen: _cowries[index],
+                          isRolling: _isRolling,
+                          animation: _controller,
+                          delayIndex: index,
+                          size: widget.shellSize,
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
