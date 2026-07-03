@@ -687,13 +687,6 @@ class GameBoardPainter extends CustomPainter {
         Paint()..color = colors[i],
       );
     }
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = rect.width * 0.05
-        ..color = Colors.white,
-    );
   }
 
   void _drawTokenCluster(
