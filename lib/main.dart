@@ -931,10 +931,6 @@ class ScreenOrnamentPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final red = Paint()..color = RoyalColors.outerRed;
-    final gold = Paint()
-      ..color = RoyalColors.gold
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
     for (final corner in [
       Offset.zero,
       Offset(size.width, 0),
@@ -952,15 +948,6 @@ class ScreenOrnamentPainter extends CustomPainter {
         ..quadraticBezierTo(16, 16, 0, 86)
         ..close();
       canvas.drawPath(path, red);
-      for (var i = 0; i < 4; i++) {
-        canvas.drawArc(
-          Rect.fromLTWH(10 + i * 13, 10 + i * 13, 42 + i * 18, 42 + i * 18),
-          math.pi,
-          math.pi / 2,
-          false,
-          gold,
-        );
-      }
       canvas.restore();
     }
   }
