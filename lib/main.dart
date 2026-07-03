@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 void main() {
   runApp(const IstoKingApp());
@@ -435,6 +436,7 @@ class CowrieShell extends StatefulWidget {
   const CowrieShell({
     required this.startOpen,
     required this.resultOpen,
+    required this.isRolling,
     required this.rollCycle,
     required this.delayIndex,
     required this.size,
@@ -444,6 +446,7 @@ class CowrieShell extends StatefulWidget {
 
   final bool startOpen;
   final bool resultOpen;
+  final bool isRolling;
   final int rollCycle;
   final int delayIndex;
   final double size;
@@ -453,64 +456,25 @@ class CowrieShell extends StatefulWidget {
   State<CowrieShell> createState() => _CowrieShellState();
 }
 
-class _CowrieShellState extends State<CowrieShell>
-    with SingleTickerProviderStateMixin {
-  static const int _delayMs = 135;
-  static const int _spinMs = 560;
+class _CowrieShellState extends State<CowrieShell> {
+  static const int _delayMs = 165;
+  static const int _spinMs = 1000;
+  static const int _settleMs = 160;
+  static const double _landingStart = 0.82;
 
-  late final AnimationController _controller;
-  late final Animation<double> _spin;
-  int _activeRollCycle = 0;
   bool? _spinStartOpen;
   bool? _spinResultOpen;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: _spinMs),
-    );
-    _spin = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOutCubic,
-    );
-    if (widget.rollCycle > 0) {
-      _startSpin(widget.rollCycle);
-    }
-  }
+  int get _tumbleHalfFlips => 4 + (widget.delayIndex % 2);
 
   @override
   void didUpdateWidget(CowrieShell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.rollCycle != oldWidget.rollCycle) {
-      _startSpin(widget.rollCycle);
+    if (widget.rollCycle > oldWidget.rollCycle ||
+        (widget.isRolling && !oldWidget.isRolling)) {
+      _spinStartOpen = widget.startOpen;
+      _spinResultOpen = widget.resultOpen;
     }
-  }
-
-  void _startSpin(int rollCycle) {
-    _activeRollCycle = rollCycle;
-    _spinStartOpen = widget.startOpen;
-    _spinResultOpen = widget.resultOpen;
-    _controller.stop();
-    _controller.value = 0;
-    Future<void>.delayed(
-      Duration(milliseconds: widget.delayIndex * _delayMs),
-      () {
-        if (!mounted ||
-            _activeRollCycle != rollCycle ||
-            widget.rollCycle != rollCycle) {
-          return;
-        }
-        _controller.forward(from: 0);
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   Widget _shellImage(bool isOpen) => Image.asset(
@@ -531,34 +495,48 @@ class _CowrieShellState extends State<CowrieShell>
     );
   }
 
+  bool _faceBeforeLanding(bool startOpen) {
+    return _tumbleHalfFlips.isEven ? startOpen : !startOpen;
+  }
+
   Widget _buildFlipFrame(double value) {
+    final startOpen = _spinStartOpen ?? widget.startOpen;
+    final resultOpen = _spinResultOpen ?? widget.resultOpen;
     final pop = math.sin(value * math.pi);
     final wobble =
         math.sin(value * math.pi * 4 + widget.delayIndex) * 1.8 * pop;
-    final scale = 1.0 + pop * 0.22;
-    final showingResult = value >= 0.5;
-    final halfProgress = showingResult ? (value - 0.5) * 2 : value * 2;
-    final verticalSpin = showingResult
-        ? -math.pi / 2 + halfProgress * math.pi / 2
-        : halfProgress * math.pi / 2;
-    final lift = -pop * 6;
-    final visibleShell = _shellImage(
-      showingResult
-          ? (_spinResultOpen ?? widget.resultOpen)
-          : (_spinStartOpen ?? widget.startOpen),
-    );
+    final scale = 1.0 + pop * 0.24;
+    final lift = -pop * 8;
 
-    return SizedBox(
-      width: widget.width,
-      height: widget.size,
-      child: Transform.translate(
-        offset: Offset(wobble, lift),
-        child: Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.0016)
-            ..rotateY(verticalSpin),
-          child: Transform.scale(scale: scale, child: visibleShell),
+    late final double verticalSpin;
+    late final bool showOpen;
+
+    if (value >= _landingStart) {
+      final landValue = (value - _landingStart) / (1 - _landingStart);
+      final showingResult = landValue >= 0.5;
+      final halfProgress = showingResult ? (landValue - 0.5) * 2 : landValue * 2;
+      final landingSpin = showingResult
+          ? -math.pi / 2 + halfProgress * math.pi / 2
+          : halfProgress * math.pi / 2;
+      verticalSpin = _tumbleHalfFlips * math.pi / 2 + landingSpin;
+      showOpen = showingResult ? resultOpen : _faceBeforeLanding(startOpen);
+    } else {
+      final tumbleValue = Curves.easeOut.transform(value / _landingStart);
+      verticalSpin = tumbleValue * _tumbleHalfFlips * math.pi / 2;
+      final halfFlipIndex = (verticalSpin / (math.pi / 2)).floor();
+      showOpen = halfFlipIndex.isEven ? startOpen : !startOpen;
+    }
+
+    return Transform.translate(
+      offset: Offset(wobble, lift),
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.0016)
+          ..rotateY(verticalSpin),
+        child: Transform.scale(
+          scale: scale,
+          child: _shellImage(showOpen),
         ),
       ),
     );
@@ -566,19 +544,38 @@ class _CowrieShellState extends State<CowrieShell>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _spin,
-      builder: (context, _) {
-        final value = _spin.value;
-        final isIdle = !_controller.isAnimating && value == 0;
-        if (isIdle) {
-          return _buildSettledShell();
-        }
-        if (value >= 1.0) {
-          return _buildSettledShell();
-        }
-        return _buildFlipFrame(value);
-      },
+    if (!widget.isRolling) {
+      return _buildSettledShell();
+    }
+
+    final startOpen = _spinStartOpen ?? widget.startOpen;
+    final totalMs = _spinMs + _settleMs;
+    final flipEnd = _spinMs / totalMs;
+
+    return SizedBox(
+      width: widget.width,
+      height: widget.size,
+      child: _shellImage(startOpen)
+          .animate(
+            key: ValueKey('cowrie-${widget.rollCycle}-${widget.delayIndex}'),
+            delay: (widget.delayIndex * _delayMs).ms,
+          )
+          .custom(
+            duration: totalMs.ms,
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              if (value >= flipEnd) {
+                final settleT = (value - flipEnd) / (1 - flipEnd);
+                final bounce = 1.0 + math.sin(settleT * math.pi) * 0.05;
+                final resultOpen = _spinResultOpen ?? widget.resultOpen;
+                return Transform.scale(
+                  scale: bounce,
+                  child: _shellImage(resultOpen),
+                );
+              }
+              return _buildFlipFrame(value / flipEnd);
+            },
+          ),
     );
   }
 }
@@ -604,8 +601,9 @@ class CowrieRollPanel extends StatefulWidget {
 }
 
 class _CowrieRollPanelState extends State<CowrieRollPanel> {
-  static const int _shellDelayMs = 135;
-  static const int _shellSpinMs = 560;
+  static const int _shellDelayMs = 165;
+  static const int _shellSpinMs = 1000;
+  static const int _shellSettleMs = 160;
 
   final math.Random _random = math.Random();
   late List<bool> _cowries;
@@ -643,7 +641,10 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
     await Future<void>.delayed(
       Duration(
         milliseconds:
-            _shellDelayMs * (widget.shellCount - 1) + _shellSpinMs + 80,
+            _shellDelayMs * (widget.shellCount - 1) +
+            _shellSpinMs +
+            _shellSettleMs +
+            80,
       ),
     );
     if (!mounted || _rollCycle != nextRollCycle) return;
@@ -715,6 +716,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
                           startOpen: _cowries[index],
                           resultOpen:
                               _rollingCowries?[index] ?? _cowries[index],
+                          isRolling: _isRolling,
                           rollCycle: _rollCycle,
                           delayIndex: index,
                           size: widget.shellSize,
