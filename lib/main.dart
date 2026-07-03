@@ -88,16 +88,12 @@ class IstoGameScreen extends StatelessWidget {
                             left: PlayerCard(
                               name: 'Rammohan',
                               color: RoyalColors.red,
-                              avatarColor: Color(0xFFFFD8B2),
-                              accentColor: Color(0xFFFF6A67),
-                              gender: AvatarGender.male,
+                              avatarAsset: 'assets/avatar/avatar-1.png',
                             ),
                             right: PlayerCard(
                               name: 'Chandrakishore',
                               color: RoyalColors.green,
-                              avatarColor: Color(0xFFFFD6B0),
-                              accentColor: Color(0xFF69C15C),
-                              gender: AvatarGender.female,
+                              avatarAsset: 'assets/avatar/avatar-f-1.png',
                             ),
                           ),
                         ),
@@ -115,16 +111,12 @@ class IstoGameScreen extends StatelessWidget {
                             left: PlayerCard(
                               name: 'Aaradhya',
                               color: RoyalColors.yellow,
-                              avatarColor: Color(0xFFFFD8B2),
-                              accentColor: Color(0xFFFFC64C),
-                              gender: AvatarGender.male,
+                              avatarAsset: 'assets/avatar/avatar-2.png',
                             ),
                             right: PlayerCard(
                               name: 'Shaurya',
                               color: RoyalColors.blue,
-                              avatarColor: Color(0xFFFFD6B0),
-                              accentColor: Color(0xFF42A5F5),
-                              gender: AvatarGender.female,
+                              avatarAsset: 'assets/avatar/avatar-f-2.png',
                             ),
                           ),
                         ),
@@ -284,24 +276,18 @@ class PlayerRow extends StatelessWidget {
   }
 }
 
-enum AvatarGender { male, female }
-
 class PlayerCard extends StatelessWidget {
   const PlayerCard({
     required this.name,
     required this.color,
-    required this.avatarColor,
-    required this.accentColor,
-    required this.gender,
+    required this.avatarAsset,
     this.shellCount = 4,
     super.key,
   });
 
   final String name;
   final Color color;
-  final Color avatarColor;
-  final Color accentColor;
-  final AvatarGender gender;
+  final String avatarAsset;
   final int shellCount;
 
   @override
@@ -309,11 +295,11 @@ class PlayerCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final height = constraints.maxHeight;
-        final avatarSize = height * 0.82;
-        final cardLeft = avatarSize * 0.32;
+        final avatarSize = height * 0.68;
+        final cardLeft = avatarSize * 0.36;
         final cardTop = height * 0.12;
         final cardBottom = height * 0.03;
-        final contentLeft = avatarSize * 0.68;
+        final contentLeft = avatarSize * 0.76;
         final nameSize = height < 96 ? 15.0 : 17.0;
         final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 18;
         final shellSize = math.min(
@@ -398,15 +384,27 @@ class PlayerCard extends StatelessWidget {
             ),
             Positioned(
               left: 0,
-              top: height * 0.07,
-              child: SizedBox(
-                width: avatarSize,
-                height: avatarSize,
-                child: CustomPaint(
-                  painter: AvatarPainter(
-                    skin: avatarColor,
-                    clothing: color,
-                    gender: gender,
+              top: height * 0.14,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: RoyalColors.gold,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(avatarSize * 0.04),
+                  child: ClipOval(
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    child: ColoredBox(
+                      color: RoyalColors.parchmentLight,
+                      child: SizedBox.square(
+                        dimension: avatarSize * 0.92,
+                        child: Image.asset(
+                          avatarAsset,
+                          fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -821,141 +819,6 @@ class BoardPlayerHome {
   final double arrowAngle;
   final int arrowCol;
   final int arrowRow;
-}
-
-class AvatarPainter extends CustomPainter {
-  const AvatarPainter({
-    required this.skin,
-    required this.clothing,
-    required this.gender,
-  });
-
-  final Color skin;
-  final Color clothing;
-  final AvatarGender gender;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final radius = size.width / 2;
-    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
-    canvas.drawCircle(
-      center,
-      radius * 0.94,
-      Paint()..color = const Color(0xFFFFE6C1),
-    );
-    canvas.drawCircle(
-      center,
-      radius * 0.94,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.055
-        ..color = RoyalColors.gold,
-    );
-
-    final hair = Paint()..color = const Color(0xFF20100C);
-    if (gender == AvatarGender.female) {
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: center.translate(0, radius * 0.02),
-          width: radius * 1.2,
-          height: radius * 1.45,
-        ),
-        hair,
-      );
-    } else {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromCenter(
-            center: center.translate(0, -radius * 0.36),
-            width: radius * 1.05,
-            height: radius * 0.56,
-          ),
-          Radius.circular(radius * 0.23),
-        ),
-        hair,
-      );
-    }
-
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center.translate(0, -radius * 0.06),
-        width: radius * 0.92,
-        height: radius * 1.02,
-      ),
-      Paint()..color = skin,
-    );
-    canvas.drawArc(
-      Rect.fromCenter(
-        center: center.translate(0, -radius * 0.33),
-        width: radius * 0.98,
-        height: radius * 0.55,
-      ),
-      math.pi,
-      math.pi,
-      false,
-      hair..strokeWidth = radius * 0.12,
-    );
-    canvas.drawCircle(
-      center.translate(-radius * 0.22, -radius * 0.05),
-      radius * 0.045,
-      Paint()..color = RoyalColors.darkBrown,
-    );
-    canvas.drawCircle(
-      center.translate(radius * 0.22, -radius * 0.05),
-      radius * 0.045,
-      Paint()..color = RoyalColors.darkBrown,
-    );
-    canvas.drawArc(
-      Rect.fromCenter(
-        center: center.translate(0, radius * 0.17),
-        width: radius * 0.42,
-        height: radius * 0.18,
-      ),
-      0,
-      math.pi,
-      false,
-      Paint()
-        ..color = RoyalColors.darkRed
-        ..strokeWidth = radius * 0.035
-        ..style = PaintingStyle.stroke,
-    );
-    if (gender == AvatarGender.female) {
-      canvas.drawCircle(
-        center.translate(0, -radius * 0.28),
-        radius * 0.04,
-        Paint()..color = RoyalColors.red,
-      );
-      canvas.drawCircle(
-        center.translate(-radius * 0.5, radius * 0.06),
-        radius * 0.055,
-        Paint()..color = RoyalColors.gold,
-      );
-      canvas.drawCircle(
-        center.translate(radius * 0.5, radius * 0.06),
-        radius * 0.055,
-        Paint()..color = RoyalColors.gold,
-      );
-    }
-    canvas.drawArc(
-      Rect.fromCenter(
-        center: center.translate(0, radius * 0.9),
-        width: radius * 1.35,
-        height: radius * 0.85,
-      ),
-      math.pi,
-      math.pi,
-      true,
-      Paint()..color = clothing,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant AvatarPainter oldDelegate) {
-    return skin != oldDelegate.skin ||
-        clothing != oldDelegate.clothing ||
-        gender != oldDelegate.gender;
-  }
 }
 
 class CoinPainter extends CustomPainter {
