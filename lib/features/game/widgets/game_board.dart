@@ -19,7 +19,7 @@ class GameBoard extends StatelessWidget {
   });
 
   static const moveAnimationCurve = Curves.easeInOutCubic;
-  static const _millisecondsPerStep = 110;
+  static const _millisecondsPerStep = 180;
 
   final List<TokenState> tokens;
   final Set<int> movableTokenIds;
@@ -35,7 +35,7 @@ class GameBoard extends StatelessWidget {
     );
     final segmentCount = math.max(1, longestPath - 1);
     return Duration(
-      milliseconds: (segmentCount * _millisecondsPerStep).clamp(220, 900),
+      milliseconds: (segmentCount * _millisecondsPerStep).clamp(360, 1200),
     );
   }
 
