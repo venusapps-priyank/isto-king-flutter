@@ -59,6 +59,20 @@ class GameTurnController {
         playerStates.map((state) => state.hasKilledOpponent),
       );
 
+  int? get autoMoveTokenId {
+    final legalTokens = _legalTokensSorted();
+    if (legalTokens.isEmpty) return null;
+    if (legalTokens.length == 1) return legalTokens.first.id;
+
+    final firstSignature = _moveSignatureFor(legalTokens.first);
+    if (firstSignature == null) return null;
+
+    for (final token in legalTokens.skip(1)) {
+      if (_moveSignatureFor(token) != firstSignature) return null;
+    }
+    return legalTokens.first.id;
+  }
+
   bool get hasPendingMove => pendingRoll != null && legalTokenIds.isNotEmpty;
 
   bool canRoll(int playerIndex) {
@@ -232,6 +246,32 @@ class GameTurnController {
       }
     }
     return moves;
+  }
+
+  List<TokenState> _legalTokensSorted() {
+    final legalTokens = [
+      for (final token in _tokens)
+        if (legalTokenIds.contains(token.id)) token,
+    ];
+    legalTokens.sort((first, second) => first.id.compareTo(second.id));
+    return legalTokens;
+  }
+
+  ({int sourcePathIndex, int targetPathIndex, BoardCell destination})?
+      _moveSignatureFor(TokenState token) {
+    final roll = pendingRoll;
+    if (roll == null) return null;
+
+    final targetPathIndex = _targetPathIndex(token, roll);
+    if (targetPathIndex == null) return null;
+
+    return (
+      sourcePathIndex: token.isAtStart ? -1 : token.pathIndex,
+      targetPathIndex: targetPathIndex,
+      destination: IstoBoardPaths.pathForPlayer(
+        token.playerIndex,
+      )[targetPathIndex],
+    );
   }
 
   int? _targetPathIndex(TokenState token, int steps) {

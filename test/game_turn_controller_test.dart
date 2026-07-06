@@ -30,6 +30,45 @@ void main() {
       expect(controller.currentPlayerIndex, 1);
     });
 
+    test('auto-selects one of several equivalent home tokens', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+
+      controller.handleRollComplete(0, 1);
+
+      expect(controller.legalTokenIds, {0, 1, 2, 3});
+      expect(controller.autoMoveTokenId, 0);
+    });
+
+    test('auto-selects the only playable token', () {
+      final controller = GameTurnController()..currentPlayerIndex = 2;
+      final yellowPath = IstoBoardPaths.pathForPlayer(2);
+      final remainingYellow = tokenFor(controller, 2, 0);
+      placeToken(remainingYellow, yellowPath.length - 2);
+      for (var tokenIndex = 1; tokenIndex < 4; tokenIndex++) {
+        finishToken(tokenFor(controller, 2, tokenIndex));
+      }
+
+      controller.handleRollComplete(2, 1);
+
+      expect(controller.legalTokenIds, {remainingYellow.id});
+      expect(controller.autoMoveTokenId, remainingYellow.id);
+    });
+
+    test('does not auto-select when multiple different moves are available', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      placeToken(firstRed, 0);
+      placeToken(secondRed, 2);
+      finishToken(tokenFor(controller, 0, 2));
+      finishToken(tokenFor(controller, 0, 3));
+
+      controller.handleRollComplete(0, 1);
+
+      expect(controller.legalTokenIds, {firstRed.id, secondRed.id});
+      expect(controller.autoMoveTokenId, isNull);
+    });
+
     test('inner paths enter center from each player home side', () {
       const finalCellsByPlayer = [
         BoardCell(2, 1), // Red enters from top.

@@ -30,6 +30,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
 
+    int? autoMoveTokenId;
     setState(() {
       final resolution = _turnController.handleRollComplete(
         playerIndex,
@@ -40,7 +41,12 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
           resolution.grantsExtraTurn) {
         _rollResetSerials[playerIndex]++;
       }
+      autoMoveTokenId = _turnController.autoMoveTokenId;
     });
+
+    if (autoMoveTokenId != null) {
+      _handleTokenTap(autoMoveTokenId!);
+    }
   }
 
   void _handleTokenTap(int tokenId) {
