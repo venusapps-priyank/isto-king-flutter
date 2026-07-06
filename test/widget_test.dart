@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isto_king/app/isto_king_app.dart';
+import 'package:isto_king/features/game/models/token_state.dart';
 import 'package:isto_king/features/game/painters/game_board_painter.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
+import 'package:isto_king/features/game/widgets/game_token.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 
 void main() {
@@ -70,5 +72,101 @@ void main() {
     final painter = customPaint.painter as GameBoardPainter;
 
     expect(painter.innerPathAccess, innerPathAccess);
+  });
+
+  testWidgets('finished center tokens fan out inside their color triangles', (
+    tester,
+  ) async {
+    final tokens = [
+      TokenState(
+        playerIndex: 1,
+        tokenIndex: 0,
+        isAtStart: false,
+        isFinished: true,
+      ),
+      TokenState(
+        playerIndex: 1,
+        tokenIndex: 1,
+        isAtStart: false,
+        isFinished: true,
+      ),
+      TokenState(
+        playerIndex: 1,
+        tokenIndex: 2,
+        isAtStart: false,
+        isFinished: true,
+      ),
+      TokenState(
+        playerIndex: 2,
+        tokenIndex: 0,
+        isAtStart: false,
+        isFinished: true,
+      ),
+      TokenState(
+        playerIndex: 2,
+        tokenIndex: 1,
+        isAtStart: false,
+        isFinished: true,
+      ),
+      TokenState(
+        playerIndex: 0,
+        tokenIndex: 0,
+        isAtStart: false,
+        isFinished: true,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox.square(
+          dimension: 500,
+          child: GameBoard(tokens: tokens, movableTokenIds: const {}),
+        ),
+      ),
+    );
+
+    final boardRect = tester.getRect(find.byType(GameBoard));
+    final shortest = boardRect.shortestSide;
+    final boardSquare = Rect.fromCenter(
+      center: boardRect.center,
+      width: shortest,
+      height: shortest,
+    ).deflate(1);
+    final inner = boardSquare.deflate(shortest * 0.032);
+    final cellSize = inner.width / GameBoardPainter.gridCount;
+    final centerCell = Rect.fromLTWH(
+      inner.left + cellSize * 2,
+      inner.top + cellSize * 2,
+      cellSize,
+      cellSize,
+    );
+
+    List<Offset> centersForPlayer(String playerName) {
+      final playerTokens = find.byWidgetPredicate(
+        (widget) =>
+            widget is GameToken &&
+            widget.semanticLabel.startsWith('$playerName token'),
+      );
+
+      return [
+        for (final element in playerTokens.evaluate())
+          tester.getRect(find.byWidget(element.widget)).center,
+      ];
+    }
+
+    final greenCenters = centersForPlayer('Chandrakishore');
+    final yellowCenters = centersForPlayer('Aaradhya');
+
+    expect(greenCenters, hasLength(3));
+    expect(yellowCenters, hasLength(2));
+    expect(greenCenters.toSet(), hasLength(3));
+    expect(yellowCenters.toSet(), hasLength(2));
+
+    for (final center in greenCenters) {
+      expect(center.dx, greaterThan(centerCell.center.dx));
+    }
+    for (final center in yellowCenters) {
+      expect(center.dx, lessThan(centerCell.center.dx));
+    }
   });
 }

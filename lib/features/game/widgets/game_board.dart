@@ -94,6 +94,12 @@ class GameBoard extends StatelessWidget {
           }
           return firstMovable ? 1 : -1;
         });
+
+      if (entry.key == IstoBoardPaths.centerCell) {
+        widgets.addAll(_buildCenterTokenWidgets(rect, cellSize, cellTokens));
+        continue;
+      }
+
       final tokenSize = _tokenSizeFor(cellSize, cellTokens.length);
       final centers = _tokenCenters(rect, cellTokens.length);
 
@@ -135,6 +141,39 @@ class GameBoard extends StatelessWidget {
       );
     }
 
+    return widgets;
+  }
+
+  List<Widget> _buildCenterTokenWidgets(
+    Rect rect,
+    double cellSize,
+    List<TokenState> tokens,
+  ) {
+    final tokensByPlayer = <int, List<TokenState>>{};
+    for (final token in tokens) {
+      tokensByPlayer.putIfAbsent(token.playerIndex, () => []).add(token);
+    }
+
+    final tokenSize = cellSize * 0.32;
+    final widgets = <Widget>[];
+    for (final entry in tokensByPlayer.entries) {
+      for (var index = 0; index < entry.value.length; index++) {
+        final center = _centerHomeTokenCenter(
+          rect,
+          entry.key,
+          stackIndex: index,
+          stackCount: entry.value.length,
+        );
+        widgets.add(
+          _positionedToken(
+            token: entry.value[index],
+            left: center.dx - tokenSize / 2,
+            top: center.dy - tokenSize / 2,
+            tokenSize: tokenSize,
+          ),
+        );
+      }
+    }
     return widgets;
   }
 
@@ -181,6 +220,44 @@ class GameBoard extends StatelessWidget {
       cellSize,
       cellSize,
     );
+  }
+
+  Offset _centerHomeTokenCenter(
+    Rect rect,
+    int playerIndex, {
+    int stackIndex = 0,
+    int stackCount = 1,
+  }) {
+    final inset = rect.width * 0.29;
+    final radial = switch (playerIndex) {
+      0 => const Offset(0, -1),
+      1 => const Offset(1, 0),
+      2 => const Offset(-1, 0),
+      3 => const Offset(0, 1),
+      _ => Offset.zero,
+    };
+    final tangent = Offset(-radial.dy, radial.dx);
+    final base = rect.center + radial * inset;
+    final spread = rect.width * 0.085;
+    final rowGap = rect.width * 0.075;
+
+    final offset = switch (stackCount) {
+      <= 1 => Offset.zero,
+      2 => tangent * (stackIndex == 0 ? -spread : spread),
+      3 => [
+          tangent * -spread + radial * rowGap,
+          tangent * spread + radial * rowGap,
+          radial * -rowGap,
+        ][stackIndex],
+      _ => [
+          tangent * -spread + radial * rowGap,
+          tangent * spread + radial * rowGap,
+          tangent * -spread + radial * -rowGap,
+          tangent * spread + radial * -rowGap,
+        ][stackIndex % 4],
+    };
+
+    return base + offset;
   }
 
   double _tokenSizeFor(double cellSize, int count) {
