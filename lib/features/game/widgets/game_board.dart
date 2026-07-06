@@ -10,6 +10,8 @@ import 'package:isto_king/features/game/painters/game_board_painter.dart';
 import 'package:isto_king/features/game/widgets/game_token.dart';
 import 'package:isto_king/features/game/widgets/path_animated_token.dart';
 
+const _defaultTokenSizeFactor = 0.4;
+
 class GameBoard extends StatelessWidget {
   const GameBoard({
     required this.tokens,
@@ -119,7 +121,7 @@ class GameBoard extends StatelessWidget {
 
     for (final entry in movePaths.entries) {
       final token = tokens.firstWhere((candidate) => candidate.id == entry.key);
-      final tokenSize = cellSize * 0.32;
+      final tokenSize = cellSize * _defaultTokenSizeFactor;
       widgets.add(
         PathAnimatedToken(
           key: ValueKey('move-${token.id}'),
@@ -154,7 +156,7 @@ class GameBoard extends StatelessWidget {
       tokensByPlayer.putIfAbsent(token.playerIndex, () => []).add(token);
     }
 
-    final tokenSize = cellSize * 0.32;
+    final tokenSize = cellSize * _defaultTokenSizeFactor;
     final widgets = <Widget>[];
     for (final entry in tokensByPlayer.entries) {
       for (var index = 0; index < entry.value.length; index++) {
@@ -261,9 +263,7 @@ class GameBoard extends StatelessWidget {
   }
 
   double _tokenSizeFor(double cellSize, int count) {
-    if (count <= 4) return cellSize * 0.32;
-    if (count <= 9) return cellSize * 0.25;
-    return cellSize * 0.2;
+    return cellSize * _defaultTokenSizeFactor;
   }
 
   List<Offset> _tokenCenters(Rect rect, int count) {
@@ -290,6 +290,31 @@ class GameBoard extends StatelessWidget {
         rect.center.translate(0, spread),
         rect.center.translate(spread, 0),
       ];
+    }
+    if (count == 5) {
+      return [
+        rect.center.translate(-spread, 0),
+        rect.center.translate(0, -spread),
+        rect.center.translate(0, spread),
+        rect.center.translate(spread, 0),
+        rect.center,
+      ];
+    }
+    if (count >= 7 && count <= 9) {
+      final rowSpread = rect.width * 0.25;
+      final rowGap = rect.height * 0.28;
+      final centers = [
+        rect.center.translate(-rowSpread, -rowGap),
+        rect.center.translate(0, -rowGap),
+        rect.center.translate(rowSpread, -rowGap),
+        rect.center.translate(-rowSpread, rowGap),
+        rect.center.translate(0, rowGap),
+        rect.center.translate(rowSpread, rowGap),
+        rect.center,
+        rect.center.translate(-rowSpread, 0),
+        rect.center.translate(rowSpread, 0),
+      ];
+      return centers.take(count).toList();
     }
 
     final columns = count <= 6 ? 3 : 4;
