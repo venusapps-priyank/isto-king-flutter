@@ -123,13 +123,15 @@ class _GameTokenPainter extends CustomPainter {
 
     if (isMovable) {
       final ringOpacity = 0.55 + pulse * 0.45;
+      final outerRingColor = Color.lerp(color, Colors.white, 0.18)!;
+      final innerRingColor = Color.lerp(color, Colors.white, 0.62)!;
       canvas.drawCircle(
         center,
         radius * (0.98 + pulse * 0.06),
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = radius * (0.14 + pulse * 0.06)
-          ..color = RoyalColors.gold.withValues(alpha: ringOpacity),
+          ..color = outerRingColor.withValues(alpha: ringOpacity),
       );
       canvas.drawCircle(
         center,
@@ -137,7 +139,7 @@ class _GameTokenPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = radius * 0.08
-          ..color = RoyalColors.parchmentLight.withValues(alpha: ringOpacity),
+          ..color = innerRingColor.withValues(alpha: ringOpacity),
       );
     }
 
