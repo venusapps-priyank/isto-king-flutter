@@ -18,6 +18,40 @@ void main() {
   });
 
   group('GameTurnController', () {
+    test('inner paths enter center from each player home side', () {
+      const finalCellsByPlayer = [
+        BoardCell(2, 1), // Red enters from top.
+        BoardCell(3, 2), // Green enters from right.
+        BoardCell(1, 2), // Yellow enters from left.
+        BoardCell(2, 3), // Blue enters from bottom.
+      ];
+
+      for (var playerIndex = 0;
+          playerIndex < finalCellsByPlayer.length;
+          playerIndex++) {
+        final path = IstoBoardPaths.pathForPlayer(playerIndex);
+
+        expect(path[path.length - 2], finalCellsByPlayer[playerIndex]);
+        expect(path.last, IstoBoardPaths.centerCell);
+      }
+    });
+
+    test('moves blue into the center from the blue home side', () {
+      final controller = GameTurnController()..currentPlayerIndex = 3;
+      final blueToken = tokenFor(controller, 3, 0);
+      final bluePath = IstoBoardPaths.pathForPlayer(3);
+      placeToken(blueToken, bluePath.length - 2);
+
+      controller.handleRollComplete(3, 1);
+      final result = controller.moveToken(blueToken.id);
+
+      expect(
+        result?.animationPaths[blueToken.id],
+        [const BoardCell(2, 3), IstoBoardPaths.centerCell],
+      );
+      expect(blueToken.isFinished, isTrue);
+    });
+
     test('keeps looping on the outer path before kill permission', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;
       final redToken = tokenFor(controller, 0, 0);
