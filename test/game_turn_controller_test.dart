@@ -229,6 +229,49 @@ void main() {
       expect(controller.canRoll(2), isTrue);
     });
 
+    test('ranks a finished player and continues the match', () {
+      final controller = GameTurnController();
+
+      final result = finishPlayerByMovingFinalToken(controller, 1);
+
+      expect(result?.gameFinished, isFalse);
+      expect(controller.rankedPlayerIndexes, [1]);
+      expect(controller.rankForPlayer(1), 1);
+      expect(controller.winnerIndex, 1);
+      expect(controller.currentPlayerIndex, 0);
+      expect(controller.canRoll(0), isTrue);
+      expect(controller.canRoll(1), isFalse);
+    });
+
+    test('skips ranked players in the turn order', () {
+      final controller = GameTurnController();
+      finishPlayerByMovingFinalToken(controller, 1);
+      controller.currentPlayerIndex = 3;
+      final blueToken = tokenFor(controller, 3, 0);
+
+      controller.handleRollComplete(3, 1);
+      controller.moveToken(blueToken.id);
+
+      expect(controller.currentPlayerIndex, 0);
+    });
+
+    test('stops the match after the first three players are ranked', () {
+      final controller = GameTurnController();
+
+      finishPlayerByMovingFinalToken(controller, 1);
+      finishPlayerByMovingFinalToken(controller, 0);
+      final result = finishPlayerByMovingFinalToken(controller, 2);
+
+      expect(result?.gameFinished, isTrue);
+      expect(controller.rankedPlayerIndexes, [1, 0, 2]);
+      expect(controller.rankForPlayer(1), 1);
+      expect(controller.rankForPlayer(0), 2);
+      expect(controller.rankForPlayer(2), 3);
+      expect(controller.rankForPlayer(3), isNull);
+      expect(controller.isGameOver, isTrue);
+      expect(controller.canRoll(3), isFalse);
+    });
+
     test('animates captured tokens back along the reverse path', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;
       final redPath = IstoBoardPaths.pathForPlayer(0);
@@ -299,6 +342,22 @@ void finishToken(TokenState token) {
     ..isAtStart = false
     ..isFinished = true
     ..pathIndex = IstoBoardPaths.pathForPlayer(token.playerIndex).length - 1;
+}
+
+MoveResolution? finishPlayerByMovingFinalToken(
+  GameTurnController controller,
+  int playerIndex,
+) {
+  controller.currentPlayerIndex = playerIndex;
+  final path = IstoBoardPaths.pathForPlayer(playerIndex);
+  final movingToken = tokenFor(controller, playerIndex, 0);
+  placeToken(movingToken, path.length - 2);
+  for (var tokenIndex = 1; tokenIndex < 4; tokenIndex++) {
+    finishToken(tokenFor(controller, playerIndex, tokenIndex));
+  }
+
+  controller.handleRollComplete(playerIndex, 1);
+  return controller.moveToken(movingToken.id);
 }
 
 int pathIndexForCell(int playerIndex, BoardCell cell) {

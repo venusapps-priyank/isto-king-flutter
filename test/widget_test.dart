@@ -74,6 +74,25 @@ void main() {
     expect(painter.innerPathAccess, innerPathAccess);
   });
 
+  testWidgets('player card shows finish rank badge', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SizedBox(
+          width: 240,
+          height: 100,
+          child: PlayerCard(
+            name: 'Chandrakishore',
+            color: Colors.green,
+            avatarAsset: 'assets/avatar/avatar-f-1.png',
+            finishRank: 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('1st'), findsOneWidget);
+  });
+
   testWidgets('finished center tokens fan out inside their color triangles', (
     tester,
   ) async {

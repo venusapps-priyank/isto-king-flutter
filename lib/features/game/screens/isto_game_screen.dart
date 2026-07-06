@@ -101,6 +101,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       showShells: showShells,
       canRoll: canRoll,
       rollResetSerial: _rollResetSerials[player.index],
+      finishRank: _turnController.rankForPlayer(player.index),
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }

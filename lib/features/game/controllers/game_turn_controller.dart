@@ -48,16 +48,30 @@ class GameTurnController {
     16,
     (index) => TokenState(playerIndex: index ~/ 4, tokenIndex: index % 4),
   );
+  final List<int> _rankedPlayerIndexes = [];
 
   int? pendingRoll;
-  int? winnerIndex;
   Set<int> legalTokenIds = {};
 
   List<TokenState> get tokens => List<TokenState>.unmodifiable(_tokens);
 
+  List<int> get rankedPlayerIndexes =>
+      List<int>.unmodifiable(_rankedPlayerIndexes);
+
+  int? get winnerIndex =>
+      _rankedPlayerIndexes.isEmpty ? null : _rankedPlayerIndexes.first;
+
+  bool get isGameOver => _rankedPlayerIndexes.length >= 3;
+
   List<bool> get innerPathAccess => List<bool>.unmodifiable(
         playerStates.map((state) => state.hasKilledOpponent),
       );
+
+  int? rankForPlayer(int playerIndex) {
+    final rankIndex = _rankedPlayerIndexes.indexOf(playerIndex);
+    if (rankIndex < 0 || rankIndex >= 3) return null;
+    return rankIndex + 1;
+  }
 
   int? get autoMoveTokenId {
     final legalTokens = _legalTokensSorted();
@@ -76,7 +90,8 @@ class GameTurnController {
   bool get hasPendingMove => pendingRoll != null && legalTokenIds.isNotEmpty;
 
   bool canRoll(int playerIndex) {
-    return winnerIndex == null &&
+    return !isGameOver &&
+        rankForPlayer(playerIndex) == null &&
         playerIndex == currentPlayerIndex &&
         pendingRoll == null;
   }
@@ -163,15 +178,18 @@ class GameTurnController {
         _rollGrantsExtraTurn(roll) ||
         capturedTokens.isNotEmpty ||
         reachedCenter;
-    final gameFinished = _tokens
+    final playerFinished = _tokens
         .where((candidate) => candidate.playerIndex == token.playerIndex)
         .every((candidate) => candidate.isFinished);
 
     pendingRoll = null;
     legalTokenIds = {};
 
-    if (gameFinished) {
-      winnerIndex = token.playerIndex;
+    if (playerFinished) {
+      _rankPlayerIfNeeded(token.playerIndex);
+      if (!isGameOver) {
+        _advanceTurn();
+      }
     } else if (!grantsExtraTurn) {
       _advanceTurn();
     }
@@ -180,7 +198,7 @@ class GameTurnController {
       capturedCount: capturedTokens.length,
       reachedCenter: reachedCenter,
       grantsExtraTurn: grantsExtraTurn,
-      gameFinished: gameFinished,
+      gameFinished: isGameOver,
       animationPaths: animationPaths,
       animationDelays: animationDelays,
     );
@@ -364,7 +382,18 @@ class GameTurnController {
 
   void _advanceTurn() {
     final turnIndex = turnOrder.indexOf(currentPlayerIndex);
-    currentPlayerIndex = turnOrder[(turnIndex + 1) % turnOrder.length];
+    for (var offset = 1; offset <= turnOrder.length; offset++) {
+      final nextPlayer = turnOrder[(turnIndex + offset) % turnOrder.length];
+      if (rankForPlayer(nextPlayer) == null) {
+        currentPlayerIndex = nextPlayer;
+        return;
+      }
+    }
+  }
+
+  void _rankPlayerIfNeeded(int playerIndex) {
+    if (_rankedPlayerIndexes.contains(playerIndex) || isGameOver) return;
+    _rankedPlayerIndexes.add(playerIndex);
   }
 
   void _resetKillPermissionIfAllAtStart(int playerIndex) {

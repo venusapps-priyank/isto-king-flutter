@@ -17,6 +17,7 @@ class PlayerCard extends StatefulWidget {
     this.showShells = false,
     this.canRoll = true,
     this.rollResetSerial = 0,
+    this.finishRank,
     this.onRollComplete,
     super.key,
   });
@@ -30,6 +31,7 @@ class PlayerCard extends StatefulWidget {
   final bool showShells;
   final bool canRoll;
   final int rollResetSerial;
+  final int? finishRank;
   final ValueChanged<int>? onRollComplete;
 
   @override
@@ -80,6 +82,7 @@ class _PlayerCardState extends State<PlayerCard> {
         final avatarTop = height * 0.14;
         final overlaySize = avatarSize * 0.4;
         final overlayInset = overlaySize * 0.12;
+        final rankBadgeSize = math.min(42.0, height * 0.42);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -208,9 +211,69 @@ class _PlayerCardState extends State<PlayerCard> {
                 ],
               ),
             ),
+            if (widget.finishRank != null)
+              Positioned(
+                right: widget.avatarOnRight ? avatarSize * 0.72 : 8,
+                top: cardTop - rankBadgeSize * 0.28,
+                child: _RankBadge(
+                  rank: widget.finishRank!,
+                  size: rankBadgeSize,
+                ),
+              ),
           ],
         );
       },
+    );
+  }
+}
+
+class _RankBadge extends StatelessWidget {
+  const _RankBadge({
+    required this.rank,
+    required this.size,
+  });
+
+  final int rank;
+  final double size;
+
+  String get _label {
+    return switch (rank) {
+      1 => '1st',
+      2 => '2nd',
+      3 => '3rd',
+      _ => '${rank}th',
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: RoyalColors.gold,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.24),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: SizedBox.square(
+        dimension: size,
+        child: Center(
+          child: Text(
+            _label,
+            style: TextStyle(
+              color: RoyalColors.darkBrown,
+              fontSize: size * 0.34,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
