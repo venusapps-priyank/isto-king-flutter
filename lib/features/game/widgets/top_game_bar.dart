@@ -7,18 +7,13 @@ class TopGameBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
+    return const Row(
       children: [
-        const Positioned(
-          left: 0,
-          child: RoundIconButton(icon: Icons.arrow_back),
-        ),
-        const Positioned(
-          right: 0,
-          child: RoundIconButton(icon: Icons.settings),
-        ),
-        Positioned(right: 48, child: const CoinBalancePill()),
+        RoundIconButton(icon: Icons.arrow_back),
+        Spacer(),
+        CoinBalancePill(),
+        SizedBox(width: 8),
+        RoundIconButton(icon: Icons.settings),
       ],
     );
   }

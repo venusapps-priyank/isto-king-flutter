@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
+import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
@@ -20,20 +21,87 @@ class IstoGameScreen extends StatefulWidget {
 
 class _IstoGameScreenState extends State<IstoGameScreen> {
   final GameTurnController _turnController = GameTurnController();
+  bool _isMoveAnimating = false;
+  int _moveAnimationCycle = 0;
+  final List<int> _rollResetSerials = List<int>.filled(4, 0);
+  Map<int, List<BoardCell>> _activeMovePaths = {};
+  Map<int, Duration> _activeMoveDelays = {};
 
   void _handleRollComplete(int playerIndex, int value) {
+    if (_isMoveAnimating) return;
+
+    int? autoMoveTokenId;
     setState(() {
-      _turnController.handleRollComplete(playerIndex, value);
+      final resolution = _turnController.handleRollComplete(
+        playerIndex,
+        value,
+      );
+      if (resolution != null &&
+          resolution.discarded &&
+          resolution.grantsExtraTurn) {
+        _rollResetSerials[playerIndex]++;
+      }
+      autoMoveTokenId = _turnController.autoMoveTokenId;
+    });
+
+    if (autoMoveTokenId != null) {
+      _handleTokenTap(autoMoveTokenId!);
+    }
+  }
+
+  void _handleTokenTap(int tokenId) {
+    if (_isMoveAnimating) return;
+
+    var didMove = false;
+    Map<int, List<BoardCell>> movePaths = {};
+    Map<int, Duration> moveDelays = {};
+    setState(() {
+      final resolution = _turnController.moveToken(tokenId);
+      didMove = resolution != null;
+      if (didMove) {
+        movePaths = resolution!.animationPaths;
+        moveDelays = resolution.animationDelays;
+        _activeMovePaths = movePaths;
+        _activeMoveDelays = moveDelays;
+        _isMoveAnimating = true;
+        _moveAnimationCycle++;
+      }
+    });
+
+    if (!didMove) return;
+
+    final animationCycle = _moveAnimationCycle;
+    final animationDuration = GameBoard.moveAnimationDurationFor(
+      movePaths,
+      moveDelays: moveDelays,
+    );
+    Future<void>.delayed(animationDuration, () {
+      if (!mounted || animationCycle != _moveAnimationCycle) return;
+      setState(() {
+        _isMoveAnimating = false;
+        _activeMovePaths = {};
+        _activeMoveDelays = {};
+      });
     });
   }
 
   PlayerCard _buildPlayerCard(PlayerInfo player) {
+    final isCurrentPlayer =
+        _turnController.currentPlayerIndex == player.index;
+    final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
+    final showShells = isCurrentPlayer &&
+        (canRoll || _turnController.pendingRoll != null);
+
     return PlayerCard(
       name: player.name,
       color: player.color,
       avatarAsset: player.avatarAsset,
       avatarOnRight: player.avatarOnRight,
-      isActive: _turnController.currentPlayerIndex == player.index,
+      isActive: isCurrentPlayer,
+      showShells: showShells,
+      canRoll: canRoll,
+      rollResetSerial: _rollResetSerials[player.index],
+      finishRank: _turnController.rankForPlayer(player.index),
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }
@@ -88,7 +156,17 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                         Center(
                           child: SizedBox.square(
                             dimension: boardSize,
-                            child: const GameBoard(),
+                            child: GameBoard(
+                              tokens: _turnController.tokens,
+                              movableTokenIds: _isMoveAnimating
+                                  ? const {}
+                                  : _turnController.legalTokenIds,
+                              innerPathAccess:
+                                  _turnController.innerPathAccess,
+                              movePaths: _activeMovePaths,
+                              moveDelays: _activeMoveDelays,
+                              onTokenTap: _handleTokenTap,
+                            ),
                           ),
                         ),
                         const SizedBox(height: gap),

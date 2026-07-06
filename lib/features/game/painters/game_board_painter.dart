@@ -1,15 +1,19 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/models/board_player_home.dart';
 
 class GameBoardPainter extends CustomPainter {
-  const GameBoardPainter();
+  const GameBoardPainter({
+    this.innerPathAccess = const [false, false, false, false],
+  });
 
   static const int gridCount = 5;
   static const playerHomes = [
     BoardPlayerHome(
+      playerIndex: 0,
       col: 2,
       row: 0,
       color: RoyalColors.red,
@@ -17,12 +21,14 @@ class GameBoardPainter extends CustomPainter {
       arrowCol: 3,
     ),
     BoardPlayerHome(
+      playerIndex: 3,
       col: 2,
       row: 4,
       color: RoyalColors.blue,
       arrowAngle: -math.pi / 2,
     ),
     BoardPlayerHome(
+      playerIndex: 2,
       col: 0,
       row: 2,
       color: RoyalColors.yellow,
@@ -31,6 +37,7 @@ class GameBoardPainter extends CustomPainter {
       arrowRow: 1,
     ),
     BoardPlayerHome(
+      playerIndex: 1,
       col: 4,
       row: 2,
       color: RoyalColors.green,
@@ -39,6 +46,8 @@ class GameBoardPainter extends CustomPainter {
       arrowRow: 3,
     ),
   ];
+
+  final List<bool> innerPathAccess;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -85,19 +94,15 @@ class GameBoardPainter extends CustomPainter {
     }
 
     for (final home in playerHomes) {
+      final isArrowEnabled =
+          home.playerIndex < innerPathAccess.length &&
+          innerPathAccess[home.playerIndex];
       _drawArrow(
         canvas,
         _cellRect(inner, cell, home.arrowCol, home.arrowRow),
         home.color,
         home.arrowAngle,
-      );
-    }
-
-    for (final home in playerHomes) {
-      _drawTokenCluster(
-        canvas,
-        _cellRect(inner, cell, home.col, home.row),
-        home.color,
+        isEnabled: isArrowEnabled,
       );
     }
   }
@@ -171,87 +176,27 @@ class GameBoardPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawTokenCluster(
+  void _drawArrow(
     Canvas canvas,
     Rect rect,
-    Color color, [
-    int count = 4,
-  ]) {
-    final radius = rect.width * 0.13;
-    final offsets = count == 3
-        ? [
-            Offset(rect.center.dx, rect.top + rect.height * 0.24),
-            Offset(rect.center.dx, rect.center.dy),
-            Offset(rect.center.dx, rect.bottom - rect.height * 0.24),
-          ]
-        : [
-            Offset(rect.center.dx - rect.width / 3, rect.center.dy),
-            Offset(rect.center.dx, rect.center.dy - rect.height / 3),
-            Offset(rect.center.dx, rect.center.dy + rect.height / 3),
-            Offset(rect.center.dx + rect.width / 3, rect.center.dy),
-          ];
-    for (final offset in offsets) {
-      _drawToken(canvas, offset, radius, color);
-    }
-  }
-
-  void _drawToken(Canvas canvas, Offset center, double radius, Color color) {
-    canvas.drawShadow(
-      Path()..addOval(Rect.fromCircle(center: center, radius: radius)),
-      Colors.black,
-      2,
-      true,
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()..color = Color.lerp(color, Colors.black, 0.12)!,
-    );
-    canvas.drawCircle(
-      center.translate(-radius * 0.15, -radius * 0.15),
-      radius * 0.78,
-      Paint()..color = color,
-    );
-    canvas.drawCircle(
-      center,
-      radius * 0.76,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.18
-        ..color = Colors.white,
-    );
-    _drawStar(canvas, center, radius * 0.5, Colors.white);
-  }
-
-  void _drawStar(Canvas canvas, Offset center, double radius, Color color) {
-    final path = Path();
-    for (var i = 0; i < 10; i++) {
-      final r = i.isEven ? radius : radius * 0.45;
-      final angle = -math.pi / 2 + i * math.pi / 5;
-      final point = Offset(
-        center.dx + math.cos(angle) * r,
-        center.dy + math.sin(angle) * r,
-      );
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
-  void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
+    Color color,
+    double angle, {
+    required bool isEnabled,
+  }) {
+    final fillColor = isEnabled
+        ? color
+        : Color.lerp(color, RoyalColors.boardCell, 0.72)!;
+    final outlineColor = isEnabled
+        ? Colors.white.withValues(alpha: 0.75)
+        : RoyalColors.brown.withValues(alpha: 0.38);
     final tipDir = Offset(math.cos(angle), math.sin(angle));
     final length = rect.width * 0.85;
     final tipX = length * 0.35;
     final tailX = length * 0.65;
     final arrowMidX = (tipX - tailX) / 2;
-    final boundary = rect.center + Offset(
-      tipDir.dx * rect.width / 2,
-      tipDir.dy * rect.height / 2,
-    );
+    final boundary =
+        rect.center +
+        Offset(tipDir.dx * rect.width / 2, tipDir.dy * rect.height / 2);
     canvas.save();
     canvas.translate(
       boundary.dx - tipDir.dx * arrowMidX,
@@ -267,7 +212,9 @@ class GameBoardPainter extends CustomPainter {
       ..lineTo(length * 0.08, length * 0.075)
       ..lineTo(length * 0.02, length * 0.20)
       ..close();
-    canvas.drawShadow(shadowPath, Colors.black, 2, true);
+    if (isEnabled) {
+      canvas.drawShadow(shadowPath, Colors.black, 2, true);
+    }
     final path = Path()
       ..moveTo(tipX, 0)
       ..lineTo(length * 0.02, -length * 0.20)
@@ -277,18 +224,20 @@ class GameBoardPainter extends CustomPainter {
       ..lineTo(length * 0.08, length * 0.075)
       ..lineTo(length * 0.02, length * 0.20)
       ..close();
-    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawPath(path, Paint()..color = fillColor);
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1.0, rect.width * 0.024)
         ..strokeJoin = StrokeJoin.round
-        ..color = Colors.white.withValues(alpha: 0.75),
+        ..color = outlineColor,
     );
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant GameBoardPainter oldDelegate) {
+    return !listEquals(oldDelegate.innerPathAccess, innerPathAccess);
+  }
 }
