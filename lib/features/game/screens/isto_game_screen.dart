@@ -144,6 +144,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               movableTokenIds: _isMoveAnimating
                                   ? const {}
                                   : _turnController.legalTokenIds,
+                              innerPathAccess:
+                                  _turnController.innerPathAccess,
                               movePaths: _activeMovePaths,
                               moveDelays: _activeMoveDelays,
                               onTokenTap: _handleTokenTap,

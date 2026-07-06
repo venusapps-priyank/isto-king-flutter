@@ -14,6 +14,7 @@ class GameBoard extends StatelessWidget {
   const GameBoard({
     required this.tokens,
     required this.movableTokenIds,
+    this.innerPathAccess = const [false, false, false, false],
     this.movePaths = const {},
     this.moveDelays = const {},
     this.onTokenTap,
@@ -24,6 +25,7 @@ class GameBoard extends StatelessWidget {
 
   final List<TokenState> tokens;
   final Set<int> movableTokenIds;
+  final List<bool> innerPathAccess;
   final Map<int, List<BoardCell>> movePaths;
   final Map<int, Duration> moveDelays;
   final ValueChanged<int>? onTokenTap;
@@ -57,8 +59,12 @@ class GameBoard extends StatelessWidget {
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              const Positioned.fill(
-                child: CustomPaint(painter: GameBoardPainter()),
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: GameBoardPainter(
+                    innerPathAccess: innerPathAccess,
+                  ),
+                ),
               ),
               ..._buildTokenWidgets(inner, cellSize),
             ],

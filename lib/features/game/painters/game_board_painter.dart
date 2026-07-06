@@ -1,15 +1,19 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/models/board_player_home.dart';
 
 class GameBoardPainter extends CustomPainter {
-  const GameBoardPainter();
+  const GameBoardPainter({
+    this.innerPathAccess = const [false, false, false, false],
+  });
 
   static const int gridCount = 5;
   static const playerHomes = [
     BoardPlayerHome(
+      playerIndex: 0,
       col: 2,
       row: 0,
       color: RoyalColors.red,
@@ -17,12 +21,14 @@ class GameBoardPainter extends CustomPainter {
       arrowCol: 3,
     ),
     BoardPlayerHome(
+      playerIndex: 3,
       col: 2,
       row: 4,
       color: RoyalColors.blue,
       arrowAngle: -math.pi / 2,
     ),
     BoardPlayerHome(
+      playerIndex: 2,
       col: 0,
       row: 2,
       color: RoyalColors.yellow,
@@ -31,6 +37,7 @@ class GameBoardPainter extends CustomPainter {
       arrowRow: 1,
     ),
     BoardPlayerHome(
+      playerIndex: 1,
       col: 4,
       row: 2,
       color: RoyalColors.green,
@@ -39,6 +46,8 @@ class GameBoardPainter extends CustomPainter {
       arrowRow: 3,
     ),
   ];
+
+  final List<bool> innerPathAccess;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -85,11 +94,15 @@ class GameBoardPainter extends CustomPainter {
     }
 
     for (final home in playerHomes) {
+      final isArrowEnabled =
+          home.playerIndex < innerPathAccess.length &&
+          innerPathAccess[home.playerIndex];
       _drawArrow(
         canvas,
         _cellRect(inner, cell, home.arrowCol, home.arrowRow),
         home.color,
         home.arrowAngle,
+        isEnabled: isArrowEnabled,
       );
     }
   }
@@ -163,7 +176,19 @@ class GameBoardPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawArrow(Canvas canvas, Rect rect, Color color, double angle) {
+  void _drawArrow(
+    Canvas canvas,
+    Rect rect,
+    Color color,
+    double angle, {
+    required bool isEnabled,
+  }) {
+    final fillColor = isEnabled
+        ? color
+        : Color.lerp(color, RoyalColors.boardCell, 0.72)!;
+    final outlineColor = isEnabled
+        ? Colors.white.withValues(alpha: 0.75)
+        : RoyalColors.brown.withValues(alpha: 0.38);
     final tipDir = Offset(math.cos(angle), math.sin(angle));
     final length = rect.width * 0.85;
     final tipX = length * 0.35;
@@ -187,7 +212,9 @@ class GameBoardPainter extends CustomPainter {
       ..lineTo(length * 0.08, length * 0.075)
       ..lineTo(length * 0.02, length * 0.20)
       ..close();
-    canvas.drawShadow(shadowPath, Colors.black, 2, true);
+    if (isEnabled) {
+      canvas.drawShadow(shadowPath, Colors.black, 2, true);
+    }
     final path = Path()
       ..moveTo(tipX, 0)
       ..lineTo(length * 0.02, -length * 0.20)
@@ -197,18 +224,20 @@ class GameBoardPainter extends CustomPainter {
       ..lineTo(length * 0.08, length * 0.075)
       ..lineTo(length * 0.02, length * 0.20)
       ..close();
-    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawPath(path, Paint()..color = fillColor);
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1.0, rect.width * 0.024)
         ..strokeJoin = StrokeJoin.round
-        ..color = Colors.white.withValues(alpha: 0.75),
+        ..color = outlineColor,
     );
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant GameBoardPainter oldDelegate) {
+    return !listEquals(oldDelegate.innerPathAccess, innerPathAccess);
+  }
 }

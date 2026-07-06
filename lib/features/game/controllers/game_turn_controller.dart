@@ -41,6 +41,10 @@ class GameTurnController {
 
   List<TokenState> get tokens => List<TokenState>.unmodifiable(_tokens);
 
+  List<bool> get innerPathAccess => List<bool>.unmodifiable(
+        playerStates.map((state) => state.hasKilledOpponent),
+      );
+
   bool get hasPendingMove => pendingRoll != null && legalTokenIds.isNotEmpty;
 
   bool canRoll(int playerIndex) {

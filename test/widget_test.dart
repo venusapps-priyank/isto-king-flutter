@@ -47,4 +47,28 @@ void main() {
       }
     });
   }
+
+  testWidgets('Isto board passes inner path access to painter', (tester) async {
+    const innerPathAccess = [true, false, true, false];
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SizedBox.square(
+          dimension: 320,
+          child: GameBoard(
+            tokens: [],
+            movableTokenIds: {},
+            innerPathAccess: innerPathAccess,
+          ),
+        ),
+      ),
+    );
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .singleWhere((widget) => widget.painter is GameBoardPainter);
+    final painter = customPaint.painter as GameBoardPainter;
+
+    expect(painter.innerPathAccess, innerPathAccess);
+  });
 }
