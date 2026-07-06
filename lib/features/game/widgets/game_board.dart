@@ -88,14 +88,7 @@ class GameBoard extends StatelessWidget {
     for (final entry in groupedTokens.entries) {
       final rect = _cellRect(board, cellSize, entry.key);
       final cellTokens = [...entry.value]
-        ..sort((first, second) {
-          final firstMovable = movableTokenIds.contains(first.id);
-          final secondMovable = movableTokenIds.contains(second.id);
-          if (firstMovable == secondMovable) {
-            return first.id.compareTo(second.id);
-          }
-          return firstMovable ? 1 : -1;
-        });
+        ..sort((first, second) => first.id.compareTo(second.id));
 
       if (entry.key == IstoBoardPaths.centerCell) {
         widgets.addAll(_buildCenterTokenWidgets(rect, cellSize, cellTokens));
@@ -104,10 +97,21 @@ class GameBoard extends StatelessWidget {
 
       final tokenSize = _tokenSizeFor(cellSize, cellTokens.length);
       final centers = _tokenCenters(rect, cellTokens.length);
+      final positionedTokens = [
+        for (var index = 0; index < cellTokens.length; index++)
+          MapEntry(cellTokens[index], centers[index]),
+      ]..sort((first, second) {
+          final firstMovable = movableTokenIds.contains(first.key.id);
+          final secondMovable = movableTokenIds.contains(second.key.id);
+          if (firstMovable == secondMovable) {
+            return first.key.id.compareTo(second.key.id);
+          }
+          return firstMovable ? 1 : -1;
+        });
 
-      for (var index = 0; index < cellTokens.length; index++) {
-        final token = cellTokens[index];
-        final center = centers[index];
+      for (final positionedToken in positionedTokens) {
+        final token = positionedToken.key;
+        final center = positionedToken.value;
         widgets.add(
           _positionedToken(
             token: token,
