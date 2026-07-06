@@ -116,6 +116,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
             const Positioned.fill(
               child: CustomPaint(painter: ScreenOrnamentPainter()),
             ),
+            const _BottomCornerMandala(isLeft: true),
+            const _BottomCornerMandala(isLeft: false),
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -184,6 +186,34 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomCornerMandala extends StatelessWidget {
+  const _BottomCornerMandala({required this.isLeft});
+
+  static const _asset = 'assets/images/corner_mandala.png';
+  static const _imageSize = 156.0;
+
+  final bool isLeft;
+
+  @override
+  Widget build(BuildContext context) {
+    const offset = -_imageSize / 2;
+
+    return Positioned(
+      left: isLeft ? offset : null,
+      right: isLeft ? null : offset,
+      bottom: offset,
+      width: _imageSize,
+      height: _imageSize,
+      child: IgnorePointer(
+        child: Image.asset(
+          _asset,
+          fit: BoxFit.contain,
         ),
       ),
     );
