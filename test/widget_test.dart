@@ -77,20 +77,28 @@ void main() {
   testWidgets('player card shows finish rank badge', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: SizedBox(
-          width: 240,
-          height: 100,
-          child: PlayerCard(
-            name: 'Chandrakishore',
-            color: Colors.green,
-            avatarAsset: 'assets/avatar/avatar-f-1.png',
-            finishRank: 1,
+        home: Center(
+          child: SizedBox(
+            width: 240,
+            height: 100,
+            child: PlayerCard(
+              name: 'Chandrakishore',
+              color: Colors.green,
+              avatarAsset: 'assets/avatar/avatar-f-1.png',
+              finishRank: 1,
+            ),
           ),
         ),
       ),
     );
 
     expect(find.text('1st'), findsOneWidget);
+    expect(find.text('Finished'), findsOneWidget);
+    final cardRect = tester.getRect(find.byType(PlayerCard));
+    final badgeRect = tester.getRect(find.text('1st'));
+    expect(badgeRect.center.dy, greaterThan(cardRect.center.dy));
+    expect(badgeRect.center.dx, greaterThan(cardRect.left));
+    expect(badgeRect.center.dx, lessThan(cardRect.right));
   });
 
   testWidgets('finished center tokens fan out inside their color triangles', (
