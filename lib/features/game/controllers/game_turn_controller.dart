@@ -23,6 +23,20 @@ class MoveResolution {
   final Map<int, Duration> animationDelays;
 }
 
+class RollResolution {
+  const RollResolution({
+    required this.value,
+    required this.hasLegalMove,
+    required this.grantsExtraTurn,
+    required this.discarded,
+  });
+
+  final int value;
+  final bool hasLegalMove;
+  final bool grantsExtraTurn;
+  final bool discarded;
+}
+
 class GameTurnController {
   int currentPlayerIndex = turnOrder.first;
   final List<int?> lastRolls = List<int?>.filled(4, null);
@@ -61,8 +75,8 @@ class GameTurnController {
     return IstoBoardPaths.pathForPlayer(token.playerIndex)[token.pathIndex];
   }
 
-  void handleRollComplete(int playerIndex, int value) {
-    if (!canRoll(playerIndex)) return;
+  RollResolution? handleRollComplete(int playerIndex, int value) {
+    if (!canRoll(playerIndex)) return null;
 
     lastRolls[playerIndex] = value;
     pendingRoll = value;
@@ -72,8 +86,22 @@ class GameTurnController {
     ).map((token) => token.id).toSet();
 
     if (legalTokenIds.isEmpty) {
+      final grantsExtraTurn = _rollGrantsExtraTurn(value);
       _handleNoLegalMove(playerIndex, value);
+      return RollResolution(
+        value: value,
+        hasLegalMove: false,
+        grantsExtraTurn: grantsExtraTurn,
+        discarded: true,
+      );
     }
+
+    return RollResolution(
+      value: value,
+      hasLegalMove: true,
+      grantsExtraTurn: _rollGrantsExtraTurn(value),
+      discarded: false,
+    );
   }
 
   MoveResolution? moveToken(int tokenId) {
@@ -287,6 +315,7 @@ class GameTurnController {
   void _handleNoLegalMove(int playerIndex, int value) {
     pendingRoll = null;
     legalTokenIds = {};
+    lastRolls[playerIndex] = null;
 
     if (_rollGrantsExtraTurn(value)) return;
 

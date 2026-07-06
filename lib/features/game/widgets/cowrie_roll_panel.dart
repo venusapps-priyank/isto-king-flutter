@@ -10,6 +10,7 @@ class CowrieRollPanel extends StatefulWidget {
     required this.playerColor,
     required this.showShells,
     required this.canRoll,
+    required this.resetSerial,
     required this.shellCount,
     required this.shellSize,
     this.alignRight = false,
@@ -21,6 +22,7 @@ class CowrieRollPanel extends StatefulWidget {
   final Color playerColor;
   final bool showShells;
   final bool canRoll;
+  final int resetSerial;
   final int shellCount;
   final double shellSize;
   final bool alignRight;
@@ -49,6 +51,11 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.shellCount != widget.shellCount) {
       _cowries = List<bool>.filled(widget.shellCount, false);
+    }
+    if (oldWidget.resetSerial != widget.resetSerial) {
+      _cowries = List<bool>.filled(widget.shellCount, false);
+      _rollingCowries = null;
+      _isRolling = false;
     }
     if (oldWidget.showShells && !widget.showShells) {
       _cowries = List<bool>.filled(widget.shellCount, false);

@@ -23,6 +23,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   final GameTurnController _turnController = GameTurnController();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
+  final List<int> _rollResetSerials = List<int>.filled(4, 0);
   Map<int, List<BoardCell>> _activeMovePaths = {};
   Map<int, Duration> _activeMoveDelays = {};
 
@@ -30,7 +31,15 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     if (_isMoveAnimating) return;
 
     setState(() {
-      _turnController.handleRollComplete(playerIndex, value);
+      final resolution = _turnController.handleRollComplete(
+        playerIndex,
+        value,
+      );
+      if (resolution != null &&
+          resolution.discarded &&
+          resolution.grantsExtraTurn) {
+        _rollResetSerials[playerIndex]++;
+      }
     });
   }
 
@@ -85,6 +94,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       isActive: isCurrentPlayer,
       showShells: showShells,
       canRoll: canRoll,
+      rollResetSerial: _rollResetSerials[player.index],
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }

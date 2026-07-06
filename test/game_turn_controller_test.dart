@@ -168,6 +168,28 @@ void main() {
       expect(controller.pendingRoll, isNull);
     });
 
+    test('discards an unplayable eight and lets the same player roll again', () {
+      final controller = GameTurnController()..currentPlayerIndex = 2;
+      final yellowPath = IstoBoardPaths.pathForPlayer(2);
+      final remainingYellow = tokenFor(controller, 2, 0);
+      placeToken(remainingYellow, yellowPath.length - 2);
+      for (var tokenIndex = 1; tokenIndex < 4; tokenIndex++) {
+        finishToken(tokenFor(controller, 2, tokenIndex));
+      }
+
+      final result = controller.handleRollComplete(2, 8);
+
+      expect(result?.hasLegalMove, isFalse);
+      expect(result?.grantsExtraTurn, isTrue);
+      expect(result?.discarded, isTrue);
+      expect(remainingYellow.pathIndex, yellowPath.length - 2);
+      expect(controller.pendingRoll, isNull);
+      expect(controller.legalTokenIds, isEmpty);
+      expect(controller.lastRolls[2], isNull);
+      expect(controller.currentPlayerIndex, 2);
+      expect(controller.canRoll(2), isTrue);
+    });
+
     test('animates captured tokens back along the reverse path', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;
       final redPath = IstoBoardPaths.pathForPlayer(0);
@@ -231,6 +253,13 @@ void placeToken(TokenState token, int pathIndex) {
     ..isAtStart = false
     ..isFinished = false
     ..pathIndex = pathIndex;
+}
+
+void finishToken(TokenState token) {
+  token
+    ..isAtStart = false
+    ..isFinished = true
+    ..pathIndex = IstoBoardPaths.pathForPlayer(token.playerIndex).length - 1;
 }
 
 int pathIndexForCell(int playerIndex, BoardCell cell) {

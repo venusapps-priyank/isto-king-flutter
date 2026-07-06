@@ -16,6 +16,7 @@ class PlayerCard extends StatefulWidget {
     this.isActive = false,
     this.showShells = false,
     this.canRoll = true,
+    this.rollResetSerial = 0,
     this.onRollComplete,
     super.key,
   });
@@ -28,6 +29,7 @@ class PlayerCard extends StatefulWidget {
   final bool isActive;
   final bool showShells;
   final bool canRoll;
+  final int rollResetSerial;
   final ValueChanged<int>? onRollComplete;
 
   @override
@@ -50,6 +52,10 @@ class _PlayerCardState extends State<PlayerCard> {
   @override
   void didUpdateWidget(covariant PlayerCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.rollResetSerial != widget.rollResetSerial &&
+        _rollOverlayCount != null) {
+      setState(() => _rollOverlayCount = null);
+    }
     if (oldWidget.showShells && !widget.showShells && _rollOverlayCount != null) {
       setState(() => _rollOverlayCount = null);
     }
@@ -143,6 +149,7 @@ class _PlayerCardState extends State<PlayerCard> {
                         playerColor: widget.color,
                         showShells: widget.showShells,
                         canRoll: widget.isActive && widget.canRoll,
+                        resetSerial: widget.rollResetSerial,
                         shellCount: widget.shellCount,
                         shellSize: shellSize,
                         alignRight: widget.avatarOnRight,
