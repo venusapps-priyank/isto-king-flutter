@@ -18,6 +18,18 @@ void main() {
   });
 
   group('GameTurnController', () {
+    test('uses the reversed player turn order', () {
+      final controller = GameTurnController();
+      final blueToken = tokenFor(controller, 3, 0);
+
+      expect(controller.currentPlayerIndex, 3);
+
+      controller.handleRollComplete(3, 1);
+      controller.moveToken(blueToken.id);
+
+      expect(controller.currentPlayerIndex, 1);
+    });
+
     test('inner paths enter center from each player home side', () {
       const finalCellsByPlayer = [
         BoardCell(2, 1), // Red enters from top.

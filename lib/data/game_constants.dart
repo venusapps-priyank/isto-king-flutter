@@ -1,2 +1,2 @@
-const turnOrder = [2, 0, 1, 3];
+const turnOrder = [3, 1, 0, 2];
 const defaultShellCount = 4;
