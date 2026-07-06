@@ -242,7 +242,7 @@ class _PlayerCardState extends State<PlayerCard> {
                   if (widget.finishRank == 1)
                     Positioned(
                       left: widget.avatarOnRight ? null : -avatarSize * 0.05,
-                      right: widget.avatarOnRight ? avatarSize * 0.23 : null,
+                      right: widget.avatarOnRight ? -avatarSize * 0.02 : null,
                       top: -avatarSize * 0.37,
                       child: Transform.rotate(
                         angle: widget.avatarOnRight ? 0.24 : -0.24,
