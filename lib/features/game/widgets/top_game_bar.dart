@@ -3,17 +3,19 @@ import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
 import 'package:isto_king/features/game/widgets/round_icon_button.dart';
 
 class TopGameBar extends StatelessWidget {
-  const TopGameBar({super.key});
+  const TopGameBar({this.onSettingsTap, super.key});
+
+  final VoidCallback? onSettingsTap;
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        RoundIconButton(icon: Icons.arrow_back),
-        Spacer(),
-        CoinBalancePill(),
-        SizedBox(width: 8),
-        RoundIconButton(icon: Icons.settings),
+        const RoundIconButton(icon: Icons.arrow_back),
+        const Spacer(),
+        const CoinBalancePill(),
+        const SizedBox(width: 8),
+        RoundIconButton(icon: Icons.settings, onTap: onSettingsTap),
       ],
     );
   }

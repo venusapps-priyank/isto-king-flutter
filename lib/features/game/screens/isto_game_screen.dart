@@ -11,6 +11,7 @@ import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 import 'package:isto_king/features/game/widgets/player_row.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
+import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 
 class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({super.key});
@@ -28,6 +29,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   Map<int, Duration> _activeMoveDelays = {};
   TokenPairCandidate? _visiblePairCandidate;
   int? _pairPromptTokenId;
+  bool _showWinPreview = false;
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
@@ -156,6 +158,15 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     );
   }
 
+  List<PlayerInfo> _playersByRank() {
+    final ranked = _turnController.rankedPlayerIndexes;
+    final unranked = gamePlayers.where((player) => !ranked.contains(player.index));
+    return [
+      for (final index in ranked) gamePlayers.firstWhere((p) => p.index == index),
+      ...unranked,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -194,7 +205,13 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                       children: [
                         SizedBox(
                           height: topBarHeight,
-                          child: const TopGameBar(),
+                          child: TopGameBar(
+                            onSettingsTap: () {
+                              setState(() {
+                                _showWinPreview = !_showWinPreview;
+                              });
+                            },
+                          ),
                         ),
                         const SizedBox(height: gap),
                         SizedBox(
@@ -238,6 +255,21 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                 },
               ),
             ),
+            if (_turnController.isGameOver || _showWinPreview) ...[
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A190D).withValues(alpha: 0.78),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: WinRankingPanel(playersByRank: _playersByRank()),
+                ),
+              ),
+            ],
           ],
         ),
       ),
