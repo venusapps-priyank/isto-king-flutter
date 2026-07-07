@@ -26,23 +26,32 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
   Map<int, List<BoardCell>> _activeMovePaths = {};
   Map<int, Duration> _activeMoveDelays = {};
+  TokenPairCandidate? _visiblePairCandidate;
+  int? _pairPromptTokenId;
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
 
     int? autoMoveTokenId;
+    TokenPairCandidate? pairCandidate;
     setState(() {
-      final resolution = _turnController.handleRollComplete(
-        playerIndex,
-        value,
-      );
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+      final resolution = _turnController.handleRollComplete(playerIndex, value);
       if (resolution != null &&
           resolution.discarded &&
           resolution.grantsExtraTurn) {
         _rollResetSerials[playerIndex]++;
       }
-      autoMoveTokenId = _turnController.autoMoveTokenId;
+      pairCandidate = _turnController.pairCandidateForPendingMove;
+      if (pairCandidate == null) {
+        autoMoveTokenId = _turnController.autoMoveTokenId;
+      }
     });
+
+    if (pairCandidate != null) {
+      return;
+    }
 
     if (autoMoveTokenId != null) {
       _handleTokenTap(autoMoveTokenId!);
@@ -52,10 +61,25 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   void _handleTokenTap(int tokenId) {
     if (_isMoveAnimating) return;
 
+    final pairCandidate = _turnController.pairCandidateForToken(tokenId);
+    if (pairCandidate != null) {
+      setState(() {
+        _visiblePairCandidate = pairCandidate;
+        _pairPromptTokenId = tokenId;
+      });
+      return;
+    }
+
+    _moveToken(tokenId);
+  }
+
+  void _moveToken(int tokenId) {
     var didMove = false;
     Map<int, List<BoardCell>> movePaths = {};
     Map<int, Duration> moveDelays = {};
     setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
       final resolution = _turnController.moveToken(tokenId);
       didMove = resolution != null;
       if (didMove) {
@@ -85,12 +109,38 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     });
   }
 
+  void _handleJoinPairPrompt() {
+    final candidate = _visiblePairCandidate;
+    final tokenId = _pairPromptTokenId;
+    if (candidate == null || tokenId == null) return;
+
+    var locked = false;
+    setState(() {
+      locked = _turnController.lockTokenPairForPendingMove(candidate.tokenIds);
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+    });
+    if (locked) {
+      _moveToken(tokenId);
+    }
+  }
+
+  void _handlePlaySinglePairPrompt() {
+    final tokenId = _pairPromptTokenId;
+    if (tokenId == null) return;
+
+    setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+    });
+    _moveToken(tokenId);
+  }
+
   PlayerCard _buildPlayerCard(PlayerInfo player) {
-    final isCurrentPlayer =
-        _turnController.currentPlayerIndex == player.index;
+    final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
     final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
-    final showShells = isCurrentPlayer &&
-        (canRoll || _turnController.pendingRoll != null);
+    final showShells =
+        isCurrentPlayer && (canRoll || _turnController.pendingRoll != null);
 
     return PlayerCard(
       name: player.name,
@@ -163,10 +213,13 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               movableTokenIds: _isMoveAnimating
                                   ? const {}
                                   : _turnController.legalTokenIds,
-                              innerPathAccess:
-                                  _turnController.innerPathAccess,
+                              innerPathAccess: _turnController.innerPathAccess,
                               movePaths: _activeMovePaths,
                               moveDelays: _activeMoveDelays,
+                              pairPromptTokenIds:
+                                  _visiblePairCandidate?.tokenIds,
+                              onJoinPairPrompt: _handleJoinPairPrompt,
+                              onDismissPairPrompt: _handlePlaySinglePairPrompt,
                               onTokenTap: _handleTokenTap,
                             ),
                           ),
@@ -210,12 +263,7 @@ class _BottomCornerMandala extends StatelessWidget {
       bottom: offset,
       width: _imageSize,
       height: _imageSize,
-      child: IgnorePointer(
-        child: Image.asset(
-          _asset,
-          fit: BoxFit.contain,
-        ),
-      ),
+      child: IgnorePointer(child: Image.asset(_asset, fit: BoxFit.contain)),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
 
 class GameToken extends StatefulWidget {
   const GameToken({
@@ -9,6 +8,7 @@ class GameToken extends StatefulWidget {
     required this.size,
     required this.isMovable,
     required this.semanticLabel,
+    this.showMovableHighlight = true,
     this.onTap,
     super.key,
   });
@@ -17,13 +17,15 @@ class GameToken extends StatefulWidget {
   final double size;
   final bool isMovable;
   final String semanticLabel;
+  final bool showMovableHighlight;
   final VoidCallback? onTap;
 
   @override
   State<GameToken> createState() => _GameTokenState();
 }
 
-class _GameTokenState extends State<GameToken> with SingleTickerProviderStateMixin {
+class _GameTokenState extends State<GameToken>
+    with SingleTickerProviderStateMixin {
   static const _pulseDuration = Duration(milliseconds: 900);
 
   late final AnimationController _pulseController;
@@ -46,13 +48,14 @@ class _GameTokenState extends State<GameToken> with SingleTickerProviderStateMix
   @override
   void didUpdateWidget(GameToken oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isMovable != oldWidget.isMovable) {
+    if (widget.isMovable != oldWidget.isMovable ||
+        widget.showMovableHighlight != oldWidget.showMovableHighlight) {
       _syncPulseAnimation();
     }
   }
 
   void _syncPulseAnimation() {
-    if (widget.isMovable) {
+    if (widget.isMovable && widget.showMovableHighlight) {
       _pulseController.repeat(reverse: true);
       return;
     }
@@ -83,7 +86,9 @@ class _GameTokenState extends State<GameToken> with SingleTickerProviderStateMix
         child: AnimatedBuilder(
           animation: _pulseAnimation,
           builder: (context, child) {
-            final pulse = widget.isMovable ? _pulseAnimation.value : 0.0;
+            final isHighlighted =
+                widget.isMovable && widget.showMovableHighlight;
+            final pulse = isHighlighted ? _pulseAnimation.value : 0.0;
             final scale = 1.0 + pulse * 0.14;
             return Transform.scale(
               scale: scale,
@@ -92,7 +97,7 @@ class _GameTokenState extends State<GameToken> with SingleTickerProviderStateMix
                 child: CustomPaint(
                   painter: _GameTokenPainter(
                     color: widget.color,
-                    isMovable: widget.isMovable,
+                    isHighlighted: isHighlighted,
                     pulse: pulse,
                   ),
                 ),
@@ -108,12 +113,12 @@ class _GameTokenState extends State<GameToken> with SingleTickerProviderStateMix
 class _GameTokenPainter extends CustomPainter {
   const _GameTokenPainter({
     required this.color,
-    required this.isMovable,
+    required this.isHighlighted,
     required this.pulse,
   });
 
   final Color color;
-  final bool isMovable;
+  final bool isHighlighted;
   final double pulse;
 
   @override
@@ -121,7 +126,7 @@ class _GameTokenPainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = size.shortestSide / 2;
 
-    if (isMovable) {
+    if (isHighlighted) {
       final ringOpacity = 0.55 + pulse * 0.45;
       final outerRingColor = Color.lerp(color, Colors.white, 0.18)!;
       final innerRingColor = Color.lerp(color, Colors.white, 0.62)!;
@@ -192,7 +197,7 @@ class _GameTokenPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _GameTokenPainter oldDelegate) {
     return oldDelegate.color != color ||
-        oldDelegate.isMovable != isMovable ||
+        oldDelegate.isHighlighted != isHighlighted ||
         oldDelegate.pulse != pulse;
   }
 }
