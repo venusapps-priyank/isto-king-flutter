@@ -242,8 +242,10 @@ class GameBoard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    const promptWidth = 142.0;
-    const promptHeight = 36.0;
+    const promptWidth = 170.0;
+    const promptHeight = 92.0;
+    const pointerWidth = 14.0;
+    const cornerRadius = 14.0;
     const pointerHeight = 7.0;
     const gap = 8.0;
     final cellRect = _cellRect(board, cellSize, cell);
@@ -274,86 +276,139 @@ class GameBoard extends StatelessWidget {
                   color: const Color(0xFF8B5A2B).withValues(alpha: 0.76),
                   width: 1.1,
                 ),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(cornerRadius),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 7,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Pair?',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF5B3517),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onJoinPairPrompt,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0B83C5),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF0B83C5,
-                            ).withValues(alpha: 0.24),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE9D49F),
+                            shape: BoxShape.circle,
                           ),
-                        ],
-                      ),
-                      child: const SizedBox(
-                        width: 40,
-                        height: 23,
-                        child: Center(
-                          child: Text(
-                            'Join',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                          child: const Icon(
+                            Icons.link_rounded,
+                            size: 13,
+                            color: Color(0xFF6A3F1D),
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        const Text(
+                          'Make a pair?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF5B3517),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onJoinPairPrompt,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [Color(0xFF189FE7), Color(0xFF0C7FC0)],
+                                ),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFF06679D,
+                                  ).withValues(alpha: 0.78),
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF0B83C5,
+                                    ).withValues(alpha: 0.28),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const SizedBox(
+                                height: 32,
+                                child: Center(
+                                  child: Text(
+                                    'Join',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 3),
-                  SizedBox.square(
-                    dimension: 24,
-                    child: Tooltip(
-                      message: 'Play single',
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: onDismissPairPrompt,
-                        child: const Icon(
-                          Icons.close,
-                          size: 15,
-                          color: Color(0xFF5B3517),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 34,
+                          height: 32,
+                          child: Tooltip(
+                            message: 'Play single',
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: onDismissPairPrompt,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3E5BC),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFF8B5A2B,
+                                    ).withValues(alpha: 0.5),
+                                  ),
+                                  borderRadius: BorderRadius.circular(9),
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: const Color(
+                                    0xFF6A3F1D,
+                                  ).withValues(alpha: 0.92),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Positioned(
               top: promptHeight - 1,
-              left: (cellRect.center.dx - left - 7)
-                  .clamp(12.0, promptWidth - 26)
+              left: (cellRect.center.dx - left - pointerWidth / 2)
+                  .clamp(
+                    cornerRadius + 2,
+                    promptWidth - cornerRadius - pointerWidth - 2,
+                  )
                   .toDouble(),
               child: CustomPaint(
-                size: const Size(14, pointerHeight),
+                size: const Size(pointerWidth, pointerHeight),
                 painter: _PairPromptPointerPainter(
                   fillColor: const Color(0xFFFFF6DA),
                   borderColor: const Color(0xFF8B5A2B).withValues(alpha: 0.76),
