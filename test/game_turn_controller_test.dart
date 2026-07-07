@@ -204,7 +204,7 @@ void main() {
       expect(controller.cellForToken(greenToken), safeDestination);
     });
 
-    test('offers a pair candidate when two own tokens meet', () {
+    test('offers a pair candidate on the next turn after two tokens meet', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;
       final movingRed = tokenFor(controller, 0, 0);
       final waitingRed = tokenFor(controller, 0, 1);
@@ -214,11 +214,68 @@ void main() {
       controller.handleRollComplete(0, 1);
       final result = controller.moveToken(movingRed.id);
 
-      expect(result?.pairCandidate?.playerIndex, 0);
-      expect(result?.pairCandidate?.tokenIds, [movingRed.id, waitingRed.id]);
-      expect(controller.lockTokenPair(result!.pairCandidate!.tokenIds), isTrue);
+      expect(result, isNotNull);
+      expect(controller.pairCandidateForPendingMove, isNull);
+      expect(controller.pairCandidateForToken(movingRed.id), isNull);
+      expect(movingRed.isPaired, isFalse);
+      expect(waitingRed.isPaired, isFalse);
+
+      controller.currentPlayerIndex = 0;
+      controller.handleRollComplete(0, 2);
+
+      final pairCandidate = controller.pairCandidateForPendingMove;
+      expect(pairCandidate?.playerIndex, 0);
+      expect(pairCandidate?.tokenIds, [movingRed.id, waitingRed.id]);
+      expect(controller.pairCandidateForToken(movingRed.id)?.tokenIds, [
+        movingRed.id,
+        waitingRed.id,
+      ]);
+      expect(
+        controller.lockTokenPairForPendingMove(pairCandidate!.tokenIds),
+        isTrue,
+      );
       expect(movingRed.pairedTokenId, waitingRed.id);
       expect(waitingRed.pairedTokenId, movingRed.id);
+      expect(
+        controller.legalTokenIds,
+        containsAll([movingRed.id, waitingRed.id]),
+      );
+    });
+
+    test(
+      'does not offer pair candidate on cowrie values blocked for pairs',
+      () {
+        final controller = GameTurnController()..currentPlayerIndex = 0;
+        final firstRed = tokenFor(controller, 0, 0);
+        final secondRed = tokenFor(controller, 0, 1);
+        placeToken(firstRed, 0);
+        placeToken(secondRed, 0);
+
+        controller.handleRollComplete(0, 1);
+
+        expect(controller.pairCandidateForPendingMove, isNull);
+      },
+    );
+
+    test('offers pair candidate when three own tokens share a cell', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      final thirdRed = tokenFor(controller, 0, 2);
+      placeToken(firstRed, 0);
+      placeToken(secondRed, 0);
+      placeToken(thirdRed, 0);
+
+      controller.handleRollComplete(0, 2);
+
+      expect(controller.pairCandidateForPendingMove?.tokenIds, [
+        firstRed.id,
+        secondRed.id,
+      ]);
+      expect(controller.pairCandidateForToken(thirdRed.id)?.tokenIds, [
+        firstRed.id,
+        thirdRed.id,
+      ]);
     });
 
     test('moves a locked pair with converted cowrie steps', () {

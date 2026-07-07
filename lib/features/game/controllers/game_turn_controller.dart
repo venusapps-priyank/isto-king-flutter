@@ -13,7 +13,6 @@ class MoveResolution {
     required this.gameFinished,
     required this.animationPaths,
     this.animationDelays = const {},
-    this.pairCandidate,
   });
 
   final int capturedCount;
@@ -22,7 +21,6 @@ class MoveResolution {
   final bool gameFinished;
   final Map<int, List<BoardCell>> animationPaths;
   final Map<int, Duration> animationDelays;
-  final TokenPairCandidate? pairCandidate;
 }
 
 class TokenPairCandidate {
@@ -97,6 +95,63 @@ class GameTurnController {
   }
 
   bool get hasPendingMove => pendingRoll != null && legalTokenIds.isNotEmpty;
+
+  TokenPairCandidate? get pairCandidateForPendingMove {
+    final roll = pendingRoll;
+    if (roll == null) return null;
+    return _pairCandidateForRoll(currentPlayerIndex, roll);
+  }
+
+  TokenPairCandidate? pairCandidateForToken(int tokenId) {
+    final roll = pendingRoll;
+    if (roll == null || !legalTokenIds.contains(tokenId)) return null;
+
+    final token = _tokenById(tokenId);
+    if (token == null ||
+        token.playerIndex != currentPlayerIndex ||
+        token.isAtStart ||
+        token.isFinished ||
+        token.isPaired) {
+      return null;
+    }
+
+    final pairMoveSteps = pairMoveStepsForRoll(roll);
+    if (pairMoveSteps == null) return null;
+
+    final cell = cellForToken(token);
+    if (_shouldUnlockPairAt(cell)) return null;
+
+    final cellTokens =
+        _activeTokensAtCell(
+            token.playerIndex,
+            cell,
+          ).where((candidate) => !candidate.isPaired).toList()
+          ..sort((first, second) => first.id.compareTo(second.id));
+    if (cellTokens.length < 2 ||
+        !cellTokens.any((candidate) => candidate.id == token.id)) {
+      return null;
+    }
+    final candidates = _pairCandidatesFromCellTokens(
+      cellTokens,
+      preferredToken: token,
+    );
+
+    final targetPathIndex = _targetPathIndexForMoveSteps(
+      candidates.first,
+      pairMoveSteps,
+    );
+    if (targetPathIndex == null) return null;
+
+    final destination = IstoBoardPaths.pathForPlayer(
+      token.playerIndex,
+    )[targetPathIndex];
+    if (!_canLandOn(candidates.first, destination)) return null;
+
+    return TokenPairCandidate(
+      playerIndex: token.playerIndex,
+      tokenIds: [for (final candidate in candidates) candidate.id],
+    );
+  }
 
   static int? pairMoveStepsForRoll(int roll) {
     return switch (roll) {
@@ -223,10 +278,6 @@ class GameTurnController {
       _advanceTurn();
     }
 
-    final pairCandidate = movingTokens.length == 1
-        ? _pairCandidateAt(token.playerIndex, destination)
-        : null;
-
     return MoveResolution(
       capturedCount: capturedTokens.length,
       reachedCenter: reachedCenter,
@@ -234,7 +285,6 @@ class GameTurnController {
       gameFinished: isGameOver,
       animationPaths: animationPaths,
       animationDelays: animationDelays,
-      pairCandidate: pairCandidate,
     );
   }
 
@@ -257,6 +307,20 @@ class GameTurnController {
 
     first.pairWith(second);
     return true;
+  }
+
+  bool lockTokenPairForPendingMove(List<int> tokenIds) {
+    final roll = pendingRoll;
+    if (roll == null) return false;
+
+    final locked = lockTokenPair(tokenIds);
+    if (!locked) return false;
+
+    legalTokenIds = _legalMovesFor(
+      currentPlayerIndex,
+      roll,
+    ).map((token) => token.id).toSet();
+    return legalTokenIds.isNotEmpty;
   }
 
   List<BoardCell> _animationPathForMove(TokenState token, int targetPathIndex) {
@@ -350,6 +414,12 @@ class GameTurnController {
     if (token.isFinished) return null;
     final moveSteps = _moveStepsForRoll(token, steps);
     if (moveSteps == null) return null;
+
+    return _targetPathIndexForMoveSteps(token, moveSteps);
+  }
+
+  int? _targetPathIndexForMoveSteps(TokenState token, int moveSteps) {
+    if (token.isFinished) return null;
 
     final currentIndex = token.isAtStart ? -1 : token.pathIndex;
     final proposedIndex = currentIndex + moveSteps;
@@ -489,21 +559,72 @@ class GameTurnController {
     return tokens;
   }
 
-  TokenPairCandidate? _pairCandidateAt(int playerIndex, BoardCell cell) {
-    if (_shouldUnlockPairAt(cell)) return null;
+  TokenPairCandidate? _pairCandidateForRoll(int playerIndex, int roll) {
+    final pairMoveSteps = pairMoveStepsForRoll(roll);
+    if (pairMoveSteps == null) return null;
 
-    final candidates =
-        _activeTokensAtCell(
-            playerIndex,
-            cell,
-          ).where((token) => !token.isPaired).toList()
-          ..sort((first, second) => first.id.compareTo(second.id));
-    if (candidates.length != 2) return null;
+    final candidatesByCell = <BoardCell, List<TokenState>>{};
+    for (final token in _tokens) {
+      if (token.playerIndex != playerIndex ||
+          token.isAtStart ||
+          token.isFinished ||
+          token.isPaired) {
+        continue;
+      }
+      final cell = cellForToken(token);
+      if (_shouldUnlockPairAt(cell)) continue;
+      candidatesByCell.putIfAbsent(cell, () => []).add(token);
+    }
 
-    return TokenPairCandidate(
-      playerIndex: playerIndex,
-      tokenIds: [for (final token in candidates) token.id],
-    );
+    final cells = candidatesByCell.keys.toList()
+      ..sort((first, second) {
+        final rowCompare = first.row.compareTo(second.row);
+        if (rowCompare != 0) return rowCompare;
+        return first.col.compareTo(second.col);
+      });
+
+    for (final cell in cells) {
+      final cellTokens = candidatesByCell[cell]!
+        ..sort((first, second) => first.id.compareTo(second.id));
+      if (cellTokens.length < 2) continue;
+      final candidates = _pairCandidatesFromCellTokens(cellTokens);
+
+      final targetPathIndex = _targetPathIndexForMoveSteps(
+        candidates.first,
+        pairMoveSteps,
+      );
+      if (targetPathIndex == null) continue;
+
+      final destination = IstoBoardPaths.pathForPlayer(
+        playerIndex,
+      )[targetPathIndex];
+      if (!_canLandOn(candidates.first, destination)) continue;
+
+      return TokenPairCandidate(
+        playerIndex: playerIndex,
+        tokenIds: [for (final token in candidates) token.id],
+      );
+    }
+
+    return null;
+  }
+
+  List<TokenState> _pairCandidatesFromCellTokens(
+    List<TokenState> cellTokens, {
+    TokenState? preferredToken,
+  }) {
+    final sortedTokens = [...cellTokens]
+      ..sort((first, second) => first.id.compareTo(second.id));
+
+    if (preferredToken != null) {
+      final partner = sortedTokens.firstWhere(
+        (token) => token.id != preferredToken.id,
+      );
+      return [preferredToken, partner]
+        ..sort((first, second) => first.id.compareTo(second.id));
+    }
+
+    return sortedTokens.take(2).toList();
   }
 
   bool _shouldUnlockPairAt(BoardCell cell) {

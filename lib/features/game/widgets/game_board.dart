@@ -20,6 +20,9 @@ class GameBoard extends StatelessWidget {
     this.innerPathAccess = const [false, false, false, false],
     this.movePaths = const {},
     this.moveDelays = const {},
+    this.pairPromptTokenIds,
+    this.onJoinPairPrompt,
+    this.onDismissPairPrompt,
     this.onTokenTap,
     super.key,
   });
@@ -31,6 +34,9 @@ class GameBoard extends StatelessWidget {
   final List<bool> innerPathAccess;
   final Map<int, List<BoardCell>> movePaths;
   final Map<int, Duration> moveDelays;
+  final List<int>? pairPromptTokenIds;
+  final VoidCallback? onJoinPairPrompt;
+  final VoidCallback? onDismissPairPrompt;
   final ValueChanged<int>? onTokenTap;
 
   static Duration moveAnimationDurationFor(
@@ -68,6 +74,8 @@ class GameBoard extends StatelessWidget {
                 ),
               ),
               ..._buildTokenWidgets(inner, cellSize),
+              if (pairPromptTokenIds != null)
+                _buildPairPrompt(inner, cellSize, pairPromptTokenIds!),
             ],
           );
         },
@@ -218,6 +226,144 @@ class GameBoard extends StatelessWidget {
     }
 
     return widgets;
+  }
+
+  Widget _buildPairPrompt(Rect board, double cellSize, List<int> tokenIds) {
+    if (tokenIds.length != 2) return const SizedBox.shrink();
+
+    final promptTokens = [
+      for (final token in tokens)
+        if (tokenIds.contains(token.id)) token,
+    ];
+    if (promptTokens.length != 2) return const SizedBox.shrink();
+
+    final cell = _cellForToken(promptTokens.first);
+    if (_cellForToken(promptTokens.last) != cell) {
+      return const SizedBox.shrink();
+    }
+
+    const promptWidth = 142.0;
+    const promptHeight = 36.0;
+    const pointerHeight = 7.0;
+    const gap = 8.0;
+    final cellRect = _cellRect(board, cellSize, cell);
+    final left = (cellRect.center.dx - promptWidth / 2)
+        .clamp(board.left, board.right - promptWidth)
+        .toDouble();
+    final top = math.max(
+      board.top + 2,
+      cellRect.top - promptHeight - pointerHeight - gap,
+    );
+
+    return Positioned(
+      left: left,
+      top: top,
+      width: promptWidth,
+      height: promptHeight + pointerHeight,
+      child: Material(
+        color: Colors.transparent,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              height: promptHeight,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF6DA),
+                border: Border.all(
+                  color: const Color(0xFF8B5A2B).withValues(alpha: 0.76),
+                  width: 1.1,
+                ),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 7,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Pair?',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF5B3517),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onJoinPairPrompt,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0B83C5),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF0B83C5,
+                            ).withValues(alpha: 0.24),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: const SizedBox(
+                        width: 40,
+                        height: 23,
+                        child: Center(
+                          child: Text(
+                            'Join',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  SizedBox.square(
+                    dimension: 24,
+                    child: Tooltip(
+                      message: 'Play single',
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onDismissPairPrompt,
+                        child: const Icon(
+                          Icons.close,
+                          size: 15,
+                          color: Color(0xFF5B3517),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: promptHeight - 1,
+              left: (cellRect.center.dx - left - 7)
+                  .clamp(12.0, promptWidth - 26)
+                  .toDouble(),
+              child: CustomPaint(
+                size: const Size(14, pointerHeight),
+                painter: _PairPromptPointerPainter(
+                  fillColor: const Color(0xFFFFF6DA),
+                  borderColor: const Color(0xFF8B5A2B).withValues(alpha: 0.76),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   TokenState? _pairedMovingTokenFor(TokenState token, List<BoardCell> path) {
@@ -578,6 +724,39 @@ class _TokenVisualGroup {
     final first = tokens[0];
     final second = tokens[1];
     return first.pairedTokenId == second.id && second.pairedTokenId == first.id;
+  }
+}
+
+class _PairPromptPointerPainter extends CustomPainter {
+  const _PairPromptPointerPainter({
+    required this.fillColor,
+    required this.borderColor,
+  });
+
+  final Color fillColor;
+  final Color borderColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, Paint()..color = fillColor);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1
+        ..color = borderColor,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PairPromptPointerPainter oldDelegate) {
+    return oldDelegate.fillColor != fillColor ||
+        oldDelegate.borderColor != borderColor;
   }
 }
 

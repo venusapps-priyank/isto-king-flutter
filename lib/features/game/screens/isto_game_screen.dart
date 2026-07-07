@@ -26,20 +26,32 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
   Map<int, List<BoardCell>> _activeMovePaths = {};
   Map<int, Duration> _activeMoveDelays = {};
+  TokenPairCandidate? _visiblePairCandidate;
+  int? _pairPromptTokenId;
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
 
     int? autoMoveTokenId;
+    TokenPairCandidate? pairCandidate;
     setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
       final resolution = _turnController.handleRollComplete(playerIndex, value);
       if (resolution != null &&
           resolution.discarded &&
           resolution.grantsExtraTurn) {
         _rollResetSerials[playerIndex]++;
       }
-      autoMoveTokenId = _turnController.autoMoveTokenId;
+      pairCandidate = _turnController.pairCandidateForPendingMove;
+      if (pairCandidate == null) {
+        autoMoveTokenId = _turnController.autoMoveTokenId;
+      }
     });
+
+    if (pairCandidate != null) {
+      return;
+    }
 
     if (autoMoveTokenId != null) {
       _handleTokenTap(autoMoveTokenId!);
@@ -49,17 +61,30 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   void _handleTokenTap(int tokenId) {
     if (_isMoveAnimating) return;
 
+    final pairCandidate = _turnController.pairCandidateForToken(tokenId);
+    if (pairCandidate != null) {
+      setState(() {
+        _visiblePairCandidate = pairCandidate;
+        _pairPromptTokenId = tokenId;
+      });
+      return;
+    }
+
+    _moveToken(tokenId);
+  }
+
+  void _moveToken(int tokenId) {
     var didMove = false;
-    TokenPairCandidate? pairCandidate;
     Map<int, List<BoardCell>> movePaths = {};
     Map<int, Duration> moveDelays = {};
     setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
       final resolution = _turnController.moveToken(tokenId);
       didMove = resolution != null;
       if (didMove) {
         movePaths = resolution!.animationPaths;
         moveDelays = resolution.animationDelays;
-        pairCandidate = resolution.pairCandidate;
         _activeMovePaths = movePaths;
         _activeMoveDelays = moveDelays;
         _isMoveAnimating = true;
@@ -81,41 +106,34 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
         _activeMovePaths = {};
         _activeMoveDelays = {};
       });
-      if (pairCandidate != null) {
-        _showTokenPairPrompt(pairCandidate!);
-      }
     });
   }
 
-  Future<void> _showTokenPairPrompt(TokenPairCandidate candidate) async {
-    final player = gamePlayers[candidate.playerIndex];
-    final choice = await showDialog<_PairChoice>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Join Tokens?'),
-          content: Text(
-            'Move these 2 ${player.name} tokens together as a pair. '
-            'They can only separate again on home cells.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(_PairChoice.single),
-              child: const Text('Play Single'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(_PairChoice.join),
-              child: const Text('Join & Play Together'),
-            ),
-          ],
-        );
-      },
-    );
+  void _handleJoinPairPrompt() {
+    final candidate = _visiblePairCandidate;
+    final tokenId = _pairPromptTokenId;
+    if (candidate == null || tokenId == null) return;
 
-    if (!mounted || choice != _PairChoice.join) return;
+    var locked = false;
     setState(() {
-      _turnController.lockTokenPair(candidate.tokenIds);
+      locked = _turnController.lockTokenPairForPendingMove(candidate.tokenIds);
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
     });
+    if (locked) {
+      _moveToken(tokenId);
+    }
+  }
+
+  void _handlePlaySinglePairPrompt() {
+    final tokenId = _pairPromptTokenId;
+    if (tokenId == null) return;
+
+    setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+    });
+    _moveToken(tokenId);
   }
 
   PlayerCard _buildPlayerCard(PlayerInfo player) {
@@ -198,6 +216,10 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               innerPathAccess: _turnController.innerPathAccess,
                               movePaths: _activeMovePaths,
                               moveDelays: _activeMoveDelays,
+                              pairPromptTokenIds:
+                                  _visiblePairCandidate?.tokenIds,
+                              onJoinPairPrompt: _handleJoinPairPrompt,
+                              onDismissPairPrompt: _handlePlaySinglePairPrompt,
                               onTokenTap: _handleTokenTap,
                             ),
                           ),
@@ -222,8 +244,6 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     );
   }
 }
-
-enum _PairChoice { single, join }
 
 class _BottomCornerMandala extends StatelessWidget {
   const _BottomCornerMandala({required this.isLeft});

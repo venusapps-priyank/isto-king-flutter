@@ -305,6 +305,50 @@ void main() {
     );
   });
 
+  testWidgets('pair join prompt appears on the board near token cell', (
+    tester,
+  ) async {
+    final firstToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 0,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    final secondToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 1,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    var joined = false;
+    var dismissed = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox.square(
+          dimension: 500,
+          child: GameBoard(
+            tokens: [firstToken, secondToken],
+            movableTokenIds: {firstToken.id, secondToken.id},
+            pairPromptTokenIds: [firstToken.id, secondToken.id],
+            onJoinPairPrompt: () => joined = true,
+            onDismissPairPrompt: () => dismissed = true,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Pair?'), findsOneWidget);
+    expect(find.text('Join'), findsOneWidget);
+    expect(find.byTooltip('Play single'), findsOneWidget);
+
+    await tester.tap(find.text('Join'));
+    expect(joined, isTrue);
+
+    await tester.tap(find.byIcon(Icons.close));
+    expect(dismissed, isTrue);
+  });
+
   testWidgets('locked pair stays attached with another token in same cell', (
     tester,
   ) async {
