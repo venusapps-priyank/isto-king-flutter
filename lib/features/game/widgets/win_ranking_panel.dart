@@ -9,6 +9,7 @@ const _fourthPlaceAsset = 'assets/images/4th.png';
 const _centerCardWidth = 220.0;
 const _sideCardWidth = 160.0;
 const _lowerCardWidth = 170.0;
+const _positionLockWidth = 500.0;
 
 class WinRankingPanel extends StatelessWidget {
   const WinRankingPanel({required this.playersByRank, super.key});
@@ -25,11 +26,13 @@ class WinRankingPanel extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
+        final layoutWidth = width > _positionLockWidth ? _positionLockWidth : width;
+        final layoutLeftOffset = (width - layoutWidth) / 2;
 
         return Stack(
           children: [
             Positioned(
-              left: (width - _centerCardWidth) / 2,
+              left: layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2,
               top: height * 0.12,
               width: _centerCardWidth,
               child: _RankCard(
@@ -41,7 +44,7 @@ class WinRankingPanel extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: (width - _lowerCardWidth) / 2,
+              left: layoutLeftOffset + (layoutWidth - _lowerCardWidth) / 2,
               bottom: height * 0.13,
               width: _lowerCardWidth,
               child: _RankCard(
@@ -52,7 +55,7 @@ class WinRankingPanel extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: width * 0.04,
+              left: layoutLeftOffset + layoutWidth * 0.04,
               top: height * 0.38,
               width: _sideCardWidth,
               child: _RankCard(
@@ -63,7 +66,7 @@ class WinRankingPanel extends StatelessWidget {
               ),
             ),
             Positioned(
-              right: width * 0.04,
+              right: layoutLeftOffset + layoutWidth * 0.04,
               top: height * 0.38,
               width: _sideCardWidth,
               child: _RankCard(
