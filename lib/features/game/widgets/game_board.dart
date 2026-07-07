@@ -95,33 +95,53 @@ class GameBoard extends StatelessWidget {
       }
 
       final tokenSize = _tokenSizeFor(cellSize, cellTokens.length);
-      final centers = _tokenCenters(rect, cellTokens, tokenSize);
-      final isLockedPair = _isLockedPair(cellTokens);
-      final pairIsMovable =
-          isLockedPair &&
-          cellTokens.any((token) => movableTokenIds.contains(token.id));
-      if (pairIsMovable) {
-        widgets.add(
-          _positionedPairHighlight(
-            tokens: cellTokens,
-            centers: centers,
-            tokenSize: tokenSize,
-          ),
-        );
+      final visualGroups = _visualGroupsFor(cellTokens);
+      final groupCenters = _visualGroupCenters(rect, visualGroups);
+      final movablePairTokenIds = <int>{};
+      final positionedTokens = <MapEntry<TokenState, Offset>>[];
+
+      for (var index = 0; index < visualGroups.length; index++) {
+        final group = visualGroups[index];
+        final groupCenter = groupCenters[index];
+
+        if (group.isLockedPair) {
+          final pairCenters = _lockedPairCenters(groupCenter, tokenSize);
+          final pairIsMovable = group.tokens.any(
+            (token) => movableTokenIds.contains(token.id),
+          );
+          if (pairIsMovable) {
+            movablePairTokenIds.addAll(group.tokens.map((token) => token.id));
+            widgets.add(
+              _positionedPairHighlight(
+                tokens: group.tokens,
+                centers: pairCenters,
+                tokenSize: tokenSize,
+              ),
+            );
+          }
+          for (
+            var tokenIndex = 0;
+            tokenIndex < group.tokens.length;
+            tokenIndex++
+          ) {
+            positionedTokens.add(
+              MapEntry(group.tokens[tokenIndex], pairCenters[tokenIndex]),
+            );
+          }
+          continue;
+        }
+
+        positionedTokens.add(MapEntry(group.tokens.single, groupCenter));
       }
 
-      final positionedTokens =
-          [
-            for (var index = 0; index < cellTokens.length; index++)
-              MapEntry(cellTokens[index], centers[index]),
-          ]..sort((first, second) {
-            final firstMovable = movableTokenIds.contains(first.key.id);
-            final secondMovable = movableTokenIds.contains(second.key.id);
-            if (firstMovable == secondMovable) {
-              return first.key.id.compareTo(second.key.id);
-            }
-            return firstMovable ? 1 : -1;
-          });
+      positionedTokens.sort((first, second) {
+        final firstMovable = movableTokenIds.contains(first.key.id);
+        final secondMovable = movableTokenIds.contains(second.key.id);
+        if (firstMovable == secondMovable) {
+          return first.key.id.compareTo(second.key.id);
+        }
+        return firstMovable ? 1 : -1;
+      });
 
       for (final positionedToken in positionedTokens) {
         final token = positionedToken.key;
@@ -132,7 +152,7 @@ class GameBoard extends StatelessWidget {
             left: center.dx - tokenSize / 2,
             top: center.dy - tokenSize / 2,
             tokenSize: tokenSize,
-            showMovableHighlight: !pairIsMovable,
+            showMovableHighlight: !movablePairTokenIds.contains(token.id),
           ),
         );
       }
@@ -424,22 +444,60 @@ class GameBoard extends StatelessWidget {
     return cellSize * _defaultTokenSizeFactor;
   }
 
-  List<Offset> _tokenCenters(
-    Rect rect,
-    List<TokenState> tokens,
-    double tokenSize,
-  ) {
-    final count = tokens.length;
+  List<_TokenVisualGroup> _visualGroupsFor(List<TokenState> tokens) {
+    final remainingTokenIds = tokens.map((token) => token.id).toSet();
+    final groups = <_TokenVisualGroup>[];
+
+    for (final token in tokens) {
+      if (!remainingTokenIds.contains(token.id)) continue;
+
+      final pairedTokenId = token.pairedTokenId;
+      TokenState? pairedToken;
+      if (pairedTokenId != null) {
+        for (final candidate in tokens) {
+          if (candidate.id == pairedTokenId) {
+            pairedToken = candidate;
+            break;
+          }
+        }
+      }
+      if (pairedToken != null &&
+          pairedToken.pairedTokenId == token.id &&
+          remainingTokenIds.contains(pairedToken.id)) {
+        groups.add(
+          _TokenVisualGroup(
+            [token, pairedToken]
+              ..sort((first, second) => first.id.compareTo(second.id)),
+          ),
+        );
+        remainingTokenIds.remove(token.id);
+        remainingTokenIds.remove(pairedToken.id);
+        continue;
+      }
+
+      groups.add(_TokenVisualGroup([token]));
+      remainingTokenIds.remove(token.id);
+    }
+
+    return groups;
+  }
+
+  List<Offset> _visualGroupCenters(Rect rect, List<_TokenVisualGroup> groups) {
+    final count = groups.length;
     if (count == 1) return [rect.center];
 
     final spread = rect.width * 0.28;
-    if (count == 2) {
-      final pairSpread = _isLockedPair(tokens)
-          ? _lockedPairCenterSpread(tokenSize)
-          : spread;
+    if (count == 2 && groups.any((group) => group.isLockedPair)) {
+      final verticalSpread = rect.height * 0.19;
       return [
-        rect.center.translate(-pairSpread, 0),
-        rect.center.translate(pairSpread, 0),
+        rect.center.translate(0, -verticalSpread),
+        rect.center.translate(0, verticalSpread),
+      ];
+    }
+    if (count == 2) {
+      return [
+        rect.center.translate(-spread, 0),
+        rect.center.translate(spread, 0),
       ];
     }
     if (count == 3) {
@@ -497,18 +555,29 @@ class GameBoard extends StatelessWidget {
     ];
   }
 
-  bool _isLockedPair(List<TokenState> tokens) {
-    if (tokens.length != 2) return false;
-
-    final first = tokens[0];
-    final second = tokens[1];
-    return first.pairedTokenId == second.id && second.pairedTokenId == first.id;
+  List<Offset> _lockedPairCenters(Offset center, double tokenSize) {
+    final pairSpread = _lockedPairCenterSpread(tokenSize);
+    return [center.translate(-pairSpread, 0), center.translate(pairSpread, 0)];
   }
 
   double _lockedPairCenterSpread(double tokenSize) => tokenSize * 0.28;
 
   Size _lockedPairPieceSize(double tokenSize) {
     return Size(tokenSize + _lockedPairCenterSpread(tokenSize) * 2, tokenSize);
+  }
+}
+
+class _TokenVisualGroup {
+  const _TokenVisualGroup(this.tokens);
+
+  final List<TokenState> tokens;
+
+  bool get isLockedPair {
+    if (tokens.length != 2) return false;
+
+    final first = tokens[0];
+    final second = tokens[1];
+    return first.pairedTokenId == second.id && second.pairedTokenId == first.id;
   }
 }
 

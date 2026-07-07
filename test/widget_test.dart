@@ -305,6 +305,85 @@ void main() {
     );
   });
 
+  testWidgets('locked pair stays attached with another token in same cell', (
+    tester,
+  ) async {
+    final firstToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 0,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    final secondToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 1,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    final thirdToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 2,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    firstToken.pairWith(secondToken);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox.square(
+          dimension: 500,
+          child: GameBoard(
+            tokens: [firstToken, secondToken, thirdToken],
+            movableTokenIds: const {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardRect = tester.getRect(find.byType(GameBoard));
+    final shortest = boardRect.shortestSide;
+    final boardSquare = Rect.fromCenter(
+      center: boardRect.center,
+      width: shortest,
+      height: shortest,
+    ).deflate(1);
+    final inner = boardSquare.deflate(shortest * 0.032);
+    final cellSize = inner.width / GameBoardPainter.gridCount;
+    final targetCell = Rect.fromLTWH(inner.left, inner.top, cellSize, cellSize);
+
+    Offset centerForToken(int tokenNumber) {
+      final tokenFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is GameToken &&
+            widget.semanticLabel == 'Rammohan token $tokenNumber',
+      );
+      return tester.getRect(tokenFinder).center;
+    }
+
+    Rect rectForToken(int tokenNumber) {
+      final tokenFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is GameToken &&
+            widget.semanticLabel == 'Rammohan token $tokenNumber',
+      );
+      return tester.getRect(tokenFinder);
+    }
+
+    final firstCenter = centerForToken(1);
+    final secondCenter = centerForToken(2);
+    final thirdCenter = centerForToken(3);
+    final pairCenter = Offset.lerp(firstCenter, secondCenter, 0.5)!;
+
+    expect((firstCenter - secondCenter).distance, lessThan(30));
+    expect((pairCenter - thirdCenter).distance, greaterThan(35));
+    for (var tokenNumber = 1; tokenNumber <= 3; tokenNumber++) {
+      final tokenRect = rectForToken(tokenNumber);
+      expect(targetCell.contains(tokenRect.topLeft), isTrue);
+      expect(targetCell.contains(tokenRect.bottomRight), isTrue);
+    }
+  });
+
   testWidgets('locked pair moves as one animated piece', (tester) async {
     final firstToken = TokenState(
       playerIndex: 0,
