@@ -242,12 +242,13 @@ class GameBoard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    const promptWidth = 170.0;
-    const promptHeight = 92.0;
+    const promptWidth = 142.0;
+    const promptHeight = 72.0;
     const pointerWidth = 14.0;
     const cornerRadius = 14.0;
     const pointerHeight = 7.0;
     const gap = 8.0;
+    const lowerOffset = 6.0;
     final cellRect = _cellRect(board, cellSize, cell);
     final left = (cellRect.center.dx - promptWidth / 2)
         .clamp(board.left, board.right - promptWidth)
@@ -255,7 +256,8 @@ class GameBoard extends StatelessWidget {
     final top = math.max(
       board.top + 2,
       cellRect.top - promptHeight - pointerHeight - gap,
-    );
+    ) +
+        lowerOffset;
 
     return Positioned(
       left: left,
@@ -286,7 +288,7 @@ class GameBoard extends StatelessWidget {
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -306,57 +308,53 @@ class GameBoard extends StatelessWidget {
                             color: Color(0xFF6A3F1D),
                           ),
                         ),
-                        const SizedBox(width: 7),
+                        const SizedBox(width: 5),
                         const Text(
                           'Make a pair?',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.w900,
                             color: Color(0xFF5B3517),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onJoinPairPrompt,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Color(0xFF189FE7), Color(0xFF0C7FC0)],
-                                ),
-                                border: Border.all(
-                                  color: const Color(
-                                    0xFF06679D,
-                                  ).withValues(alpha: 0.78),
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF0B83C5,
-                                    ).withValues(alpha: 0.28),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onJoinPairPrompt,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFF189FE7), Color(0xFF0C7FC0)],
                               ),
-                              child: const SizedBox(
-                                height: 32,
-                                child: Center(
-                                  child: Text(
-                                    'Join',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                    ),
+                              border: Border.all(
+                                color: const Color(0xFF06679D).withValues(alpha: 0.78),
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF0B83C5).withValues(alpha: 0.28),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const SizedBox(
+                              width: 80,
+                              height: 30,
+                              child: Center(
+                                child: Text(
+                                  'Join',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -365,8 +363,8 @@ class GameBoard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         SizedBox(
-                          width: 34,
-                          height: 32,
+                          width: 30,
+                          height: 30,
                           child: Tooltip(
                             message: 'Play single',
                             child: GestureDetector(
