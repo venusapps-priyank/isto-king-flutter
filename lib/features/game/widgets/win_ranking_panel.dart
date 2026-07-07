@@ -6,6 +6,9 @@ const _firstPlaceAsset = 'assets/images/1st.png';
 const _secondPlaceAsset = 'assets/images/2nd.png';
 const _thirdPlaceAsset = 'assets/images/3rd.png';
 const _fourthPlaceAsset = 'assets/images/4th.png';
+const _centerCardWidth = 220.0;
+const _sideCardWidth = 160.0;
+const _lowerCardWidth = 170.0;
 
 class WinRankingPanel extends StatelessWidget {
   const WinRankingPanel({required this.playersByRank, super.key});
@@ -22,16 +25,13 @@ class WinRankingPanel extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
-        final centerCardWidth = width * 0.43;
-        final sideCardWidth = width * 0.31;
-        final lowerCardWidth = width * 0.32;
 
         return Stack(
           children: [
             Positioned(
-              left: (width - centerCardWidth) / 2,
+              left: (width - _centerCardWidth) / 2,
               top: height * 0.12,
-              width: centerCardWidth,
+              width: _centerCardWidth,
               child: _RankCard(
                 player: playersByRank[0],
                 rank: 1,
@@ -41,9 +41,9 @@ class WinRankingPanel extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: (width - lowerCardWidth) / 2,
+              left: (width - _lowerCardWidth) / 2,
               bottom: height * 0.13,
-              width: lowerCardWidth,
+              width: _lowerCardWidth,
               child: _RankCard(
                 player: playersByRank[3],
                 rank: 4,
@@ -54,7 +54,7 @@ class WinRankingPanel extends StatelessWidget {
             Positioned(
               left: width * 0.04,
               top: height * 0.38,
-              width: sideCardWidth,
+              width: _sideCardWidth,
               child: _RankCard(
                 player: playersByRank[1],
                 rank: 2,
@@ -65,7 +65,7 @@ class WinRankingPanel extends StatelessWidget {
             Positioned(
               right: width * 0.04,
               top: height * 0.38,
-              width: sideCardWidth,
+              width: _sideCardWidth,
               child: _RankCard(
                 player: playersByRank[2],
                 rank: 3,
