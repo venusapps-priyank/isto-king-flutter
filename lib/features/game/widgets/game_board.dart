@@ -11,6 +11,7 @@ import 'package:isto_king/features/game/widgets/game_token.dart';
 import 'package:isto_king/features/game/widgets/path_animated_token.dart';
 
 const _defaultTokenSizeFactor = 0.4;
+const _tokenJoinAnimationDuration = Duration(milliseconds: 260);
 
 class GameBoard extends StatelessWidget {
   const GameBoard({
@@ -63,9 +64,7 @@ class GameBoard extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: CustomPaint(
-                  painter: GameBoardPainter(
-                    innerPathAccess: innerPathAccess,
-                  ),
+                  painter: GameBoardPainter(innerPathAccess: innerPathAccess),
                 ),
               ),
               ..._buildTokenWidgets(inner, cellSize),
@@ -96,18 +95,33 @@ class GameBoard extends StatelessWidget {
       }
 
       final tokenSize = _tokenSizeFor(cellSize, cellTokens.length);
-      final centers = _tokenCenters(rect, cellTokens.length);
-      final positionedTokens = [
-        for (var index = 0; index < cellTokens.length; index++)
-          MapEntry(cellTokens[index], centers[index]),
-      ]..sort((first, second) {
-          final firstMovable = movableTokenIds.contains(first.key.id);
-          final secondMovable = movableTokenIds.contains(second.key.id);
-          if (firstMovable == secondMovable) {
-            return first.key.id.compareTo(second.key.id);
-          }
-          return firstMovable ? 1 : -1;
-        });
+      final centers = _tokenCenters(rect, cellTokens, tokenSize);
+      final isLockedPair = _isLockedPair(cellTokens);
+      final pairIsMovable =
+          isLockedPair &&
+          cellTokens.any((token) => movableTokenIds.contains(token.id));
+      if (pairIsMovable) {
+        widgets.add(
+          _positionedPairHighlight(
+            tokens: cellTokens,
+            centers: centers,
+            tokenSize: tokenSize,
+          ),
+        );
+      }
+
+      final positionedTokens =
+          [
+            for (var index = 0; index < cellTokens.length; index++)
+              MapEntry(cellTokens[index], centers[index]),
+          ]..sort((first, second) {
+            final firstMovable = movableTokenIds.contains(first.key.id);
+            final secondMovable = movableTokenIds.contains(second.key.id);
+            if (firstMovable == secondMovable) {
+              return first.key.id.compareTo(second.key.id);
+            }
+            return firstMovable ? 1 : -1;
+          });
 
       for (final positionedToken in positionedTokens) {
         final token = positionedToken.key;
@@ -118,14 +132,50 @@ class GameBoard extends StatelessWidget {
             left: center.dx - tokenSize / 2,
             top: center.dy - tokenSize / 2,
             tokenSize: tokenSize,
+            showMovableHighlight: !pairIsMovable,
           ),
         );
       }
     }
 
+    final renderedMovingTokenIds = <int>{};
     for (final entry in movePaths.entries) {
+      if (renderedMovingTokenIds.contains(entry.key)) continue;
+
       final token = tokens.firstWhere((candidate) => candidate.id == entry.key);
       final tokenSize = cellSize * _defaultTokenSizeFactor;
+      final pairedMovingToken = _pairedMovingTokenFor(token, entry.value);
+      if (pairedMovingToken != null) {
+        final movingPairTokens = [token, pairedMovingToken]
+          ..sort((first, second) => first.id.compareTo(second.id));
+        final pairSize = _lockedPairPieceSize(tokenSize);
+        renderedMovingTokenIds.addAll(
+          movingPairTokens.map((movingToken) => movingToken.id),
+        );
+        widgets.add(
+          PathAnimatedToken(
+            key: ValueKey(
+              'move-pair-${movingPairTokens.map((token) => token.id).join('-')}',
+            ),
+            waypoints: entry.value,
+            board: board,
+            cellSize: cellSize,
+            tokenSize: tokenSize,
+            childSize: pairSize,
+            duration: MoveAnimationTiming.durationForPath(entry.value),
+            startDelay: moveDelays[token.id] ?? Duration.zero,
+            curve: moveAnimationCurve,
+            child: _movingLockedPairPiece(
+              tokens: movingPairTokens,
+              tokenSize: tokenSize,
+              size: pairSize,
+            ),
+          ),
+        );
+        continue;
+      }
+
+      renderedMovingTokenIds.add(token.id);
       widgets.add(
         PathAnimatedToken(
           key: ValueKey('move-${token.id}'),
@@ -148,6 +198,32 @@ class GameBoard extends StatelessWidget {
     }
 
     return widgets;
+  }
+
+  TokenState? _pairedMovingTokenFor(TokenState token, List<BoardCell> path) {
+    final pairedTokenId = token.pairedTokenId;
+    if (pairedTokenId == null || !movePaths.containsKey(pairedTokenId)) {
+      return null;
+    }
+
+    final pairedToken = tokens.firstWhere(
+      (candidate) => candidate.id == pairedTokenId,
+    );
+    if (pairedToken.pairedTokenId != token.id ||
+        pairedToken.playerIndex != token.playerIndex ||
+        !_samePath(path, movePaths[pairedTokenId]!)) {
+      return null;
+    }
+
+    return pairedToken;
+  }
+
+  bool _samePath(List<BoardCell> first, List<BoardCell> second) {
+    if (first.length != second.length) return false;
+    for (var index = 0; index < first.length; index++) {
+      if (first[index] != second[index]) return false;
+    }
+    return true;
   }
 
   List<Widget> _buildCenterTokenWidgets(
@@ -188,21 +264,99 @@ class GameBoard extends StatelessWidget {
     required double left,
     required double top,
     required double tokenSize,
+    bool showMovableHighlight = true,
   }) {
     final isMovable = movableTokenIds.contains(token.id);
-    return Positioned(
+    return AnimatedPositioned(
       key: ValueKey(token.id),
       left: left,
       top: top,
       width: tokenSize,
       height: tokenSize,
+      duration: _tokenJoinAnimationDuration,
+      curve: Curves.easeOutBack,
       child: GameToken(
         color: gamePlayers[token.playerIndex].color,
         size: tokenSize,
         isMovable: isMovable,
+        showMovableHighlight: showMovableHighlight,
         semanticLabel:
             '${gamePlayers[token.playerIndex].name} token ${token.tokenIndex + 1}',
         onTap: () => onTokenTap?.call(token.id),
+      ),
+    );
+  }
+
+  Widget _positionedPairHighlight({
+    required List<TokenState> tokens,
+    required List<Offset> centers,
+    required double tokenSize,
+  }) {
+    final horizontalPadding = tokenSize * 0.16;
+    final verticalPadding = tokenSize * 0.13;
+    final left =
+        centers.map((center) => center.dx).reduce(math.min) -
+        tokenSize / 2 -
+        horizontalPadding;
+    final right =
+        centers.map((center) => center.dx).reduce(math.max) +
+        tokenSize / 2 +
+        horizontalPadding;
+    final top =
+        centers.map((center) => center.dy).reduce(math.min) -
+        tokenSize / 2 -
+        verticalPadding;
+    final bottom =
+        centers.map((center) => center.dy).reduce(math.max) +
+        tokenSize / 2 +
+        verticalPadding;
+    final firstToken = tokens.first;
+
+    return AnimatedPositioned(
+      key: ValueKey(
+        'pair-highlight-${tokens.map((token) => token.id).join('-')}',
+      ),
+      left: left,
+      top: top,
+      width: right - left,
+      height: bottom - top,
+      duration: _tokenJoinAnimationDuration,
+      curve: Curves.easeOutBack,
+      child: IgnorePointer(
+        child: _PulsingPairMoveHighlight(
+          color: gamePlayers[firstToken.playerIndex].color,
+        ),
+      ),
+    );
+  }
+
+  Widget _movingLockedPairPiece({
+    required List<TokenState> tokens,
+    required double tokenSize,
+    required Size size,
+  }) {
+    final pairGap = _lockedPairCenterSpread(tokenSize) * 2;
+
+    return SizedBox.fromSize(
+      size: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          for (var index = 0; index < tokens.length; index++)
+            Positioned(
+              left: index * pairGap,
+              top: 0,
+              width: tokenSize,
+              height: tokenSize,
+              child: GameToken(
+                color: gamePlayers[tokens[index].playerIndex].color,
+                size: tokenSize,
+                isMovable: false,
+                semanticLabel:
+                    '${gamePlayers[tokens[index].playerIndex].name} token ${tokens[index].tokenIndex + 1}',
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -251,16 +405,16 @@ class GameBoard extends StatelessWidget {
       <= 1 => Offset.zero,
       2 => tangent * (stackIndex == 0 ? -spread : spread),
       3 => [
-          tangent * -spread + radial * rowGap,
-          tangent * spread + radial * rowGap,
-          radial * -rowGap,
-        ][stackIndex],
+        tangent * -spread + radial * rowGap,
+        tangent * spread + radial * rowGap,
+        radial * -rowGap,
+      ][stackIndex],
       _ => [
-          tangent * -spread + radial * rowGap,
-          tangent * spread + radial * rowGap,
-          tangent * -spread + radial * -rowGap,
-          tangent * spread + radial * -rowGap,
-        ][stackIndex % 4],
+        tangent * -spread + radial * rowGap,
+        tangent * spread + radial * rowGap,
+        tangent * -spread + radial * -rowGap,
+        tangent * spread + radial * -rowGap,
+      ][stackIndex % 4],
     };
 
     return base + offset;
@@ -270,14 +424,22 @@ class GameBoard extends StatelessWidget {
     return cellSize * _defaultTokenSizeFactor;
   }
 
-  List<Offset> _tokenCenters(Rect rect, int count) {
+  List<Offset> _tokenCenters(
+    Rect rect,
+    List<TokenState> tokens,
+    double tokenSize,
+  ) {
+    final count = tokens.length;
     if (count == 1) return [rect.center];
 
     final spread = rect.width * 0.28;
     if (count == 2) {
+      final pairSpread = _isLockedPair(tokens)
+          ? _lockedPairCenterSpread(tokenSize)
+          : spread;
       return [
-        rect.center.translate(-spread, 0),
-        rect.center.translate(spread, 0),
+        rect.center.translate(-pairSpread, 0),
+        rect.center.translate(pairSpread, 0),
       ];
     }
     if (count == 3) {
@@ -333,5 +495,111 @@ class GameBoard extends StatelessWidget {
           (index ~/ columns - (rows - 1) / 2) * verticalGap,
         ),
     ];
+  }
+
+  bool _isLockedPair(List<TokenState> tokens) {
+    if (tokens.length != 2) return false;
+
+    final first = tokens[0];
+    final second = tokens[1];
+    return first.pairedTokenId == second.id && second.pairedTokenId == first.id;
+  }
+
+  double _lockedPairCenterSpread(double tokenSize) => tokenSize * 0.28;
+
+  Size _lockedPairPieceSize(double tokenSize) {
+    return Size(tokenSize + _lockedPairCenterSpread(tokenSize) * 2, tokenSize);
+  }
+}
+
+class _PulsingPairMoveHighlight extends StatefulWidget {
+  const _PulsingPairMoveHighlight({required this.color});
+
+  final Color color;
+
+  @override
+  State<_PulsingPairMoveHighlight> createState() =>
+      _PulsingPairMoveHighlightState();
+}
+
+class _PulsingPairMoveHighlightState extends State<_PulsingPairMoveHighlight>
+    with SingleTickerProviderStateMixin {
+  static const _pulseDuration = Duration(milliseconds: 900);
+
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: _pulseDuration,
+    )..repeat(reverse: true);
+    _pulseAnimation = CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        final pulse = _pulseAnimation.value;
+        return Transform.scale(
+          scale: 1.0 + pulse * 0.14,
+          child: CustomPaint(
+            painter: _PairMoveHighlightPainter(
+              color: widget.color,
+              pulse: pulse,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PairMoveHighlightPainter extends CustomPainter {
+  const _PairMoveHighlightPainter({required this.color, required this.pulse});
+
+  final Color color;
+  final double pulse;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final radius = Radius.circular(size.height / 2);
+    final highlight = RRect.fromRectAndRadius(rect.deflate(1), radius);
+    final outerColor = Color.lerp(color, Colors.white, 0.18)!;
+    final innerColor = Color.lerp(color, Colors.white, 0.62)!;
+
+    canvas.drawRRect(
+      highlight,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.height * (0.07 + pulse * 0.03)
+        ..color = outerColor.withValues(alpha: 0.55 + pulse * 0.4),
+    );
+    canvas.drawRRect(
+      highlight.deflate(size.height * 0.09),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.height * (0.04 + pulse * 0.015)
+        ..color = innerColor.withValues(alpha: 0.55 + pulse * 0.3),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PairMoveHighlightPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.pulse != pulse;
   }
 }

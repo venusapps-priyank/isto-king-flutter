@@ -54,20 +54,23 @@ void main() {
       expect(controller.autoMoveTokenId, remainingYellow.id);
     });
 
-    test('does not auto-select when multiple different moves are available', () {
-      final controller = GameTurnController()..currentPlayerIndex = 0;
-      final firstRed = tokenFor(controller, 0, 0);
-      final secondRed = tokenFor(controller, 0, 1);
-      placeToken(firstRed, 0);
-      placeToken(secondRed, 2);
-      finishToken(tokenFor(controller, 0, 2));
-      finishToken(tokenFor(controller, 0, 3));
+    test(
+      'does not auto-select when multiple different moves are available',
+      () {
+        final controller = GameTurnController()..currentPlayerIndex = 0;
+        final firstRed = tokenFor(controller, 0, 0);
+        final secondRed = tokenFor(controller, 0, 1);
+        placeToken(firstRed, 0);
+        placeToken(secondRed, 2);
+        finishToken(tokenFor(controller, 0, 2));
+        finishToken(tokenFor(controller, 0, 3));
 
-      controller.handleRollComplete(0, 1);
+        controller.handleRollComplete(0, 1);
 
-      expect(controller.legalTokenIds, {firstRed.id, secondRed.id});
-      expect(controller.autoMoveTokenId, isNull);
-    });
+        expect(controller.legalTokenIds, {firstRed.id, secondRed.id});
+        expect(controller.autoMoveTokenId, isNull);
+      },
+    );
 
     test('inner paths enter center from each player home side', () {
       const finalCellsByPlayer = [
@@ -77,9 +80,11 @@ void main() {
         BoardCell(2, 3), // Blue enters from bottom.
       ];
 
-      for (var playerIndex = 0;
-          playerIndex < finalCellsByPlayer.length;
-          playerIndex++) {
+      for (
+        var playerIndex = 0;
+        playerIndex < finalCellsByPlayer.length;
+        playerIndex++
+      ) {
         final path = IstoBoardPaths.pathForPlayer(playerIndex);
 
         expect(path[path.length - 2], finalCellsByPlayer[playerIndex]);
@@ -96,10 +101,10 @@ void main() {
       controller.handleRollComplete(3, 1);
       final result = controller.moveToken(blueToken.id);
 
-      expect(
-        result?.animationPaths[blueToken.id],
-        [const BoardCell(2, 3), IstoBoardPaths.centerCell],
-      );
+      expect(result?.animationPaths[blueToken.id], [
+        const BoardCell(2, 3),
+        IstoBoardPaths.centerCell,
+      ]);
       expect(blueToken.isFinished, isTrue);
     });
 
@@ -128,28 +133,31 @@ void main() {
       expect(controller.cellForToken(redToken), const BoardCell(3, 1));
     });
 
-    test('allows a single token to land on a two-token stack without capturing', () {
-      final controller = GameTurnController()..currentPlayerIndex = 0;
-      final redPath = IstoBoardPaths.pathForPlayer(0);
-      final destination = redPath[1];
-      final redToken = tokenFor(controller, 0, 0);
-      final firstGreen = tokenFor(controller, 1, 0);
-      final secondGreen = tokenFor(controller, 1, 1);
-      placeToken(redToken, 0);
-      placeToken(firstGreen, pathIndexForCell(1, destination));
-      placeToken(secondGreen, pathIndexForCell(1, destination));
+    test(
+      'allows a single token to land on a two-token stack without capturing',
+      () {
+        final controller = GameTurnController()..currentPlayerIndex = 0;
+        final redPath = IstoBoardPaths.pathForPlayer(0);
+        final destination = redPath[1];
+        final redToken = tokenFor(controller, 0, 0);
+        final firstGreen = tokenFor(controller, 1, 0);
+        final secondGreen = tokenFor(controller, 1, 1);
+        placeToken(redToken, 0);
+        placeToken(firstGreen, pathIndexForCell(1, destination));
+        placeToken(secondGreen, pathIndexForCell(1, destination));
 
-      controller.handleRollComplete(0, 1);
+        controller.handleRollComplete(0, 1);
 
-      expect(controller.legalTokenIds, contains(redToken.id));
+        expect(controller.legalTokenIds, contains(redToken.id));
 
-      final result = controller.moveToken(redToken.id);
+        final result = controller.moveToken(redToken.id);
 
-      expect(result?.capturedCount, 0);
-      expect(firstGreen.isAtStart, isFalse);
-      expect(secondGreen.isAtStart, isFalse);
-      expect(controller.cellForToken(redToken), destination);
-    });
+        expect(result?.capturedCount, 0);
+        expect(firstGreen.isAtStart, isFalse);
+        expect(secondGreen.isAtStart, isFalse);
+        expect(controller.cellForToken(redToken), destination);
+      },
+    );
 
     test(
       'captures an equal opponent stack and resets their kill permission',
@@ -196,6 +204,111 @@ void main() {
       expect(controller.cellForToken(greenToken), safeDestination);
     });
 
+    test('offers a pair candidate when two own tokens meet', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final movingRed = tokenFor(controller, 0, 0);
+      final waitingRed = tokenFor(controller, 0, 1);
+      placeToken(movingRed, 0);
+      placeToken(waitingRed, 1);
+
+      controller.handleRollComplete(0, 1);
+      final result = controller.moveToken(movingRed.id);
+
+      expect(result?.pairCandidate?.playerIndex, 0);
+      expect(result?.pairCandidate?.tokenIds, [movingRed.id, waitingRed.id]);
+      expect(controller.lockTokenPair(result!.pairCandidate!.tokenIds), isTrue);
+      expect(movingRed.pairedTokenId, waitingRed.id);
+      expect(waitingRed.pairedTokenId, movingRed.id);
+    });
+
+    test('moves a locked pair with converted cowrie steps', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      placeToken(firstRed, 0);
+      placeToken(secondRed, 0);
+      expect(controller.lockTokenPair([firstRed.id, secondRed.id]), isTrue);
+
+      controller.handleRollComplete(0, 2);
+      final result = controller.moveToken(firstRed.id);
+
+      expect(
+        result?.animationPaths.keys,
+        containsAll([firstRed.id, secondRed.id]),
+      );
+      expect(firstRed.pathIndex, 1);
+      expect(secondRed.pathIndex, 1);
+      expect(firstRed.pairedTokenId, secondRed.id);
+      expect(secondRed.pairedTokenId, firstRed.id);
+    });
+
+    test('does not move a locked pair on one or three', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      placeToken(firstRed, 0);
+      placeToken(secondRed, 0);
+      finishToken(tokenFor(controller, 0, 2));
+      finishToken(tokenFor(controller, 0, 3));
+      expect(controller.lockTokenPair([firstRed.id, secondRed.id]), isTrue);
+
+      final oneResult = controller.handleRollComplete(0, 1);
+
+      expect(oneResult?.hasLegalMove, isFalse);
+      expect(firstRed.pathIndex, 0);
+      expect(secondRed.pathIndex, 0);
+
+      controller.currentPlayerIndex = 0;
+      final threeResult = controller.handleRollComplete(0, 3);
+
+      expect(threeResult?.hasLegalMove, isFalse);
+      expect(firstRed.pathIndex, 0);
+      expect(secondRed.pathIndex, 0);
+    });
+
+    test('unlocks a pair when it lands on a home cell', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      placeToken(firstRed, 2);
+      placeToken(secondRed, 2);
+      expect(controller.lockTokenPair([firstRed.id, secondRed.id]), isTrue);
+
+      controller.handleRollComplete(0, 2);
+      controller.moveToken(firstRed.id);
+
+      expect(controller.cellForToken(firstRed), const BoardCell(0, 2));
+      expect(controller.cellForToken(secondRed), const BoardCell(0, 2));
+      expect(firstRed.isPaired, isFalse);
+      expect(secondRed.isPaired, isFalse);
+    });
+
+    test('captures an equal locked opponent pair', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final redPath = IstoBoardPaths.pathForPlayer(0);
+      final destination = redPath[1];
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      final firstGreen = tokenFor(controller, 1, 0);
+      final secondGreen = tokenFor(controller, 1, 1);
+      placeToken(firstRed, 0);
+      placeToken(secondRed, 0);
+      placeToken(firstGreen, pathIndexForCell(1, destination));
+      placeToken(secondGreen, pathIndexForCell(1, destination));
+      expect(controller.lockTokenPair([firstRed.id, secondRed.id]), isTrue);
+      expect(controller.lockTokenPair([firstGreen.id, secondGreen.id]), isTrue);
+
+      controller.handleRollComplete(0, 2);
+      final result = controller.moveToken(firstRed.id);
+
+      expect(result?.capturedCount, 2);
+      expect(firstGreen.isAtStart, isTrue);
+      expect(secondGreen.isAtStart, isTrue);
+      expect(firstGreen.isPaired, isFalse);
+      expect(secondGreen.isPaired, isFalse);
+      expect(controller.playerStates[0].hasKilledOpponent, isTrue);
+    });
+
     test('keeps the same player after rolling four', () {
       final controller = GameTurnController()..currentPlayerIndex = 2;
       final yellowToken = tokenFor(controller, 2, 0);
@@ -207,27 +320,30 @@ void main() {
       expect(controller.pendingRoll, isNull);
     });
 
-    test('discards an unplayable eight and lets the same player roll again', () {
-      final controller = GameTurnController()..currentPlayerIndex = 2;
-      final yellowPath = IstoBoardPaths.pathForPlayer(2);
-      final remainingYellow = tokenFor(controller, 2, 0);
-      placeToken(remainingYellow, yellowPath.length - 2);
-      for (var tokenIndex = 1; tokenIndex < 4; tokenIndex++) {
-        finishToken(tokenFor(controller, 2, tokenIndex));
-      }
+    test(
+      'discards an unplayable eight and lets the same player roll again',
+      () {
+        final controller = GameTurnController()..currentPlayerIndex = 2;
+        final yellowPath = IstoBoardPaths.pathForPlayer(2);
+        final remainingYellow = tokenFor(controller, 2, 0);
+        placeToken(remainingYellow, yellowPath.length - 2);
+        for (var tokenIndex = 1; tokenIndex < 4; tokenIndex++) {
+          finishToken(tokenFor(controller, 2, tokenIndex));
+        }
 
-      final result = controller.handleRollComplete(2, 8);
+        final result = controller.handleRollComplete(2, 8);
 
-      expect(result?.hasLegalMove, isFalse);
-      expect(result?.grantsExtraTurn, isTrue);
-      expect(result?.discarded, isTrue);
-      expect(remainingYellow.pathIndex, yellowPath.length - 2);
-      expect(controller.pendingRoll, isNull);
-      expect(controller.legalTokenIds, isEmpty);
-      expect(controller.lastRolls[2], isNull);
-      expect(controller.currentPlayerIndex, 2);
-      expect(controller.canRoll(2), isTrue);
-    });
+        expect(result?.hasLegalMove, isFalse);
+        expect(result?.grantsExtraTurn, isTrue);
+        expect(result?.discarded, isTrue);
+        expect(remainingYellow.pathIndex, yellowPath.length - 2);
+        expect(controller.pendingRoll, isNull);
+        expect(controller.legalTokenIds, isEmpty);
+        expect(controller.lastRolls[2], isNull);
+        expect(controller.currentPlayerIndex, 2);
+        expect(controller.canRoll(2), isTrue);
+      },
+    );
 
     test('ranks a finished player and continues the match', () {
       final controller = GameTurnController();
@@ -289,14 +405,10 @@ void main() {
       final capturePath = result!.animationPaths[capturedGreen.id]!;
       expect(capturePath.first, greenPath[greenPathIndex]);
       expect(capturePath.last, IstoBoardPaths.homeCellForPlayer(1));
-      expect(
-        capturePath,
-        [
-          for (var index = greenPathIndex; index >= 0; index--)
-            greenPath[index],
-          IstoBoardPaths.homeCellForPlayer(1),
-        ],
-      );
+      expect(capturePath, [
+        for (var index = greenPathIndex; index >= 0; index--) greenPath[index],
+        IstoBoardPaths.homeCellForPlayer(1),
+      ]);
     });
 
     test('delays captured token animation until killer arrives', () {
@@ -334,14 +446,16 @@ void placeToken(TokenState token, int pathIndex) {
   token
     ..isAtStart = false
     ..isFinished = false
-    ..pathIndex = pathIndex;
+    ..pathIndex = pathIndex
+    ..pairedTokenId = null;
 }
 
 void finishToken(TokenState token) {
   token
     ..isAtStart = false
     ..isFinished = true
-    ..pathIndex = IstoBoardPaths.pathForPlayer(token.playerIndex).length - 1;
+    ..pathIndex = IstoBoardPaths.pathForPlayer(token.playerIndex).length - 1
+    ..pairedTokenId = null;
 }
 
 MoveResolution? finishPlayerByMovingFinalToken(

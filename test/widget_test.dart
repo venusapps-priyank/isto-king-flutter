@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isto_king/app/isto_king_app.dart';
+import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
 import 'package:isto_king/features/game/painters/game_board_painter.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/game_token.dart';
+import 'package:isto_king/features/game/widgets/path_animated_token.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 
 void main() {
   for (final size in [const Size(390, 844), const Size(430, 932)]) {
-    testWidgets('Isto board screen fits ${size.width}x${size.height}', (tester) async {
+    testWidgets('Isto board screen fits ${size.width}x${size.height}', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(size);
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -195,5 +199,149 @@ void main() {
     for (final center in yellowCenters) {
       expect(center.dx, lessThan(centerCell.center.dx));
     }
+  });
+
+  testWidgets('locked pair tokens slide into attached spacing', (tester) async {
+    final firstToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 0,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    final secondToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 1,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    final tokens = [firstToken, secondToken];
+
+    Future<void> pumpBoard() {
+      return tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox.square(
+            dimension: 500,
+            child: GameBoard(tokens: tokens, movableTokenIds: const {}),
+          ),
+        ),
+      );
+    }
+
+    List<Offset> tokenCenters() {
+      final tokenWidgets = find.byWidgetPredicate(
+        (widget) =>
+            widget is GameToken &&
+            widget.semanticLabel.startsWith('Rammohan token'),
+      );
+
+      return [
+        for (final element in tokenWidgets.evaluate())
+          tester.getRect(find.byWidget(element.widget)).center,
+      ]..sort((first, second) => first.dx.compareTo(second.dx));
+    }
+
+    await pumpBoard();
+    final unpairedCenters = tokenCenters();
+    final unpairedDistance = (unpairedCenters[1].dx - unpairedCenters[0].dx)
+        .abs();
+
+    firstToken.pairWith(secondToken);
+    await pumpBoard();
+    expect(find.byType(AnimatedPositioned), findsWidgets);
+    await tester.pumpAndSettle();
+
+    final pairedCenters = tokenCenters();
+    final pairedDistance = (pairedCenters[1].dx - pairedCenters[0].dx).abs();
+
+    expect(pairedDistance, lessThan(unpairedDistance * 0.55));
+  });
+
+  testWidgets('playable locked pair uses one shared highlight', (tester) async {
+    final firstToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 0,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    final secondToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 1,
+      isAtStart: false,
+      pathIndex: 1,
+    );
+    firstToken.pairWith(secondToken);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox.square(
+          dimension: 500,
+          child: GameBoard(
+            tokens: [firstToken, secondToken],
+            movableTokenIds: {firstToken.id, secondToken.id},
+          ),
+        ),
+      ),
+    );
+
+    final tokenWidgets = tester.widgetList<GameToken>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is GameToken &&
+            widget.semanticLabel.startsWith('Rammohan token'),
+      ),
+    );
+
+    expect(tokenWidgets, hasLength(2));
+    for (final tokenWidget in tokenWidgets) {
+      expect(tokenWidget.isMovable, isTrue);
+      expect(tokenWidget.showMovableHighlight, isFalse);
+    }
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget.runtimeType.toString() == '_PulsingPairMoveHighlight',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('locked pair moves as one animated piece', (tester) async {
+    final firstToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 0,
+      isAtStart: false,
+      pathIndex: 2,
+    );
+    final secondToken = TokenState(
+      playerIndex: 0,
+      tokenIndex: 1,
+      isAtStart: false,
+      pathIndex: 2,
+    );
+    firstToken.pairWith(secondToken);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox.square(
+          dimension: 500,
+          child: GameBoard(
+            tokens: [firstToken, secondToken],
+            movableTokenIds: const {},
+            movePaths: {
+              firstToken.id: const [BoardCell(1, 0), BoardCell(0, 0)],
+              secondToken.id: const [BoardCell(1, 0), BoardCell(0, 0)],
+            },
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(PathAnimatedToken), findsOneWidget);
+
+    final animatedPiece = tester.getSize(find.byType(PathAnimatedToken));
+    final tokenSize = tester.getSize(find.byType(GameToken).first);
+
+    expect(animatedPiece.width, greaterThan(tokenSize.width));
+    expect(animatedPiece.height, tokenSize.height);
   });
 }

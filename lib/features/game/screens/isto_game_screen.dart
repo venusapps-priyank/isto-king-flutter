@@ -32,10 +32,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
     int? autoMoveTokenId;
     setState(() {
-      final resolution = _turnController.handleRollComplete(
-        playerIndex,
-        value,
-      );
+      final resolution = _turnController.handleRollComplete(playerIndex, value);
       if (resolution != null &&
           resolution.discarded &&
           resolution.grantsExtraTurn) {
@@ -53,6 +50,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     if (_isMoveAnimating) return;
 
     var didMove = false;
+    TokenPairCandidate? pairCandidate;
     Map<int, List<BoardCell>> movePaths = {};
     Map<int, Duration> moveDelays = {};
     setState(() {
@@ -61,6 +59,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       if (didMove) {
         movePaths = resolution!.animationPaths;
         moveDelays = resolution.animationDelays;
+        pairCandidate = resolution.pairCandidate;
         _activeMovePaths = movePaths;
         _activeMoveDelays = moveDelays;
         _isMoveAnimating = true;
@@ -82,15 +81,48 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
         _activeMovePaths = {};
         _activeMoveDelays = {};
       });
+      if (pairCandidate != null) {
+        _showTokenPairPrompt(pairCandidate!);
+      }
+    });
+  }
+
+  Future<void> _showTokenPairPrompt(TokenPairCandidate candidate) async {
+    final player = gamePlayers[candidate.playerIndex];
+    final choice = await showDialog<_PairChoice>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Join Tokens?'),
+          content: Text(
+            'Move these 2 ${player.name} tokens together as a pair. '
+            'They can only separate again on home cells.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(_PairChoice.single),
+              child: const Text('Play Single'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(_PairChoice.join),
+              child: const Text('Join & Play Together'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || choice != _PairChoice.join) return;
+    setState(() {
+      _turnController.lockTokenPair(candidate.tokenIds);
     });
   }
 
   PlayerCard _buildPlayerCard(PlayerInfo player) {
-    final isCurrentPlayer =
-        _turnController.currentPlayerIndex == player.index;
+    final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
     final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
-    final showShells = isCurrentPlayer &&
-        (canRoll || _turnController.pendingRoll != null);
+    final showShells =
+        isCurrentPlayer && (canRoll || _turnController.pendingRoll != null);
 
     return PlayerCard(
       name: player.name,
@@ -163,8 +195,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               movableTokenIds: _isMoveAnimating
                                   ? const {}
                                   : _turnController.legalTokenIds,
-                              innerPathAccess:
-                                  _turnController.innerPathAccess,
+                              innerPathAccess: _turnController.innerPathAccess,
                               movePaths: _activeMovePaths,
                               moveDelays: _activeMoveDelays,
                               onTokenTap: _handleTokenTap,
@@ -192,6 +223,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   }
 }
 
+enum _PairChoice { single, join }
+
 class _BottomCornerMandala extends StatelessWidget {
   const _BottomCornerMandala({required this.isLeft});
 
@@ -210,12 +243,7 @@ class _BottomCornerMandala extends StatelessWidget {
       bottom: offset,
       width: _imageSize,
       height: _imageSize,
-      child: IgnorePointer(
-        child: Image.asset(
-          _asset,
-          fit: BoxFit.contain,
-        ),
-      ),
+      child: IgnorePointer(child: Image.asset(_asset, fit: BoxFit.contain)),
     );
   }
 }
