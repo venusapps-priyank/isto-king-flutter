@@ -133,7 +133,7 @@ class _RankCard extends StatelessWidget {
             right: 0,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color(0xFFF9F0DE),
+                color: const Color(0xFFFFF6DA),
                 borderRadius: BorderRadius.circular(radius),
                 border: Border.all(
                   color: borderColor,
