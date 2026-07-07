@@ -6,7 +6,7 @@ const _firstPlaceAsset = 'assets/images/1st.png';
 const _secondPlaceAsset = 'assets/images/2nd.png';
 const _thirdPlaceAsset = 'assets/images/3rd.png';
 const _fourthPlaceAsset = 'assets/images/4th.png';
-const _centerCardWidth = 220.0;
+const _centerCardWidth = 200.0;
 const _sideCardWidth = 160.0;
 const _lowerCardWidth = 170.0;
 const _positionLockWidth = 500.0;
@@ -33,7 +33,7 @@ class WinRankingPanel extends StatelessWidget {
           children: [
             Positioned(
               left: layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2,
-              top: height * 0.12,
+              top: height * 0.16,
               width: _centerCardWidth,
               child: _RankCard(
                 player: playersByRank[0],
@@ -45,7 +45,7 @@ class WinRankingPanel extends StatelessWidget {
             ),
             Positioned(
               left: layoutLeftOffset + (layoutWidth - _lowerCardWidth) / 2,
-              bottom: height * 0.13,
+              bottom: height * 0.14,
               width: _lowerCardWidth,
               child: _RankCard(
                 player: playersByRank[3],
