@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
@@ -19,8 +20,39 @@ const _headerTopInset = 0.03;
 const _bgBottomInset = 0.18;
 const _bgHorizontalInset = 0.000;
 const _buttonGapBelowBg = 12.0;
+const _entranceBaseDelayMs = 180;
+const _entranceStaggerMs = 120;
+const _entranceDurationMs = 400;
+const _buttonsEntranceDelayMs = 680;
+const _panelExitDurationMs = _buttonsEntranceDelayMs + 340 + 80;
 
-class WinRankingPanel extends StatelessWidget {
+extension _WinRankingMotion on Widget {
+  Widget animateRankCard({
+    required double target,
+    required int order,
+    Offset slideBegin = const Offset(0, 0.22),
+  }) {
+    final delay = (_entranceBaseDelayMs + order * _entranceStaggerMs).ms;
+    return animate(target: target)
+        .fadeIn(duration: 220.ms, delay: delay)
+        .scale(
+          begin: const Offset(0.72, 0.72),
+          end: const Offset(1, 1),
+          duration: _entranceDurationMs.ms,
+          delay: delay,
+          curve: Curves.elasticOut,
+        )
+        .slide(
+          begin: slideBegin,
+          end: Offset.zero,
+          duration: 360.ms,
+          delay: delay,
+          curve: Curves.easeOutCubic,
+        );
+  }
+}
+
+class WinRankingPanel extends StatefulWidget {
   const WinRankingPanel({
     required this.playersByRank,
     required this.onPlayAgain,
@@ -33,13 +65,34 @@ class WinRankingPanel extends StatelessWidget {
   final VoidCallback onHome;
 
   @override
+  State<WinRankingPanel> createState() => _WinRankingPanelState();
+}
+
+class _WinRankingPanelState extends State<WinRankingPanel> {
+  bool _isExiting = false;
+
+  double get _animTarget => _isExiting ? 0 : 1;
+
+  void _handlePlayAgain() {
+    if (_isExiting) return;
+
+    setState(() => _isExiting = true);
+    Future<void>.delayed(const Duration(milliseconds: _panelExitDurationMs), () {
+      if (!mounted) return;
+      widget.onPlayAgain();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (playersByRank.length < 4) {
+    if (widget.playersByRank.length < 4) {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return IgnorePointer(
+      ignoring: _isExiting,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final layoutWidth = width > _positionLockWidth ? _positionLockWidth : width;
@@ -59,7 +112,23 @@ class WinRankingPanel extends StatelessWidget {
               top: height * _headerTopInset,
               left: layoutLeftOffset,
               width: layoutWidth,
-              child: _MatchResultHeader(width: layoutWidth),
+              child: _MatchResultHeader(width: layoutWidth)
+                  .animate(target: _animTarget)
+                  .fadeIn(duration: 280.ms, delay: 80.ms)
+                  .slideY(
+                    begin: -0.18,
+                    end: 0,
+                    duration: 340.ms,
+                    delay: 80.ms,
+                    curve: Curves.easeOutCubic,
+                  )
+                  .scale(
+                    begin: const Offset(0.92, 0.92),
+                    end: const Offset(1, 1),
+                    duration: 340.ms,
+                    delay: 80.ms,
+                    curve: Curves.easeOutBack,
+                  ),
             ),
             Positioned(
               left: width * _bgHorizontalInset,
@@ -71,19 +140,31 @@ class WinRankingPanel extends StatelessWidget {
                   color: const Color(0xFF2A190D).withValues(alpha: 0.78),
                   borderRadius: BorderRadius.circular(20),
                 ),
-              ),
+              )
+                  .animate(target: _animTarget)
+                  .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+                  .scale(
+                    begin: const Offset(0.96, 0.94),
+                    end: const Offset(1, 1),
+                    duration: 360.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
             ),
             Positioned(
               left: layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2,
               top: height * 0.16,
               width: _centerCardWidth,
               child: _RankCard(
-                player: playersByRank[0],
+                player: widget.playersByRank[0],
                 rank: 1,
                 width: _centerCardWidth,
                 height: height * 0.32,
                 rankLabel: '1st Place',
                 showCrown: true,
+              ).animateRankCard(
+                target: _animTarget,
+                order: 0,
+                slideBegin: const Offset(0, -0.2),
               ),
             ),
             Positioned(
@@ -91,11 +172,15 @@ class WinRankingPanel extends StatelessWidget {
               bottom: height * 0.20,
               width: _lowerCardWidth,
               child: _RankCard(
-                player: playersByRank[3],
+                player: widget.playersByRank[3],
                 rank: 4,
                 width: _lowerCardWidth,
                 height: height * 0.30,
                 rankLabel: '4th Place',
+              ).animateRankCard(
+                target: _animTarget,
+                order: 3,
+                slideBegin: const Offset(0, 0.32),
               ),
             ),
             Positioned(
@@ -103,11 +188,15 @@ class WinRankingPanel extends StatelessWidget {
               top: height * 0.38,
               width: _sideCardWidth,
               child: _RankCard(
-                player: playersByRank[1],
+                player: widget.playersByRank[1],
                 rank: 2,
                 width: _sideCardWidth,
                 height: height * 0.30,
                 rankLabel: '2nd Place',
+              ).animateRankCard(
+                target: _animTarget,
+                order: 1,
+                slideBegin: const Offset(-0.35, 0.12),
               ),
             ),
             Positioned(
@@ -115,11 +204,15 @@ class WinRankingPanel extends StatelessWidget {
               top: height * 0.38,
               width: _sideCardWidth,
               child: _RankCard(
-                player: playersByRank[2],
+                player: widget.playersByRank[2],
                 rank: 3,
                 width: _sideCardWidth,
                 height: height * 0.30,
                 rankLabel: '3rd Place',
+              ).animateRankCard(
+                target: _animTarget,
+                order: 2,
+                slideBegin: const Offset(0.35, 0.12),
               ),
             ),
             Positioned(
@@ -128,14 +221,24 @@ class WinRankingPanel extends StatelessWidget {
               right: 0,
               child: Center(
                 child: WinActionButtons(
-                  onPlayAgain: onPlayAgain,
-                  onHome: onHome,
-                ),
+                  onPlayAgain: _handlePlayAgain,
+                  onHome: widget.onHome,
+                )
+                    .animate(target: _animTarget)
+                    .fadeIn(duration: 260.ms, delay: _buttonsEntranceDelayMs.ms)
+                    .slideY(
+                      begin: 0.25,
+                      end: 0,
+                      duration: 340.ms,
+                      delay: _buttonsEntranceDelayMs.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
               ),
             ),
           ],
         );
-      },
+        },
+      ),
     );
   }
 }
