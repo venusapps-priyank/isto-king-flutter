@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
-import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
+import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
 
@@ -56,13 +56,7 @@ class HomeScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 52),
                             child: HomeCtaButton(
                               label: 'PLAY NOW',
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => const IstoGameScreen(),
-                                  ),
-                                );
-                              },
+                              onPressed: () => GameSetupDialog.show(context),
                             ),
                           ),
                           const SizedBox(height: 10),
