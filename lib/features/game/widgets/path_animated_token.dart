@@ -12,6 +12,7 @@ class PathAnimatedToken extends StatefulWidget {
     required this.duration,
     required this.curve,
     required this.child,
+    this.childSize,
     this.startDelay = Duration.zero,
     super.key,
   });
@@ -24,6 +25,7 @@ class PathAnimatedToken extends StatefulWidget {
   final Duration startDelay;
   final Curve curve;
   final Widget child;
+  final Size? childSize;
 
   @override
   State<PathAnimatedToken> createState() => _PathAnimatedTokenState();
@@ -86,11 +88,12 @@ class _PathAnimatedTokenState extends State<PathAnimatedToken>
       animation: _controller,
       builder: (context, child) {
         final center = _positionFor(_controller.value);
+        final childSize = widget.childSize ?? Size.square(widget.tokenSize);
         return Positioned(
-          left: center.dx - widget.tokenSize / 2,
-          top: center.dy - widget.tokenSize / 2,
-          width: widget.tokenSize,
-          height: widget.tokenSize,
+          left: center.dx - childSize.width / 2,
+          top: center.dy - childSize.height / 2,
+          width: childSize.width,
+          height: childSize.height,
           child: child!,
         );
       },

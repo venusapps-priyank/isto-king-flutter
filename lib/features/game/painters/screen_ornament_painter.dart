@@ -4,6 +4,8 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 class ScreenOrnamentPainter extends CustomPainter {
   const ScreenOrnamentPainter();
 
+  static const _bottomCornerScale = 1.18;
+
   @override
   void paint(Canvas canvas, Size size) {
     final red = Paint()..color = RoyalColors.outerRed;
@@ -15,9 +17,10 @@ class ScreenOrnamentPainter extends CustomPainter {
     ]) {
       final sx = corner.dx == 0 ? 1.0 : -1.0;
       final sy = corner.dy == 0 ? 1.0 : -1.0;
+      final scale = corner.dy == size.height ? _bottomCornerScale : 1.0;
       canvas.save();
       canvas.translate(corner.dx, corner.dy);
-      canvas.scale(sx, sy);
+      canvas.scale(sx * scale, sy * scale);
       final path = Path()
         ..moveTo(0, 0)
         ..lineTo(96, 0)

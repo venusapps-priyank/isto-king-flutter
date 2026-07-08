@@ -23,6 +23,13 @@ class MoveResolution {
   final Map<int, Duration> animationDelays;
 }
 
+class TokenPairCandidate {
+  const TokenPairCandidate({required this.playerIndex, required this.tokenIds});
+
+  final int playerIndex;
+  final List<int> tokenIds;
+}
+
 class RollResolution {
   const RollResolution({
     required this.value,
@@ -64,8 +71,8 @@ class GameTurnController {
   bool get isGameOver => _rankedPlayerIndexes.length >= 3;
 
   List<bool> get innerPathAccess => List<bool>.unmodifiable(
-        playerStates.map((state) => state.hasKilledOpponent),
-      );
+    playerStates.map((state) => state.hasKilledOpponent),
+  );
 
   int? rankForPlayer(int playerIndex) {
     final rankIndex = _rankedPlayerIndexes.indexOf(playerIndex);
@@ -88,6 +95,72 @@ class GameTurnController {
   }
 
   bool get hasPendingMove => pendingRoll != null && legalTokenIds.isNotEmpty;
+
+  TokenPairCandidate? get pairCandidateForPendingMove {
+    final roll = pendingRoll;
+    if (roll == null) return null;
+    return _pairCandidateForRoll(currentPlayerIndex, roll);
+  }
+
+  TokenPairCandidate? pairCandidateForToken(int tokenId) {
+    final roll = pendingRoll;
+    if (roll == null || !legalTokenIds.contains(tokenId)) return null;
+
+    final token = _tokenById(tokenId);
+    if (token == null ||
+        token.playerIndex != currentPlayerIndex ||
+        token.isAtStart ||
+        token.isFinished ||
+        token.isPaired) {
+      return null;
+    }
+
+    final pairMoveSteps = pairMoveStepsForRoll(roll);
+    if (pairMoveSteps == null) return null;
+
+    final cell = cellForToken(token);
+    if (_shouldUnlockPairAt(cell)) return null;
+
+    final cellTokens =
+        _activeTokensAtCell(
+            token.playerIndex,
+            cell,
+          ).where((candidate) => !candidate.isPaired).toList()
+          ..sort((first, second) => first.id.compareTo(second.id));
+    if (cellTokens.length < 2 ||
+        !cellTokens.any((candidate) => candidate.id == token.id)) {
+      return null;
+    }
+    final candidates = _pairCandidatesFromCellTokens(
+      cellTokens,
+      preferredToken: token,
+    );
+
+    final targetPathIndex = _targetPathIndexForMoveSteps(
+      candidates.first,
+      pairMoveSteps,
+    );
+    if (targetPathIndex == null) return null;
+
+    final destination = IstoBoardPaths.pathForPlayer(
+      token.playerIndex,
+    )[targetPathIndex];
+    if (!_canLandOn(candidates.first, destination)) return null;
+
+    return TokenPairCandidate(
+      playerIndex: token.playerIndex,
+      tokenIds: [for (final candidate in candidates) candidate.id],
+    );
+  }
+
+  static int? pairMoveStepsForRoll(int roll) {
+    return switch (roll) {
+      2 => 1,
+      4 => 2,
+      8 => 4,
+      _ => null,
+    };
+  }
 
   bool canRoll(int playerIndex) {
     return !isGameOver &&
@@ -143,12 +216,13 @@ class GameTurnController {
     final targetPathIndex = _targetPathIndex(token, roll);
     if (targetPathIndex == null) return null;
 
+    final movingTokens = _moveGroupForToken(token);
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final destination = path[targetPathIndex];
-    final capturedTokens = _tokensToCapture(token, destination);
+    final capturedTokens = _tokensToCapture(token, destination, movingTokens);
     final killerPath = _animationPathForMove(token, targetPathIndex);
     final animationPaths = <int, List<BoardCell>>{
-      token.id: killerPath,
+      for (final movingToken in movingTokens) movingToken.id: killerPath,
       for (final captured in capturedTokens)
         captured.id: _animationPathToStart(captured),
     };
@@ -161,10 +235,18 @@ class GameTurnController {
       capturedToken.sendToStart();
     }
 
-    token
-      ..isAtStart = false
-      ..pathIndex = targetPathIndex
-      ..isFinished = targetPathIndex == path.length - 1;
+    for (final movingToken in movingTokens) {
+      movingToken
+        ..isAtStart = false
+        ..pathIndex = targetPathIndex
+        ..isFinished = targetPathIndex == path.length - 1;
+    }
+
+    if (_shouldUnlockPairAt(destination)) {
+      for (final movingToken in movingTokens) {
+        movingToken.unpair();
+      }
+    }
 
     if (capturedTokens.isNotEmpty) {
       playerStates[token.playerIndex].hasKilledOpponent = true;
@@ -173,7 +255,9 @@ class GameTurnController {
       _resetKillPermissionIfAllAtStart(capturedToken.playerIndex);
     }
 
-    final reachedCenter = token.isFinished;
+    final reachedCenter = movingTokens.any(
+      (movingToken) => movingToken.isFinished,
+    );
     final grantsExtraTurn =
         _rollGrantsExtraTurn(roll) ||
         capturedTokens.isNotEmpty ||
@@ -204,10 +288,42 @@ class GameTurnController {
     );
   }
 
-  List<BoardCell> _animationPathForMove(
-    TokenState token,
-    int targetPathIndex,
-  ) {
+  bool lockTokenPair(List<int> tokenIds) {
+    if (tokenIds.length != 2) return false;
+
+    final first = _tokenById(tokenIds[0]);
+    final second = _tokenById(tokenIds[1]);
+    if (first == null || second == null) return false;
+    if (first.playerIndex != second.playerIndex) return false;
+    if (first.isAtStart ||
+        second.isAtStart ||
+        first.isFinished ||
+        second.isFinished) {
+      return false;
+    }
+    if (first.isPaired || second.isPaired) return false;
+    if (cellForToken(first) != cellForToken(second)) return false;
+    if (_shouldUnlockPairAt(cellForToken(first))) return false;
+
+    first.pairWith(second);
+    return true;
+  }
+
+  bool lockTokenPairForPendingMove(List<int> tokenIds) {
+    final roll = pendingRoll;
+    if (roll == null) return false;
+
+    final locked = lockTokenPair(tokenIds);
+    if (!locked) return false;
+
+    legalTokenIds = _legalMovesFor(
+      currentPlayerIndex,
+      roll,
+    ).map((token) => token.id).toSet();
+    return legalTokenIds.isNotEmpty;
+  }
+
+  List<BoardCell> _animationPathForMove(TokenState token, int targetPathIndex) {
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final fromIndex = token.isAtStart ? -1 : token.pathIndex;
     final waypoints = <BoardCell>[];
@@ -219,9 +335,11 @@ class GameTurnController {
     }
 
     if (targetPathIndex < fromIndex) {
-      for (var index = fromIndex + 1;
-          index < IstoBoardPaths.outerPathLength;
-          index++) {
+      for (
+        var index = fromIndex + 1;
+        index < IstoBoardPaths.outerPathLength;
+        index++
+      ) {
         waypoints.add(path[index]);
       }
       for (var index = 0; index <= targetPathIndex; index++) {
@@ -276,7 +394,7 @@ class GameTurnController {
   }
 
   ({int sourcePathIndex, int targetPathIndex, BoardCell destination})?
-      _moveSignatureFor(TokenState token) {
+  _moveSignatureFor(TokenState token) {
     final roll = pendingRoll;
     if (roll == null) return null;
 
@@ -294,9 +412,17 @@ class GameTurnController {
 
   int? _targetPathIndex(TokenState token, int steps) {
     if (token.isFinished) return null;
+    final moveSteps = _moveStepsForRoll(token, steps);
+    if (moveSteps == null) return null;
+
+    return _targetPathIndexForMoveSteps(token, moveSteps);
+  }
+
+  int? _targetPathIndexForMoveSteps(TokenState token, int moveSteps) {
+    if (token.isFinished) return null;
 
     final currentIndex = token.isAtStart ? -1 : token.pathIndex;
-    final proposedIndex = currentIndex + steps;
+    final proposedIndex = currentIndex + moveSteps;
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final alreadyInside = currentIndex >= IstoBoardPaths.outerPathLength;
     final canEnterInner =
@@ -317,6 +443,7 @@ class GameTurnController {
   List<TokenState> _tokensToCapture(
     TokenState movingToken,
     BoardCell destination,
+    List<TokenState> movingTokens,
   ) {
     if (IstoBoardPaths.isSafeCell(destination) ||
         destination == IstoBoardPaths.centerCell) {
@@ -327,9 +454,9 @@ class GameTurnController {
         _activeStackStrength(
           movingToken.playerIndex,
           destination,
-          excludingTokenId: movingToken.id,
+          excludingTokenIds: movingTokens.map((token) => token.id).toSet(),
         ) +
-        1;
+        movingTokens.length;
     final captured = <TokenState>[];
 
     for (
@@ -351,12 +478,12 @@ class GameTurnController {
   int _activeStackStrength(
     int playerIndex,
     BoardCell cell, {
-    int? excludingTokenId,
+    Set<int> excludingTokenIds = const {},
   }) {
     return _activeTokensAtCell(
       playerIndex,
       cell,
-    ).where((token) => token.id != excludingTokenId).length;
+    ).where((token) => !excludingTokenIds.contains(token.id)).length;
   }
 
   List<TokenState> _activeTokensAtCell(int playerIndex, BoardCell cell) {
@@ -406,6 +533,103 @@ class GameTurnController {
   }
 
   bool _rollGrantsExtraTurn(int value) => value == 4 || value == 8;
+
+  int? _moveStepsForRoll(TokenState token, int roll) {
+    return token.isPaired ? pairMoveStepsForRoll(roll) : roll;
+  }
+
+  List<TokenState> _moveGroupForToken(TokenState token) {
+    final pairedTokenId = token.pairedTokenId;
+    if (pairedTokenId == null) return [token];
+
+    final pairedToken = _tokenById(pairedTokenId);
+    if (pairedToken == null ||
+        pairedToken.pairedTokenId != token.id ||
+        pairedToken.playerIndex != token.playerIndex ||
+        pairedToken.isAtStart != token.isAtStart ||
+        pairedToken.isFinished != token.isFinished ||
+        pairedToken.pathIndex != token.pathIndex) {
+      token.unpair();
+      pairedToken?.unpair();
+      return [token];
+    }
+
+    final tokens = [token, pairedToken]
+      ..sort((first, second) => first.id.compareTo(second.id));
+    return tokens;
+  }
+
+  TokenPairCandidate? _pairCandidateForRoll(int playerIndex, int roll) {
+    final pairMoveSteps = pairMoveStepsForRoll(roll);
+    if (pairMoveSteps == null) return null;
+
+    final candidatesByCell = <BoardCell, List<TokenState>>{};
+    for (final token in _tokens) {
+      if (token.playerIndex != playerIndex ||
+          token.isAtStart ||
+          token.isFinished ||
+          token.isPaired) {
+        continue;
+      }
+      final cell = cellForToken(token);
+      if (_shouldUnlockPairAt(cell)) continue;
+      candidatesByCell.putIfAbsent(cell, () => []).add(token);
+    }
+
+    final cells = candidatesByCell.keys.toList()
+      ..sort((first, second) {
+        final rowCompare = first.row.compareTo(second.row);
+        if (rowCompare != 0) return rowCompare;
+        return first.col.compareTo(second.col);
+      });
+
+    for (final cell in cells) {
+      final cellTokens = candidatesByCell[cell]!
+        ..sort((first, second) => first.id.compareTo(second.id));
+      if (cellTokens.length < 2) continue;
+      final candidates = _pairCandidatesFromCellTokens(cellTokens);
+
+      final targetPathIndex = _targetPathIndexForMoveSteps(
+        candidates.first,
+        pairMoveSteps,
+      );
+      if (targetPathIndex == null) continue;
+
+      final destination = IstoBoardPaths.pathForPlayer(
+        playerIndex,
+      )[targetPathIndex];
+      if (!_canLandOn(candidates.first, destination)) continue;
+
+      return TokenPairCandidate(
+        playerIndex: playerIndex,
+        tokenIds: [for (final token in candidates) token.id],
+      );
+    }
+
+    return null;
+  }
+
+  List<TokenState> _pairCandidatesFromCellTokens(
+    List<TokenState> cellTokens, {
+    TokenState? preferredToken,
+  }) {
+    final sortedTokens = [...cellTokens]
+      ..sort((first, second) => first.id.compareTo(second.id));
+
+    if (preferredToken != null) {
+      final partner = sortedTokens.firstWhere(
+        (token) => token.id != preferredToken.id,
+      );
+      return [preferredToken, partner]
+        ..sort((first, second) => first.id.compareTo(second.id));
+    }
+
+    return sortedTokens.take(2).toList();
+  }
+
+  bool _shouldUnlockPairAt(BoardCell cell) {
+    return IstoBoardPaths.isSafeCell(cell) || cell == IstoBoardPaths.centerCell;
+  }
 
   TokenState? _tokenById(int tokenId) {
     for (final token in _tokens) {

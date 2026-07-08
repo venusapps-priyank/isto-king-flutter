@@ -7,10 +7,11 @@ import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
+import 'package:isto_king/features/game/widgets/animated_player_row.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
-import 'package:isto_king/features/game/widgets/player_row.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
+import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 
 class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({super.key});
@@ -20,29 +21,38 @@ class IstoGameScreen extends StatefulWidget {
 }
 
 class _IstoGameScreenState extends State<IstoGameScreen> {
-  final GameTurnController _turnController = GameTurnController();
+  GameTurnController _turnController = GameTurnController();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
   Map<int, List<BoardCell>> _activeMovePaths = {};
   Map<int, Duration> _activeMoveDelays = {};
+  TokenPairCandidate? _visiblePairCandidate;
+  int? _pairPromptTokenId;
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
 
     int? autoMoveTokenId;
+    TokenPairCandidate? pairCandidate;
     setState(() {
-      final resolution = _turnController.handleRollComplete(
-        playerIndex,
-        value,
-      );
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+      final resolution = _turnController.handleRollComplete(playerIndex, value);
       if (resolution != null &&
           resolution.discarded &&
           resolution.grantsExtraTurn) {
         _rollResetSerials[playerIndex]++;
       }
-      autoMoveTokenId = _turnController.autoMoveTokenId;
+      pairCandidate = _turnController.pairCandidateForPendingMove;
+      if (pairCandidate == null) {
+        autoMoveTokenId = _turnController.autoMoveTokenId;
+      }
     });
+
+    if (pairCandidate != null) {
+      return;
+    }
 
     if (autoMoveTokenId != null) {
       _handleTokenTap(autoMoveTokenId!);
@@ -52,10 +62,25 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   void _handleTokenTap(int tokenId) {
     if (_isMoveAnimating) return;
 
+    final pairCandidate = _turnController.pairCandidateForToken(tokenId);
+    if (pairCandidate != null) {
+      setState(() {
+        _visiblePairCandidate = pairCandidate;
+        _pairPromptTokenId = tokenId;
+      });
+      return;
+    }
+
+    _moveToken(tokenId);
+  }
+
+  void _moveToken(int tokenId) {
     var didMove = false;
     Map<int, List<BoardCell>> movePaths = {};
     Map<int, Duration> moveDelays = {};
     setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
       final resolution = _turnController.moveToken(tokenId);
       didMove = resolution != null;
       if (didMove) {
@@ -85,12 +110,61 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     });
   }
 
+  void _handleJoinPairPrompt() {
+    final candidate = _visiblePairCandidate;
+    final tokenId = _pairPromptTokenId;
+    if (candidate == null || tokenId == null) return;
+
+    var locked = false;
+    setState(() {
+      locked = _turnController.lockTokenPairForPendingMove(candidate.tokenIds);
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+    });
+    if (locked) {
+      _moveToken(tokenId);
+    }
+  }
+
+  void _handlePlaySinglePairPrompt() {
+    final tokenId = _pairPromptTokenId;
+    if (tokenId == null) return;
+
+    setState(() {
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+    });
+    _moveToken(tokenId);
+  }
+
+  void _resetGame() {
+    setState(() {
+      _turnController = GameTurnController();
+      _isMoveAnimating = false;
+      _moveAnimationCycle = 0;
+      for (var i = 0; i < _rollResetSerials.length; i++) {
+        _rollResetSerials[i] = 0;
+      }
+      _activeMovePaths = {};
+      _activeMoveDelays = {};
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+    });
+  }
+
+  void _handleHomeTap() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+    _resetGame();
+  }
+
   PlayerCard _buildPlayerCard(PlayerInfo player) {
-    final isCurrentPlayer =
-        _turnController.currentPlayerIndex == player.index;
+    final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
     final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
-    final showShells = isCurrentPlayer &&
-        (canRoll || _turnController.pendingRoll != null);
+    final showShells =
+        isCurrentPlayer && (canRoll || _turnController.pendingRoll != null);
 
     return PlayerCard(
       name: player.name,
@@ -106,6 +180,15 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     );
   }
 
+  List<PlayerInfo> _playersByRank() {
+    final ranked = _turnController.rankedPlayerIndexes;
+    final unranked = gamePlayers.where((player) => !ranked.contains(player.index));
+    return [
+      for (final index in ranked) gamePlayers.firstWhere((p) => p.index == index),
+      ...unranked,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,6 +199,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
             const Positioned.fill(
               child: CustomPaint(painter: ScreenOrnamentPainter()),
             ),
+            const _BottomCornerMandala(isLeft: true),
+            const _BottomCornerMandala(isLeft: false),
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -133,52 +218,80 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                     280.0,
                     math.min(boardMaxWidth, boardMaxHeight),
                   );
+                  final showWinRanking = _turnController.isGameOver;
 
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: topBarHeight,
-                          child: const TopGameBar(),
+                  return Stack(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
                         ),
-                        const SizedBox(height: gap),
-                        SizedBox(
-                          height: cardHeight,
-                          child: PlayerRow(
-                            left: _buildPlayerCard(topRowPlayers[0]),
-                            right: _buildPlayerCard(topRowPlayers[1]),
-                          ),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: topBarHeight,
+                              child: const TopGameBar(),
+                            ),
+                            const SizedBox(height: gap),
+                            SizedBox(
+                              height: cardHeight,
+                              child: AnimatedPlayerRow(
+                                visible: !showWinRanking,
+                                isTopRow: true,
+                                left: _buildPlayerCard(topRowPlayers[0]),
+                                right: _buildPlayerCard(topRowPlayers[1]),
+                              ),
+                            ),
+                            const SizedBox(height: gap),
+                            Center(
+                              child: SizedBox.square(
+                                dimension: boardSize,
+                                child: GameBoard(
+                                  tokens: _turnController.tokens,
+                                  movableTokenIds: _isMoveAnimating
+                                      ? const {}
+                                      : _turnController.legalTokenIds,
+                                  innerPathAccess:
+                                      _turnController.innerPathAccess,
+                                  movePaths: _activeMovePaths,
+                                  moveDelays: _activeMoveDelays,
+                                  pairPromptTokenIds:
+                                      _visiblePairCandidate?.tokenIds,
+                                  onJoinPairPrompt: _handleJoinPairPrompt,
+                                  onDismissPairPrompt:
+                                      _handlePlaySinglePairPrompt,
+                                  onTokenTap: _handleTokenTap,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: gap),
+                            SizedBox(
+                              height: cardHeight,
+                              child: AnimatedPlayerRow(
+                                visible: !showWinRanking,
+                                isTopRow: false,
+                                left:
+                                    _buildPlayerCard(bottomRowPlayers[0]),
+                                right:
+                                    _buildPlayerCard(bottomRowPlayers[1]),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: gap),
-                        Center(
-                          child: SizedBox.square(
-                            dimension: boardSize,
-                            child: GameBoard(
-                              tokens: _turnController.tokens,
-                              movableTokenIds: _isMoveAnimating
-                                  ? const {}
-                                  : _turnController.legalTokenIds,
-                              innerPathAccess:
-                                  _turnController.innerPathAccess,
-                              movePaths: _activeMovePaths,
-                              moveDelays: _activeMoveDelays,
-                              onTokenTap: _handleTokenTap,
+                      ),
+                      if (showWinRanking) ...[
+                        Positioned.fill(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: WinRankingPanel(
+                              playersByRank: _playersByRank(),
+                              onPlayAgain: _resetGame,
+                              onHome: _handleHomeTap,
                             ),
                           ),
                         ),
-                        const SizedBox(height: gap),
-                        SizedBox(
-                          height: cardHeight,
-                          child: PlayerRow(
-                            left: _buildPlayerCard(bottomRowPlayers[0]),
-                            right: _buildPlayerCard(bottomRowPlayers[1]),
-                          ),
-                        ),
                       ],
-                    ),
+                    ],
                   );
                 },
               ),
@@ -186,6 +299,29 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BottomCornerMandala extends StatelessWidget {
+  const _BottomCornerMandala({required this.isLeft});
+
+  static const _asset = 'assets/images/corner_mandala.png';
+  static const _imageSize = 156.0;
+
+  final bool isLeft;
+
+  @override
+  Widget build(BuildContext context) {
+    const offset = -_imageSize / 2;
+
+    return Positioned(
+      left: isLeft ? offset : null,
+      right: isLeft ? null : offset,
+      bottom: offset,
+      width: _imageSize,
+      height: _imageSize,
+      child: IgnorePointer(child: Image.asset(_asset, fit: BoxFit.contain)),
     );
   }
 }
