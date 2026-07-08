@@ -6,12 +6,41 @@ import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   static const _avatarAsset = 'assets/avatar/avatar-1.png';
   static const _boardAsset = 'assets/images/full-board.png';
   static const _cornerAsset = 'assets/images/corner_mandala.png';
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _didWarmGameAssets = false;
+
+  static const _gameEntryAssets = [
+    HomeScreen._avatarAsset,
+    'assets/avatar/avatar-f-1.png',
+    'assets/avatar/avatar-2.png',
+    'assets/avatar/avatar-f-2.png',
+    'assets/images/corner_mandala.png',
+    'assets/images/cowrie_open.png',
+    'assets/images/cowrie_closed.png',
+    'assets/images/rank_crown_1.png',
+  ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didWarmGameAssets) return;
+    _didWarmGameAssets = true;
+
+    for (final asset in _gameEntryAssets) {
+      precacheImage(AssetImage(asset), context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +76,7 @@ class HomeScreen extends StatelessWidget {
                           ConstrainedBox(
                             constraints: const BoxConstraints(maxHeight: 330),
                             child: Image.asset(
-                              _boardAsset,
+                              HomeScreen._boardAsset,
                               fit: BoxFit.contain,
                             ),
                           ),

@@ -36,8 +36,7 @@ class _GameSetupDialogState extends State<GameSetupDialog> {
       playerCount: _playerCount,
       chipColor: _chipColor,
     );
-    Navigator.of(context).pop();
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (_) => IstoGameScreen(setup: setup),
       ),
