@@ -11,6 +11,7 @@ import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 import 'package:isto_king/features/game/widgets/player_row.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
+import 'package:isto_king/features/game/widgets/win_action_buttons.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 
 class IstoGameScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class IstoGameScreen extends StatefulWidget {
 }
 
 class _IstoGameScreenState extends State<IstoGameScreen> {
-  final GameTurnController _turnController = GameTurnController();
+  GameTurnController _turnController = GameTurnController();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
@@ -136,6 +137,30 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       _pairPromptTokenId = null;
     });
     _moveToken(tokenId);
+  }
+
+  void _resetGame() {
+    setState(() {
+      _turnController = GameTurnController();
+      _isMoveAnimating = false;
+      _moveAnimationCycle = 0;
+      for (var i = 0; i < _rollResetSerials.length; i++) {
+        _rollResetSerials[i] = 0;
+      }
+      _activeMovePaths = {};
+      _activeMoveDelays = {};
+      _visiblePairCandidate = null;
+      _pairPromptTokenId = null;
+      _showWinPreview = false;
+    });
+  }
+
+  void _handleHomeTap() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+    _resetGame();
   }
 
   PlayerCard _buildPlayerCard(PlayerInfo player) {
@@ -264,7 +289,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                           ],
                         ),
                       ),
-                      if (showWinRanking)
+                      if (showWinRanking) ...[
                         Positioned.fill(
                           child: Padding(
                             padding: const EdgeInsets.all(10),
@@ -273,6 +298,18 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             ),
                           ),
                         ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: compact ? 90 : 100,
+                          child: Center(
+                            child: WinActionButtons(
+                              onPlayAgain: _resetGame,
+                              onHome: _handleHomeTap,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 },
