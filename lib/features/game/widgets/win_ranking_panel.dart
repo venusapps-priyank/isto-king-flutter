@@ -46,7 +46,7 @@ class WinRankingPanel extends StatelessWidget {
             ),
             Positioned(
               left: layoutLeftOffset + (layoutWidth - _lowerCardWidth) / 2,
-              bottom: height * 0.14,
+              bottom: height * 0.20,
               width: _lowerCardWidth,
               child: _RankCard(
                 player: playersByRank[3],
