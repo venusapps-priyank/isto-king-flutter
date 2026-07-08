@@ -11,6 +11,8 @@ class HomeBottomNavBar extends StatelessWidget {
   static const _circleSize = 72.0;
   static const _circleBorderWidth = 1.8;
   static const _barColor = Color(0xFF720B07);
+  static const _circleGradientTop = Color(0xFFE32622);
+  static const _circleGradientBottom = Color(0xFF4A0505);
   static const _borderColor = Color(0xFFE8C06A);
   static const _barTopInset = 18.0;
   static const _circleTop = 0.0;
@@ -81,7 +83,6 @@ class HomeBottomNavBar extends StatelessWidget {
                       children: [
                         _ActiveNavCircle(
                           size: _circleSize,
-                          barColor: _barColor,
                           borderColor: _borderColor,
                           borderWidth: _circleBorderWidth,
                         ),
@@ -113,13 +114,11 @@ class HomeBottomNavBar extends StatelessWidget {
 class _ActiveNavCircle extends StatelessWidget {
   const _ActiveNavCircle({
     required this.size,
-    required this.barColor,
     required this.borderColor,
     required this.borderWidth,
   });
 
   final double size;
-  final Color barColor;
   final Color borderColor;
   final double borderWidth;
 
@@ -130,7 +129,6 @@ class _ActiveNavCircle extends StatelessWidget {
       height: size,
       child: CustomPaint(
         painter: _ActiveCircleBorderPainter(
-          fillColor: barColor,
           borderColor: borderColor,
           borderWidth: borderWidth,
         ),
@@ -148,12 +146,10 @@ class _ActiveNavCircle extends StatelessWidget {
 
 class _ActiveCircleBorderPainter extends CustomPainter {
   const _ActiveCircleBorderPainter({
-    required this.fillColor,
     required this.borderColor,
     required this.borderWidth,
   });
 
-  final Color fillColor;
   final Color borderColor;
   final double borderWidth;
 
@@ -161,8 +157,28 @@ class _ActiveCircleBorderPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
+    final bounds = Rect.fromLTWH(0, 0, size.width, size.height);
 
-    canvas.drawCircle(center, radius, Paint()..color = fillColor);
+    final gradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        HomeBottomNavBar._circleGradientTop,
+        Color.lerp(
+          HomeBottomNavBar._circleGradientTop,
+          HomeBottomNavBar._circleGradientBottom,
+          0.42,
+        )!,
+        HomeBottomNavBar._circleGradientBottom,
+      ],
+      stops: const [0.0, 0.38, 1.0],
+    );
+
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..shader = gradient.createShader(bounds),
+    );
 
     final arcRect = Rect.fromCircle(
       center: center,
@@ -183,8 +199,7 @@ class _ActiveCircleBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ActiveCircleBorderPainter oldDelegate) {
-    return oldDelegate.fillColor != fillColor ||
-        oldDelegate.borderColor != borderColor ||
+    return oldDelegate.borderColor != borderColor ||
         oldDelegate.borderWidth != borderWidth;
   }
 }
