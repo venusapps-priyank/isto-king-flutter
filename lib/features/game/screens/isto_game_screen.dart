@@ -9,6 +9,7 @@ import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/game/widgets/animated_player_row.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
+import 'package:isto_king/features/game/widgets/pause_game_dialog.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
@@ -160,6 +161,21 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     _resetGame();
   }
 
+  void _handleSettingsTap() {
+    PauseGameDialog.show(
+      context,
+      onResume: () => Navigator.of(context).pop(),
+      onRestart: () {
+        Navigator.of(context).pop();
+        _resetGame();
+      },
+      onQuitMatch: () {
+        Navigator.of(context).pop();
+        _handleHomeTap();
+      },
+    );
+  }
+
   PlayerCard _buildPlayerCard(PlayerInfo player) {
     final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
     final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
@@ -230,7 +246,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                           children: [
                             SizedBox(
                               height: topBarHeight,
-                              child: const TopGameBar(),
+                              child: TopGameBar(onSettingsTap: _handleSettingsTap),
                             ),
                             const SizedBox(height: gap),
                             SizedBox(
