@@ -7,9 +7,9 @@ import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
+import 'package:isto_king/features/game/widgets/animated_player_row.dart';
 import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
-import 'package:isto_king/features/game/widgets/player_row.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 
@@ -244,12 +244,12 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             const SizedBox(height: gap),
                             SizedBox(
                               height: cardHeight,
-                              child: showWinRanking
-                                  ? null
-                                  : PlayerRow(
-                                      left: _buildPlayerCard(topRowPlayers[0]),
-                                      right: _buildPlayerCard(topRowPlayers[1]),
-                                    ),
+                              child: AnimatedPlayerRow(
+                                visible: !showWinRanking,
+                                isTopRow: true,
+                                left: _buildPlayerCard(topRowPlayers[0]),
+                                right: _buildPlayerCard(topRowPlayers[1]),
+                              ),
                             ),
                             const SizedBox(height: gap),
                             Center(
@@ -276,14 +276,14 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             const SizedBox(height: gap),
                             SizedBox(
                               height: cardHeight,
-                              child: showWinRanking
-                                  ? null
-                                  : PlayerRow(
-                                      left:
-                                          _buildPlayerCard(bottomRowPlayers[0]),
-                                      right:
-                                          _buildPlayerCard(bottomRowPlayers[1]),
-                                    ),
+                              child: AnimatedPlayerRow(
+                                visible: !showWinRanking,
+                                isTopRow: false,
+                                left:
+                                    _buildPlayerCard(bottomRowPlayers[0]),
+                                right:
+                                    _buildPlayerCard(bottomRowPlayers[1]),
+                              ),
                             ),
                           ],
                         ),

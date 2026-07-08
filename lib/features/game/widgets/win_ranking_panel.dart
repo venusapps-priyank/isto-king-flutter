@@ -24,16 +24,38 @@ const _entranceBaseDelayMs = 180;
 const _entranceStaggerMs = 120;
 const _entranceDurationMs = 400;
 const _buttonsEntranceDelayMs = 680;
-const _panelExitDurationMs = _buttonsEntranceDelayMs + 340 + 80;
+const _exitDurationMs = 240;
+const _exitStaggerMs = 35;
+const _panelExitDurationMs = _exitDurationMs + (_exitStaggerMs * 3) + 40;
 
 extension _WinRankingMotion on Widget {
   Widget animateRankCard({
-    required double target,
+    required bool exiting,
     required int order,
     Offset slideBegin = const Offset(0, 0.22),
   }) {
+    if (exiting) {
+      final delay = ((_exitStaggerMs * 3) - order * _exitStaggerMs).ms;
+      return animate()
+          .fadeOut(duration: 180.ms, delay: delay)
+          .scale(
+            begin: const Offset(1, 1),
+            end: const Offset(0.78, 0.78),
+            duration: _exitDurationMs.ms,
+            delay: delay,
+            curve: Curves.easeInCubic,
+          )
+          .slide(
+            begin: Offset.zero,
+            end: slideBegin,
+            duration: _exitDurationMs.ms,
+            delay: delay,
+            curve: Curves.easeInCubic,
+          );
+    }
+
     final delay = (_entranceBaseDelayMs + order * _entranceStaggerMs).ms;
-    return animate(target: target)
+    return animate()
         .fadeIn(duration: 220.ms, delay: delay)
         .scale(
           begin: const Offset(0.72, 0.72),
@@ -47,6 +69,78 @@ extension _WinRankingMotion on Widget {
           end: Offset.zero,
           duration: 360.ms,
           delay: delay,
+          curve: Curves.easeOutCubic,
+        );
+  }
+
+  Widget animateHeader({required bool exiting}) {
+    if (exiting) {
+      return animate()
+          .fadeOut(duration: 180.ms)
+          .slideY(
+            begin: 0,
+            end: -0.14,
+            duration: _exitDurationMs.ms,
+            curve: Curves.easeInCubic,
+          );
+    }
+    return animate()
+        .fadeIn(duration: 280.ms, delay: 80.ms)
+        .slideY(
+          begin: -0.18,
+          end: 0,
+          duration: 340.ms,
+          delay: 80.ms,
+          curve: Curves.easeOutCubic,
+        )
+        .scale(
+          begin: const Offset(0.92, 0.92),
+          end: const Offset(1, 1),
+          duration: 340.ms,
+          delay: 80.ms,
+          curve: Curves.easeOutBack,
+        );
+  }
+
+  Widget animateBackdrop({required bool exiting}) {
+    if (exiting) {
+      return animate()
+          .fadeOut(duration: 200.ms)
+          .scale(
+            begin: const Offset(1, 1),
+            end: const Offset(0.97, 0.97),
+            duration: _exitDurationMs.ms,
+            curve: Curves.easeInCubic,
+          );
+    }
+    return animate()
+        .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+        .scale(
+          begin: const Offset(0.96, 0.94),
+          end: const Offset(1, 1),
+          duration: 360.ms,
+          curve: Curves.easeOutCubic,
+        );
+  }
+
+  Widget animateActionButtons({required bool exiting}) {
+    if (exiting) {
+      return animate()
+          .fadeOut(duration: 160.ms)
+          .slideY(
+            begin: 0,
+            end: 0.2,
+            duration: 200.ms,
+            curve: Curves.easeInCubic,
+          );
+    }
+    return animate()
+        .fadeIn(duration: 260.ms, delay: _buttonsEntranceDelayMs.ms)
+        .slideY(
+          begin: 0.25,
+          end: 0,
+          duration: 340.ms,
+          delay: _buttonsEntranceDelayMs.ms,
           curve: Curves.easeOutCubic,
         );
   }
@@ -70,8 +164,6 @@ class WinRankingPanel extends StatefulWidget {
 
 class _WinRankingPanelState extends State<WinRankingPanel> {
   bool _isExiting = false;
-
-  double get _animTarget => _isExiting ? 0 : 1;
 
   void _handlePlayAgain() {
     if (_isExiting) return;
@@ -113,22 +205,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
               left: layoutLeftOffset,
               width: layoutWidth,
               child: _MatchResultHeader(width: layoutWidth)
-                  .animate(target: _animTarget)
-                  .fadeIn(duration: 280.ms, delay: 80.ms)
-                  .slideY(
-                    begin: -0.18,
-                    end: 0,
-                    duration: 340.ms,
-                    delay: 80.ms,
-                    curve: Curves.easeOutCubic,
-                  )
-                  .scale(
-                    begin: const Offset(0.92, 0.92),
-                    end: const Offset(1, 1),
-                    duration: 340.ms,
-                    delay: 80.ms,
-                    curve: Curves.easeOutBack,
-                  ),
+                  .animateHeader(exiting: _isExiting),
             ),
             Positioned(
               left: width * _bgHorizontalInset,
@@ -140,15 +217,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                   color: const Color(0xFF2A190D).withValues(alpha: 0.78),
                   borderRadius: BorderRadius.circular(20),
                 ),
-              )
-                  .animate(target: _animTarget)
-                  .fadeIn(duration: 300.ms, curve: Curves.easeOut)
-                  .scale(
-                    begin: const Offset(0.96, 0.94),
-                    end: const Offset(1, 1),
-                    duration: 360.ms,
-                    curve: Curves.easeOutCubic,
-                  ),
+              ).animateBackdrop(exiting: _isExiting),
             ),
             Positioned(
               left: layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2,
@@ -162,7 +231,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                 rankLabel: '1st Place',
                 showCrown: true,
               ).animateRankCard(
-                target: _animTarget,
+                exiting: _isExiting,
                 order: 0,
                 slideBegin: const Offset(0, -0.2),
               ),
@@ -178,7 +247,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                 height: height * 0.30,
                 rankLabel: '4th Place',
               ).animateRankCard(
-                target: _animTarget,
+                exiting: _isExiting,
                 order: 3,
                 slideBegin: const Offset(0, 0.32),
               ),
@@ -194,7 +263,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                 height: height * 0.30,
                 rankLabel: '2nd Place',
               ).animateRankCard(
-                target: _animTarget,
+                exiting: _isExiting,
                 order: 1,
                 slideBegin: const Offset(-0.35, 0.12),
               ),
@@ -210,7 +279,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                 height: height * 0.30,
                 rankLabel: '3rd Place',
               ).animateRankCard(
-                target: _animTarget,
+                exiting: _isExiting,
                 order: 2,
                 slideBegin: const Offset(0.35, 0.12),
               ),
@@ -223,16 +292,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                 child: WinActionButtons(
                   onPlayAgain: _handlePlayAgain,
                   onHome: widget.onHome,
-                )
-                    .animate(target: _animTarget)
-                    .fadeIn(duration: 260.ms, delay: _buttonsEntranceDelayMs.ms)
-                    .slideY(
-                      begin: 0.25,
-                      end: 0,
-                      duration: 340.ms,
-                      delay: _buttonsEntranceDelayMs.ms,
-                      curve: Curves.easeOutCubic,
-                    ),
+                ).animateActionButtons(exiting: _isExiting),
               ),
             ),
           ],
