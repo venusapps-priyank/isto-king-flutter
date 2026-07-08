@@ -9,6 +9,7 @@ class RoyalColors {
   static const blue = Color(0xFF006FBE);
   static const yellow = Color(0xFFF5A400);
   static const darkRed = Color(0xFF700000);
+  static const cornerRed = Color(0xFF8B0000);
   static const brown = Color(0xFF6B3A1E);
   static const darkBrown = Color(0xFF3A1E0F);
   static const gold = Color(0xFFEBA318);

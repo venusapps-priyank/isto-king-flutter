@@ -339,87 +339,71 @@ class _UtilityStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7E8CC),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: RoyalColors.brown.withValues(alpha: 0.26),
-          width: 1.2,
-        ),
-      ),
-      child: const Row(
-        children: [
-          _UtilityItem(icon: Icons.emoji_events_outlined, label: 'LEADERBOARD'),
-          VerticalDivider(indent: 14, endIndent: 14, width: 1),
-          _UtilityItem(
-            icon: Icons.track_changes_outlined,
-            label: 'MISSIONS',
-            badge: '3',
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Container(
+          height: 72,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7E8CC),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFFE8C06A),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: RoyalColors.brown.withValues(alpha: 0.36),
+                blurRadius: 10,
+                spreadRadius: -1,
+                offset: const Offset(0, 7),
+              ),
+            ],
           ),
-          VerticalDivider(indent: 14, endIndent: 14, width: 1),
-          _UtilityItem(icon: Icons.inventory_2_outlined, label: 'INVENTORY'),
-          VerticalDivider(indent: 14, endIndent: 14, width: 1),
-          _UtilityItem(icon: Icons.settings, label: 'SETTINGS'),
-        ],
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _UtilityItem(icon: Icons.emoji_events, label: 'LEADERBOARD'),
+              VerticalDivider(indent: 14, endIndent: 14, width: 1),
+              _UtilityItem(icon: Icons.menu_book, label: 'RULES'),
+              VerticalDivider(indent: 14, endIndent: 14, width: 1),
+              _UtilityItem(icon: Icons.inventory_2, label: 'INVENTORY'),
+              VerticalDivider(indent: 14, endIndent: 14, width: 1),
+              _UtilityItem(icon: Icons.settings, label: 'SETTINGS'),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _UtilityItem extends StatelessWidget {
-  const _UtilityItem({required this.icon, required this.label, this.badge});
+  const _UtilityItem({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final String? badge;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 25, color: RoyalColors.darkBrown),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: RoyalColors.darkBrown,
-                ),
-              ),
-            ],
-          ),
-          if (badge != null)
-            Positioned(
-              top: 8,
-              right: 12,
-              child: Container(
-                width: 16,
-                height: 16,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFD92A19),
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  badge!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
+          Icon(icon, size: 30, color: RoyalColors.cornerRed),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: RoyalColors.darkBrown,
             ),
+          ),
         ],
       ),
     );
