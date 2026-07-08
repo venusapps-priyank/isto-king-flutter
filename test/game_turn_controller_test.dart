@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
 import 'package:isto_king/features/game/logic/cowrie_logic.dart';
@@ -14,6 +16,43 @@ void main() {
       expect(CowrieLogic.calculateIstoValue([true, true, true, false]), 3);
       expect(CowrieLogic.calculateIstoValue([true, true, true, true]), 4);
       expect(CowrieLogic.calculateIstoValue([false, false, false, false]), 8);
+    });
+
+    test('generates cowries that match the weighted roll value', () {
+      final random = math.Random(7);
+      for (var i = 0; i < 200; i++) {
+        final cowries = CowrieLogic.generateFinalCowries(4, random);
+        expect(CowrieLogic.calculateIstoValue(cowries), isIn([1, 2, 3, 4, 8]));
+      }
+    });
+
+    test('builds shell states for each roll value', () {
+      final random = math.Random(11);
+      for (final value in [1, 2, 3, 4, 8]) {
+        final cowries = CowrieLogic.cowriesForValue(value, 4, random);
+        expect(CowrieLogic.calculateIstoValue(cowries), value);
+      }
+    });
+
+    test('gives equal odds to 1, 2, and 3 while keeping 4 and 8 rare', () {
+      final random = math.Random(42);
+      final counts = <int, int>{1: 0, 2: 0, 3: 0, 4: 0, 8: 0};
+      const trials = 48000;
+
+      for (var i = 0; i < trials; i++) {
+        final value = CowrieLogic.generateRollValue(random);
+        counts[value] = counts[value]! + 1;
+      }
+
+      for (final value in [1, 2, 3]) {
+        expect(counts[value]! / trials, closeTo(14 / 48, 0.01));
+      }
+      for (final value in [4, 8]) {
+        expect(counts[value]! / trials, closeTo(3 / 48, 0.005));
+      }
+      expect(counts[1], closeTo(counts[2]!, 300));
+      expect(counts[2], closeTo(counts[3]!, 300));
+      expect(counts[4], closeTo(counts[8]!, 150));
     });
   });
 

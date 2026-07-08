@@ -47,72 +47,88 @@ class _GameSetupDialogState extends State<GameSetupDialog> {
   Widget build(BuildContext context) {
     return RoyalDialog(
       title: 'Game Setup',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const _SectionHeading(number: 1, label: 'Player Count'),
-          const SizedBox(height: 10),
-          Row(
+      maxWidth: 360,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final contentWidth = constraints.maxWidth;
+          final playerGap = contentWidth < 280 ? 6.0 : 8.0;
+          final playerCardSize = ((contentWidth - playerGap * 2) / 3)
+              .clamp(64.0, 94.0)
+              .toDouble();
+          final chipSize = (contentWidth * 0.2).clamp(48.0, 68.0).toDouble();
+          final sectionGap = contentWidth < 280 ? 16.0 : 20.0;
+          final actionGap = contentWidth < 280 ? 6.0 : 8.0;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (var i = 0; i < 3; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
-                Expanded(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: _PlayerCountCard(
-                      count: i + 2,
-                      isSelected: _playerCount == i + 2,
-                      onTap: () => setState(() => _playerCount = i + 2),
+              const _SectionHeading(number: 1, label: 'Player Count'),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  for (var i = 0; i < 3; i++) ...[
+                    if (i > 0) SizedBox(width: playerGap),
+                    Expanded(
+                      child: SizedBox(
+                        height: playerCardSize,
+                        child: _PlayerCountCard(
+                          count: i + 2,
+                          isSelected: _playerCount == i + 2,
+                          onTap: () => setState(() => _playerCount = i + 2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              SizedBox(height: sectionGap),
+              const _SectionHeading(number: 2, label: 'Choose Your Chip Color'),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  for (final color in _chipColors)
+                    _ChipColorButton(
+                      color: color,
+                      size: chipSize,
+                      isSelected: _chipColor == color,
+                      onTap: () => setState(() => _chipColor = color),
+                    ),
+                ],
+              ),
+              SizedBox(height: sectionGap),
+              const _SectionHeading(number: 3, label: 'Rules'),
+              const SizedBox(height: 10),
+              _RulesButton(onTap: () {}),
+              SizedBox(height: contentWidth < 280 ? 18 : 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: _SetupActionButton(
+                      label: 'Continue',
+                      backgroundColor: RoyalColors.green,
+                      textColor: Colors.white,
+                      borderColor: RoyalColors.gold,
+                      onTap: _onContinue,
                     ),
                   ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 20),
-          const _SectionHeading(number: 2, label: 'Choose Your Chip Color'),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (final color in _chipColors)
-                _ChipColorButton(
-                  color: color,
-                  isSelected: _chipColor == color,
-                  onTap: () => setState(() => _chipColor = color),
-                ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const _SectionHeading(number: 3, label: 'Rules'),
-          const SizedBox(height: 10),
-          _RulesButton(onTap: () {}),
-          const SizedBox(height: 22),
-          Row(
-            children: [
-              Expanded(
-                child: _SetupActionButton(
-                  label: 'Continue',
-                  backgroundColor: RoyalColors.green,
-                  textColor: Colors.white,
-                  borderColor: RoyalColors.gold,
-                  onTap: _onContinue,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _SetupActionButton(
-                  label: 'Cancel',
-                  backgroundColor: RoyalColors.parchmentLight,
-                  textColor: RoyalColors.darkRed,
-                  borderColor: RoyalColors.gold,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
+                  SizedBox(width: actionGap),
+                  Expanded(
+                    child: _SetupActionButton(
+                      label: 'Cancel',
+                      backgroundColor: RoyalColors.parchmentLight,
+                      textColor: RoyalColors.darkRed,
+                      borderColor: RoyalColors.gold,
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -154,7 +170,6 @@ class _PlayerCountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconColor = isSelected ? RoyalColors.gold : RoyalColors.darkRed;
     final textColor = isSelected ? RoyalColors.gold : RoyalColors.darkBrown;
-    const iconSize = 44.0;
 
     return Material(
       color: Colors.transparent,
@@ -188,37 +203,53 @@ class _PlayerCountCard extends StatelessWidget {
                 ),
             ],
           ),
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: SizedBox(
-                    width: iconSize,
-                    height: iconSize,
-                    child: FittedBox(
-                      child: PlayerCountIcons(
-                        count: count,
-                        size: iconSize,
-                        color: iconColor,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final cardSize = constraints.biggest.shortestSide;
+              final iconSize = (cardSize * 0.48)
+                  .clamp(30.0, 44.0)
+                  .toDouble();
+              final labelSize = (cardSize * 0.13)
+                  .clamp(9.5, 11.0)
+                  .toDouble();
+              final bottomPadding = (cardSize * 0.1).clamp(6.0, 10.0)
+                  .toDouble();
+
+              return Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: SizedBox(
+                        width: iconSize,
+                        height: iconSize,
+                        child: FittedBox(
+                          child: PlayerCountIcons(
+                            count: count,
+                            size: iconSize,
+                            color: iconColor,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
-                child: Text(
-                  '$count Players',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: textColor,
-                    height: 1.1,
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(4, 0, 4, bottomPadding),
+                    child: Text(
+                      '$count Players',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: labelSize,
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
+                        height: 1.1,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -229,28 +260,35 @@ class _PlayerCountCard extends StatelessWidget {
 class _ChipColorButton extends StatelessWidget {
   const _ChipColorButton({
     required this.color,
+    required this.size,
     required this.isSelected,
     required this.onTap,
   });
 
   final Color color;
+  final double size;
   final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final outerSize = size;
+    final ringSize = size * 0.94;
+    final innerSize = size * 0.82;
+    final checkSize = (size * 0.32).clamp(16.0, 22.0).toDouble();
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 68,
-        height: 68,
+        width: outerSize,
+        height: outerSize,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              width: 64,
-              height: 64,
+              width: ringSize,
+              height: ringSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -268,17 +306,17 @@ class _ChipColorButton extends StatelessWidget {
               ),
               child: Center(
                 child: Container(
-                  width: 56,
-                  height: 56,
+                  width: innerSize,
+                  height: innerSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: color,
                     border: Border.all(color: Colors.white, width: 2.2),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.star_rounded,
                     color: Colors.white,
-                    size: 32,
+                    size: size * 0.47,
                   ),
                 ),
               ),
@@ -288,16 +326,16 @@ class _ChipColorButton extends StatelessWidget {
                 top: -2,
                 right: -2,
                 child: Container(
-                  width: 22,
-                  height: 22,
+                  width: checkSize,
+                  height: checkSize,
                   decoration: const BoxDecoration(
                     color: RoyalColors.gold,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check,
                     color: Colors.white,
-                    size: 14,
+                    size: checkSize * 0.64,
                   ),
                 ),
               ),
@@ -380,14 +418,20 @@ class _RulesButton extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
-                    'View & Manage Rules',
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
-                      color: RoyalColors.darkBrown,
-                      height: 1.1,
-                      letterSpacing: 0.1,
+                  const Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'View & Manage Rules',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: RoyalColors.darkBrown,
+                          height: 1.1,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -451,6 +495,8 @@ class _SetupActionButton extends StatelessWidget {
           child: Center(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: textColor,
                 fontWeight: FontWeight.w900,

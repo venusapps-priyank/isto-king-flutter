@@ -52,52 +52,72 @@ class RoyalDialog extends StatelessWidget {
     required this.title,
     required this.child,
     this.onClose,
+    this.maxWidth = 320,
+    this.insetPadding,
     super.key,
   });
 
   final String title;
   final Widget child;
   final VoidCallback? onClose;
+  final double maxWidth;
+  final EdgeInsets? insetPadding;
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final effectiveInsetPadding =
+        insetPadding ??
+        EdgeInsets.symmetric(
+          horizontal: screenSize.width < 360 ? 16 : 40,
+          vertical: screenSize.height < 620 ? 14 : 24,
+        );
+    final maxDialogHeight = screenSize.height -
+        effectiveInsetPadding.vertical -
+        MediaQuery.viewInsetsOf(context).vertical;
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      insetPadding: effectiveInsetPadding,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
+        constraints: BoxConstraints(
+          maxWidth: maxWidth,
+          maxHeight: maxDialogHeight,
+        ),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             Container(
-            decoration: BoxDecoration(
-              color: RoyalColors.parchmentLight,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: RoyalColors.gold, width: 3.5),
-              boxShadow: [
-                BoxShadow(
-                  color: RoyalColors.darkBrown.withValues(alpha: 0.3),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _RoyalDialogHeader(title: title),
-                  const SizedBox(height: 14),
-                  child,
+              decoration: BoxDecoration(
+                color: RoyalColors.parchmentLight,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: RoyalColors.gold, width: 3.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: RoyalColors.darkBrown.withValues(alpha: 0.3),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
                 ],
               ),
-            ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _RoyalDialogHeader(title: title),
+                    const SizedBox(height: 14),
+                    child,
+                  ],
+                ),
+              ),
             ),
             Positioned(
               top: -10,
               right: -8,
-              child: _RoyalCloseButton(onTap: onClose ?? () => Navigator.of(context).pop()),
+              child: _RoyalCloseButton(
+                onTap: onClose ?? () => Navigator.of(context).pop(),
+              ),
             ),
           ],
         ),
@@ -130,6 +150,8 @@ class _RoyalDialogHeader extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w900,

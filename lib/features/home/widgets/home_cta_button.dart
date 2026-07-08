@@ -90,89 +90,100 @@ class _SecondaryHomeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final darker = Color.lerp(backgroundColor, Colors.black, 0.24)!;
-    final lighter = Color.lerp(backgroundColor, Colors.white, 0.16)!;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final iconSize = (maxWidth * 0.18).clamp(25.0, 34.0);
+        final labelSize = (maxWidth * 0.085).clamp(13.0, 16.0);
+        final subtitleSize = (maxWidth * 0.06).clamp(9.0, 11.0);
+        final horizontalPadding = (maxWidth * 0.06).clamp(7.0, 10.0);
+        final verticalPadding = (maxWidth * 0.08).clamp(11.0, 16.0);
+        final gap = (maxWidth * 0.04).clamp(5.0, 7.0);
+        final darker = Color.lerp(backgroundColor, Colors.black, 0.24)!;
+        final lighter = Color.lerp(backgroundColor, Colors.white, 0.16)!;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFFCE8AA), Color(0xFFD69A2D)],
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(2.6),
-        child: DecoratedBox(
+        return DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: const Color(0xFFFFF4CD).withValues(alpha: 0.72),
-              width: 1.8,
-            ),
-            gradient: LinearGradient(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [lighter, darker],
+              colors: [Color(0xFFFCE8AA), Color(0xFFD69A2D)],
             ),
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(18),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 16,
+          child: Padding(
+            padding: const EdgeInsets.all(2.6),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: const Color(0xFFFFF4CD).withValues(alpha: 0.72),
+                  width: 1.8,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, color: textColor, size: 34),
-                      const SizedBox(width: 7),
-                    ],
-                    Flexible(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.2,
-                              height: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: textColor.withValues(alpha: 0.95),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w300,
-                              height: 1.05,
-                            ),
-                          ),
-                        ],
-                      ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [lighter, darker],
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onPressed,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: verticalPadding,
                     ),
-                  ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (icon != null) ...[
+                          Icon(icon, color: textColor, size: iconSize),
+                          SizedBox(width: gap),
+                        ],
+                        Flexible(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: labelSize,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                  height: 1,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.95),
+                                  fontSize: subtitleSize,
+                                  fontWeight: FontWeight.w300,
+                                  height: 1.05,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -200,78 +211,102 @@ class _PrimaryHomeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_pillRadius),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFFBE79B), Color(0xFFD59A2C)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: RoyalColors.darkRed.withValues(alpha: 0.22),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(3.0),
-        child: DecoratedBox(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final labelStyle = _labelStyle.copyWith(
+          fontSize: (maxWidth * 0.13).clamp(30.0, 40.0),
+        );
+        final iconSize = (maxWidth * 0.06).clamp(14.0, 18.0);
+        final horizontalPadding = (maxWidth * 0.06).clamp(14.0, 20.0);
+        final verticalPadding = (maxWidth * 0.055).clamp(14.0, 18.0);
+        final iconInset = (maxWidth * 0.02).clamp(2.0, 6.0);
+
+        return DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_pillRadius),
-            border: Border.all(color: const Color(0xFFFFD879), width: 2.2),
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFFE32622), Color(0xFF7A0808)],
+              colors: [Color(0xFFFBE79B), Color(0xFFD59A2C)],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: RoyalColors.darkRed.withValues(alpha: 0.22),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(_pillRadius),
-              child: SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        left: 6,
-                        child: Icon(
-                          Icons.auto_awesome,
-                          size: 18,
-                          color: const Color(0xFFFFD879),
-                        ),
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(_pillRadius),
+                border: Border.all(
+                  color: const Color(0xFFFFD879),
+                  width: 2.2,
+                ),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFE32622), Color(0xFF7A0808)],
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onPressed,
+                  borderRadius: BorderRadius.circular(_pillRadius),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                        vertical: verticalPadding,
                       ),
-                      Positioned(
-                        right: 6,
-                        child: Icon(
-                          Icons.auto_awesome,
-                          size: 18,
-                          color: const Color(0xFFFFD879),
-                        ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            left: iconInset,
+                            child: Icon(
+                              Icons.auto_awesome,
+                              size: iconSize,
+                              color: const Color(0xFFFFD879),
+                            ),
+                          ),
+                          Positioned(
+                            right: iconInset,
+                            child: Icon(
+                              Icons.auto_awesome,
+                              size: iconSize,
+                              color: const Color(0xFFFFD879),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: iconSize + iconInset + 8,
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                label,
+                                textAlign: TextAlign.center,
+                                style: labelStyle,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        label,
-                        textAlign: TextAlign.center,
-                        style: _labelStyle,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

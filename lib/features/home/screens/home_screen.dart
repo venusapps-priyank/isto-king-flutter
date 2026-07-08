@@ -81,35 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 52),
-                            child: HomeCtaButton(
-                              label: 'PLAY NOW',
-                              onPressed: () => GameSetupDialog.show(context),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 40),
-                            child: Row(
-                              children: [
-                                HomeCtaButton(
-                                  expanded: true,
-                                  label: 'PASS & PLAY',
-                                  subtitle: 'Play with friends',
-                                  icon: Icons.people_outlined,
-                                  backgroundColor: RoyalColors.yellow,
-                                ),
-                                SizedBox(width: 8),
-                                HomeCtaButton(
-                                  expanded: true,
-                                  label: 'ONLINE MATCH',
-                                  subtitle: 'Challenge players',
-                                  icon: Icons.public,
-                                  backgroundColor: RoyalColors.green,
-                                ),
-                              ],
-                            ),
+                          _HomeActionButtons(
+                            onPlayNow: () => GameSetupDialog.show(context),
                           ),
                           const SizedBox(height: 12),
                           const _UtilityStrip(),
@@ -127,6 +100,59 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _HomeActionButtons extends StatelessWidget {
+  const _HomeActionButtons({required this.onPlayNow});
+
+  final VoidCallback onPlayNow;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final primaryInset = (width * 0.13).clamp(12.0, 52.0);
+        final secondaryInset = (width * 0.09).clamp(8.0, 40.0);
+        final secondaryGap = width < 340 ? 6.0 : 8.0;
+
+        return Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: primaryInset),
+              child: HomeCtaButton(
+                label: 'PLAY NOW',
+                onPressed: onPlayNow,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: secondaryInset),
+              child: Row(
+                children: [
+                  const HomeCtaButton(
+                    expanded: true,
+                    label: 'PASS & PLAY',
+                    subtitle: 'Play with friends',
+                    icon: Icons.people_outlined,
+                    backgroundColor: RoyalColors.yellow,
+                  ),
+                  SizedBox(width: secondaryGap),
+                  const HomeCtaButton(
+                    expanded: true,
+                    label: 'ONLINE MATCH',
+                    subtitle: 'Challenge players',
+                    icon: Icons.public,
+                    backgroundColor: RoyalColors.green,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
