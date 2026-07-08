@@ -5,6 +5,7 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
+import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/game/widgets/animated_player_row.dart';
@@ -15,14 +16,20 @@ import 'package:isto_king/features/game/widgets/top_game_bar.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 
 class IstoGameScreen extends StatefulWidget {
-  const IstoGameScreen({super.key});
+  const IstoGameScreen({
+    this.setup = GameSetupConfig.defaultConfig,
+    super.key,
+  });
+
+  final GameSetupConfig setup;
 
   @override
   State<IstoGameScreen> createState() => _IstoGameScreenState();
 }
 
 class _IstoGameScreenState extends State<IstoGameScreen> {
-  GameTurnController _turnController = GameTurnController();
+  late final List<PlayerInfo> _players = buildGamePlayers(widget.setup);
+  late GameTurnController _turnController = _createTurnController();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
@@ -30,6 +37,23 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   Map<int, Duration> _activeMoveDelays = {};
   TokenPairCandidate? _visiblePairCandidate;
   int? _pairPromptTokenId;
+
+  GameTurnController _createTurnController() {
+    return GameTurnController(
+      activePlayers: widget.setup.activePlayerIndexSet,
+    );
+  }
+
+  bool _isPlayerActive(int playerIndex) {
+    return widget.setup.activePlayerIndexSet.contains(playerIndex);
+  }
+
+  Widget _buildPlayerSlot(int playerIndex) {
+    if (!_isPlayerActive(playerIndex)) {
+      return const SizedBox.shrink();
+    }
+    return _buildPlayerCard(playerInfoForIndex(_players, playerIndex));
+  }
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
@@ -140,7 +164,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
   void _resetGame() {
     setState(() {
-      _turnController = GameTurnController();
+      _turnController = _createTurnController();
       _isMoveAnimating = false;
       _moveAnimationCycle = 0;
       for (var i = 0; i < _rollResetSerials.length; i++) {
@@ -198,9 +222,13 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
   List<PlayerInfo> _playersByRank() {
     final ranked = _turnController.rankedPlayerIndexes;
-    final unranked = gamePlayers.where((player) => !ranked.contains(player.index));
+    final unranked = _players.where(
+      (player) =>
+          _isPlayerActive(player.index) && !ranked.contains(player.index),
+    );
     return [
-      for (final index in ranked) gamePlayers.firstWhere((p) => p.index == index),
+      for (final index in ranked)
+        playerInfoForIndex(_players, index),
       ...unranked,
     ];
   }
@@ -257,8 +285,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               child: AnimatedPlayerRow(
                                 visible: !showWinRanking,
                                 isTopRow: true,
-                                left: _buildPlayerCard(topRowPlayers[0]),
-                                right: _buildPlayerCard(topRowPlayers[1]),
+                                left: _buildPlayerSlot(0),
+                                right: _buildPlayerSlot(1),
                               ),
                             ),
                             const SizedBox(height: gap),
@@ -266,6 +294,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               child: SizedBox.square(
                                 dimension: boardSize,
                                 child: GameBoard(
+                                  players: _players,
                                   tokens: _turnController.tokens,
                                   movableTokenIds: _isMoveAnimating
                                       ? const {}
@@ -289,10 +318,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               child: AnimatedPlayerRow(
                                 visible: !showWinRanking,
                                 isTopRow: false,
-                                left:
-                                    _buildPlayerCard(bottomRowPlayers[0]),
-                                right:
-                                    _buildPlayerCard(bottomRowPlayers[1]),
+                                left: _buildPlayerSlot(2),
+                                right: _buildPlayerSlot(3),
                               ),
                             ),
                           ],

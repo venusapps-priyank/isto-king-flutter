@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:isto_king/features/game/widgets/player_card.dart';
 
 const _cardMotionDurationMs = 280;
 const _cardMotionStaggerMs = 45;
@@ -40,8 +39,8 @@ class AnimatedPlayerRow extends StatelessWidget {
     super.key,
   });
 
-  final PlayerCard left;
-  final PlayerCard right;
+  final Widget left;
+  final Widget right;
   final bool visible;
   final bool isTopRow;
 

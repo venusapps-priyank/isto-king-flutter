@@ -45,7 +45,17 @@ class RollResolution {
 }
 
 class GameTurnController {
-  int currentPlayerIndex = turnOrder.first;
+  GameTurnController({Set<int>? activePlayers})
+      : activePlayerIndexes = activePlayers ?? const {0, 1, 2, 3} {
+    _deactivateInactivePlayers();
+    currentPlayerIndex = turnOrder.firstWhere(
+      activePlayerIndexes.contains,
+      orElse: () => turnOrder.first,
+    );
+  }
+
+  final Set<int> activePlayerIndexes;
+  late int currentPlayerIndex;
   final List<int?> lastRolls = List<int?>.filled(4, null);
   final List<PlayerGameState> playerStates = List<PlayerGameState>.generate(
     4,
@@ -68,7 +78,8 @@ class GameTurnController {
   int? get winnerIndex =>
       _rankedPlayerIndexes.isEmpty ? null : _rankedPlayerIndexes.first;
 
-  bool get isGameOver => _rankedPlayerIndexes.length >= 3;
+  bool get isGameOver =>
+      _rankedPlayerIndexes.length >= activePlayerIndexes.length - 1;
 
   List<bool> get innerPathAccess => List<bool>.unmodifiable(
     playerStates.map((state) => state.hasKilledOpponent),
@@ -163,7 +174,8 @@ class GameTurnController {
   }
 
   bool canRoll(int playerIndex) {
-    return !isGameOver &&
+    return activePlayerIndexes.contains(playerIndex) &&
+        !isGameOver &&
         rankForPlayer(playerIndex) == null &&
         playerIndex == currentPlayerIndex &&
         pendingRoll == null;
@@ -508,13 +520,29 @@ class GameTurnController {
   }
 
   void _advanceTurn() {
-    final turnIndex = turnOrder.indexOf(currentPlayerIndex);
-    for (var offset = 1; offset <= turnOrder.length; offset++) {
-      final nextPlayer = turnOrder[(turnIndex + offset) % turnOrder.length];
+    final activeTurnOrder =
+        turnOrder.where(activePlayerIndexes.contains).toList();
+    if (activeTurnOrder.isEmpty) return;
+
+    final turnIndex = activeTurnOrder.indexOf(currentPlayerIndex);
+    final startIndex = turnIndex < 0 ? 0 : turnIndex;
+    for (var offset = 1; offset <= activeTurnOrder.length; offset++) {
+      final nextPlayer =
+          activeTurnOrder[(startIndex + offset) % activeTurnOrder.length];
       if (rankForPlayer(nextPlayer) == null) {
         currentPlayerIndex = nextPlayer;
         return;
       }
+    }
+  }
+
+  void _deactivateInactivePlayers() {
+    for (final token in _tokens) {
+      if (activePlayerIndexes.contains(token.playerIndex)) continue;
+      token.isAtStart = false;
+      token.isFinished = true;
+      token.pathIndex = -1;
+      token.unpair();
     }
   }
 

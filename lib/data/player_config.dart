@@ -1,7 +1,8 @@
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 
-const gamePlayers = [
+const baseGamePlayers = [
   PlayerInfo(
     index: 0,
     name: 'Rammohan',
@@ -29,6 +30,27 @@ const gamePlayers = [
     avatarOnRight: true,
   ),
 ];
+
+const gamePlayers = baseGamePlayers;
+
+List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
+  return [
+    for (final player in baseGamePlayers)
+      player.index == config.humanPlayerIndex
+          ? PlayerInfo(
+              index: player.index,
+              name: 'Player',
+              color: config.chipColor,
+              avatarAsset: player.avatarAsset,
+              avatarOnRight: player.avatarOnRight,
+            )
+          : player,
+  ];
+}
+
+PlayerInfo playerInfoForIndex(List<PlayerInfo> players, int index) {
+  return players.firstWhere((player) => player.index == index);
+}
 
 final topRowPlayers = [gamePlayers[0], gamePlayers[1]];
 final bottomRowPlayers = [gamePlayers[2], gamePlayers[3]];

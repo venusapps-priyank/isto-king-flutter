@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/logic/isto_board_paths.dart';
 import 'package:isto_king/features/game/logic/move_animation_timing.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
+import 'package:isto_king/features/game/models/player_info.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
 import 'package:isto_king/features/game/painters/game_board_painter.dart';
 import 'package:isto_king/features/game/widgets/game_token.dart';
@@ -16,6 +16,7 @@ const _tokenJoinAnimationDuration = Duration(milliseconds: 260);
 class GameBoard extends StatelessWidget {
   const GameBoard({
     required this.tokens,
+    required this.players,
     required this.movableTokenIds,
     this.innerPathAccess = const [false, false, false, false],
     this.movePaths = const {},
@@ -30,6 +31,7 @@ class GameBoard extends StatelessWidget {
   static const moveAnimationCurve = Curves.easeInOutCubic;
 
   final List<TokenState> tokens;
+  final List<PlayerInfo> players;
   final Set<int> movableTokenIds;
   final List<bool> innerPathAccess;
   final Map<int, List<BoardCell>> movePaths;
@@ -47,6 +49,10 @@ class GameBoard extends StatelessWidget {
       paths: movePaths,
       delays: moveDelays,
     );
+  }
+
+  PlayerInfo _playerFor(int playerIndex) {
+    return players.firstWhere((player) => player.index == playerIndex);
   }
 
   @override
@@ -215,11 +221,11 @@ class GameBoard extends StatelessWidget {
           startDelay: moveDelays[token.id] ?? Duration.zero,
           curve: moveAnimationCurve,
           child: GameToken(
-            color: gamePlayers[token.playerIndex].color,
+            color: _playerFor(token.playerIndex).color,
             size: tokenSize,
             isMovable: false,
             semanticLabel:
-                '${gamePlayers[token.playerIndex].name} token ${token.tokenIndex + 1}',
+                '${_playerFor(token.playerIndex).name} token ${token.tokenIndex + 1}',
           ),
         ),
       );
@@ -495,12 +501,12 @@ class GameBoard extends StatelessWidget {
       duration: _tokenJoinAnimationDuration,
       curve: Curves.easeOutBack,
       child: GameToken(
-        color: gamePlayers[token.playerIndex].color,
+        color: _playerFor(token.playerIndex).color,
         size: tokenSize,
         isMovable: isMovable,
         showMovableHighlight: showMovableHighlight,
         semanticLabel:
-            '${gamePlayers[token.playerIndex].name} token ${token.tokenIndex + 1}',
+            '${_playerFor(token.playerIndex).name} token ${token.tokenIndex + 1}',
         onTap: () => onTokenTap?.call(token.id),
       ),
     );
@@ -543,7 +549,7 @@ class GameBoard extends StatelessWidget {
       curve: Curves.easeOutBack,
       child: IgnorePointer(
         child: _PulsingPairMoveHighlight(
-          color: gamePlayers[firstToken.playerIndex].color,
+          color: _playerFor(firstToken.playerIndex).color,
         ),
       ),
     );
@@ -568,11 +574,11 @@ class GameBoard extends StatelessWidget {
               width: tokenSize,
               height: tokenSize,
               child: GameToken(
-                color: gamePlayers[tokens[index].playerIndex].color,
+                color: _playerFor(tokens[index].playerIndex).color,
                 size: tokenSize,
                 isMovable: false,
                 semanticLabel:
-                    '${gamePlayers[tokens[index].playerIndex].name} token ${tokens[index].tokenIndex + 1}',
+                    '${_playerFor(tokens[index].playerIndex).name} token ${tokens[index].tokenIndex + 1}',
               ),
             ),
         ],

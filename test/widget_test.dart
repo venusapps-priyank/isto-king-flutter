@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isto_king/app/isto_king_app.dart';
+import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/token_state.dart';
 import 'package:isto_king/features/game/painters/game_board_painter.dart';
@@ -62,6 +63,7 @@ void main() {
         home: SizedBox.square(
           dimension: 320,
           child: GameBoard(
+            players: gamePlayers,
             tokens: [],
             movableTokenIds: {},
             innerPathAccess: innerPathAccess,
@@ -151,7 +153,8 @@ void main() {
       MaterialApp(
         home: SizedBox.square(
           dimension: 500,
-          child: GameBoard(tokens: tokens, movableTokenIds: const {}),
+          child: GameBoard(
+            players: gamePlayers,tokens: tokens, movableTokenIds: const {}),
         ),
       ),
     );
@@ -221,7 +224,11 @@ void main() {
         MaterialApp(
           home: SizedBox.square(
             dimension: 500,
-            child: GameBoard(tokens: tokens, movableTokenIds: const {}),
+            child: GameBoard(
+              players: gamePlayers,
+              tokens: tokens,
+              movableTokenIds: const {},
+            ),
           ),
         ),
       );
@@ -276,6 +283,7 @@ void main() {
         home: SizedBox.square(
           dimension: 500,
           child: GameBoard(
+            players: gamePlayers,
             tokens: [firstToken, secondToken],
             movableTokenIds: {firstToken.id, secondToken.id},
           ),
@@ -328,6 +336,7 @@ void main() {
         home: SizedBox.square(
           dimension: 500,
           child: GameBoard(
+            players: gamePlayers,
             tokens: [firstToken, secondToken],
             movableTokenIds: {firstToken.id, secondToken.id},
             pairPromptTokenIds: [firstToken.id, secondToken.id],
@@ -377,6 +386,7 @@ void main() {
         home: SizedBox.square(
           dimension: 500,
           child: GameBoard(
+            players: gamePlayers,
             tokens: [firstToken, secondToken, thirdToken],
             movableTokenIds: const {},
           ),
@@ -448,6 +458,7 @@ void main() {
         home: SizedBox.square(
           dimension: 500,
           child: GameBoard(
+            players: gamePlayers,
             tokens: [firstToken, secondToken],
             movableTokenIds: const {},
             movePaths: {

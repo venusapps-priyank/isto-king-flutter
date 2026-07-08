@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/core/widgets/royal_dialog.dart';
+import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/home/widgets/player_count_icons.dart';
 
@@ -31,9 +32,15 @@ class _GameSetupDialogState extends State<GameSetupDialog> {
   ];
 
   void _onContinue() {
+    final setup = GameSetupConfig(
+      playerCount: _playerCount,
+      chipColor: _chipColor,
+    );
     Navigator.of(context).pop();
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const IstoGameScreen()),
+      MaterialPageRoute<void>(
+        builder: (_) => IstoGameScreen(setup: setup),
+      ),
     );
   }
 
