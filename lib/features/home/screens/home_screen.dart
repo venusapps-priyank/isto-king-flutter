@@ -3,6 +3,7 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
+import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -21,7 +22,11 @@ class HomeScreen extends StatelessWidget {
           children: [
             const Positioned.fill(
               child: CustomPaint(
-                painter: ScreenOrnamentPainter(topCornerScale: 0.5),
+                painter: ScreenOrnamentPainter(
+                  topCornerScale: 0.5,
+                  bottomCornerScale: 1.38,
+                  bottomConnectorHeight: 18,
+                ),
               ),
             ),
             const _BottomCorner(isLeft: true),
@@ -88,7 +93,7 @@ class HomeScreen extends StatelessWidget {
                           const SizedBox(height: 12),
                           const _UtilityStrip(),
                           const SizedBox(height: 10),
-                          const _BottomNavBar(),
+                          const HomeBottomNavBar(),
                         ],
                       ),
                     ),
@@ -410,77 +415,28 @@ class _UtilityItem extends StatelessWidget {
   }
 }
 
-class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    Widget item({
-      required IconData icon,
-      required String text,
-      bool active = false,
-    }) {
-      return Expanded(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: active ? const Color(0xFFFFE39D) : const Color(0xFFF9E9C7),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              text,
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.2,
-                color: active
-                    ? const Color(0xFFFFE39D)
-                    : const Color(0xFFF9E9C7),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      height: 82,
-      decoration: BoxDecoration(
-        color: const Color(0xFF8B120A),
-        borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: const Color(0xFFE0B16B), width: 1.7),
-      ),
-      child: Row(
-        children: [
-          item(icon: Icons.people_alt_outlined, text: 'SOCIAL'),
-          item(icon: Icons.home_filled, text: 'HOME', active: true),
-          item(icon: Icons.local_mall_outlined, text: 'STORE'),
-        ],
-      ),
-    );
-  }
-}
-
 class _BottomCorner extends StatelessWidget {
   const _BottomCorner({required this.isLeft});
+
+  static const _imageSize = 170.0;
 
   final bool isLeft;
 
   @override
   Widget build(BuildContext context) {
-    const size = 130.0;
+    const offset = -_imageSize / 2;
+
     return Positioned(
-      bottom: -size * 0.35,
-      left: isLeft ? -size * 0.35 : null,
-      right: isLeft ? null : -size * 0.35,
+      left: isLeft ? offset : null,
+      right: isLeft ? null : offset,
+      bottom: offset,
+      width: _imageSize,
+      height: _imageSize,
       child: IgnorePointer(
         child: Opacity(
           opacity: 0.94,
           child: Image.asset(
             HomeScreen._cornerAsset,
-            width: size,
-            height: size,
             fit: BoxFit.contain,
           ),
         ),

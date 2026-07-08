@@ -5,14 +5,27 @@ class ScreenOrnamentPainter extends CustomPainter {
   const ScreenOrnamentPainter({
     this.topCornerScale = 1.0,
     this.bottomCornerScale = 1.18,
+    this.bottomConnectorHeight = 0,
   });
 
   final double topCornerScale;
   final double bottomCornerScale;
+  final double bottomConnectorHeight;
 
   @override
   void paint(Canvas canvas, Size size) {
     final red = Paint()..color = RoyalColors.outerRed;
+    if (bottomConnectorHeight > 0) {
+      canvas.drawRect(
+        Rect.fromLTWH(
+          0,
+          size.height - bottomConnectorHeight,
+          size.width,
+          bottomConnectorHeight,
+        ),
+        red,
+      );
+    }
     for (final corner in [
       Offset.zero,
       Offset(size.width, 0),
@@ -42,5 +55,9 @@ class ScreenOrnamentPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant ScreenOrnamentPainter oldDelegate) {
+    return oldDelegate.topCornerScale != topCornerScale ||
+        oldDelegate.bottomCornerScale != bottomCornerScale ||
+        oldDelegate.bottomConnectorHeight != bottomConnectorHeight;
+  }
 }
