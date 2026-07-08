@@ -246,7 +246,10 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                           children: [
                             SizedBox(
                               height: topBarHeight,
-                              child: TopGameBar(onSettingsTap: _handleSettingsTap),
+                              child: TopGameBar(
+                                onBackTap: _handleHomeTap,
+                                onSettingsTap: _handleSettingsTap,
+                              ),
                             ),
                             const SizedBox(height: gap),
                             SizedBox(
