@@ -145,11 +145,14 @@ class _HomeLayout {
     final height = constraints.maxHeight;
     final shortHeight = height < 720;
     final compactWidth = width < 360;
+    final narrowWidth = width < 430;
     final gapScale = (height / 760).clamp(0.78, 1.08).toDouble();
     final horizontalPadding = (width * 0.036).clamp(10.0, 16.0).toDouble();
     final bottomNavSidePadding = compactWidth
-        ? (width * 0.11).clamp(30.0, 42.0).toDouble()
-        : (width * 0.095).clamp(32.0, 42.0).toDouble();
+        ? (width * 0.16).clamp(42.0, 60.0).toDouble()
+        : narrowWidth
+            ? (width * 0.13).clamp(42.0, 56.0).toDouble()
+            : (width * 0.095).clamp(32.0, 42.0).toDouble();
     final bottomNavBottomPadding = shortHeight
         ? (height * 0.012).clamp(7.0, 10.0).toDouble()
         : (height * 0.01).clamp(8.0, 12.0).toDouble();
@@ -195,8 +198,13 @@ class _HomeActionButtons extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final primaryInset = (width * 0.13).clamp(12.0, 52.0);
-        final secondaryInset = (width * 0.04).clamp(4.0, 24.0);
+        final mediumWidth = width >= 390 && width < 620;
+        final primaryInset = mediumWidth
+            ? (width * 0.08).clamp(16.0, 38.0)
+            : (width * 0.13).clamp(12.0, 52.0);
+        final secondaryInset = mediumWidth
+            ? (width * 0.025).clamp(4.0, 14.0)
+            : (width * 0.04).clamp(4.0, 24.0);
         final secondaryGap = width < 340 ? 6.0 : 8.0;
 
         return Column(
