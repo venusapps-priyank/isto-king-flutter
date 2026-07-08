@@ -1,3 +1,4 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -164,10 +165,33 @@ class WinRankingPanel extends StatefulWidget {
 
 class _WinRankingPanelState extends State<WinRankingPanel> {
   bool _isExiting = false;
+  late final ConfettiController _confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 4),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(
+        const Duration(milliseconds: _entranceBaseDelayMs),
+      );
+      if (!mounted || _isExiting) return;
+      _confettiController.play();
+    });
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
 
   void _handlePlayAgain() {
     if (_isExiting) return;
 
+    _confettiController.stop();
     setState(() => _isExiting = true);
     Future<void>.delayed(const Duration(milliseconds: _panelExitDurationMs), () {
       if (!mounted) return;
@@ -197,8 +221,12 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
         final bgBottomInset =
             (height * _bgBottomInset / boostedScale).clamp(height * 0.08, height).toDouble();
         final bgHeight = (height - bgTopInset - bgBottomInset).clamp(0.0, height).toDouble();
+        final firstCardLeft = layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2;
+        final firstCardTop = height * 0.16;
+        final firstCardHeight = height * 0.32;
 
         return Stack(
+          clipBehavior: Clip.none,
           children: [
             Positioned(
               top: height * _headerTopInset,
@@ -220,14 +248,37 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
               ).animateBackdrop(exiting: _isExiting),
             ),
             Positioned(
-              left: layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2,
-              top: height * 0.16,
+              left: firstCardLeft + (_centerCardWidth / 2),
+              top: firstCardTop + (firstCardHeight * 0.55),
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                emissionFrequency: 0.05,
+                numberOfParticles: 16,
+                maxBlastForce: 26,
+                minBlastForce: 10,
+                gravity: 0.14,
+                canvas: Size(width, height),
+                shouldLoop: false,
+                colors: const [
+                  RoyalColors.gold,
+                  RoyalColors.yellow,
+                  RoyalColors.red,
+                  RoyalColors.blue,
+                  RoyalColors.green,
+                  Colors.white,
+                ],
+              ),
+            ),
+            Positioned(
+              left: firstCardLeft,
+              top: firstCardTop,
               width: _centerCardWidth,
               child: _RankCard(
                 player: widget.playersByRank[0],
                 rank: 1,
                 width: _centerCardWidth,
-                height: height * 0.32,
+                height: firstCardHeight,
                 rankLabel: '1st Place',
                 showCrown: true,
               ).animateRankCard(
