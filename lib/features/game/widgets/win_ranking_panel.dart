@@ -17,7 +17,7 @@ const _positionLockWidth = 500.0;
 const _bgTopInset = 0.17;
 const _headerTopInset = 0.03;
 const _bgBottomInset = 0.18;
-const _bgHorizontalInset = 0.015;
+const _bgHorizontalInset = 0.000;
 const _buttonGapBelowBg = 12.0;
 
 class WinRankingPanel extends StatelessWidget {
