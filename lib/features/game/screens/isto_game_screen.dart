@@ -295,7 +295,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                         ),
                         Positioned.fill(
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             child: WinRankingPanel(
                               playersByRank: _playersByRank(),
                             ),

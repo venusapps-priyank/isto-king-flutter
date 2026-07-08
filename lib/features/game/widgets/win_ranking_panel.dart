@@ -38,6 +38,7 @@ class WinRankingPanel extends StatelessWidget {
               child: _RankCard(
                 player: playersByRank[0],
                 rank: 1,
+                width: _centerCardWidth,
                 height: height * 0.32,
                 rankLabel: '1st Place',
                 showCrown: true,
@@ -50,6 +51,7 @@ class WinRankingPanel extends StatelessWidget {
               child: _RankCard(
                 player: playersByRank[3],
                 rank: 4,
+                width: _lowerCardWidth,
                 height: height * 0.30,
                 rankLabel: '4th Place',
               ),
@@ -61,6 +63,7 @@ class WinRankingPanel extends StatelessWidget {
               child: _RankCard(
                 player: playersByRank[1],
                 rank: 2,
+                width: _sideCardWidth,
                 height: height * 0.30,
                 rankLabel: '2nd Place',
               ),
@@ -72,6 +75,7 @@ class WinRankingPanel extends StatelessWidget {
               child: _RankCard(
                 player: playersByRank[2],
                 rank: 3,
+                width: _sideCardWidth,
                 height: height * 0.30,
                 rankLabel: '3rd Place',
               ),
@@ -87,6 +91,7 @@ class _RankCard extends StatelessWidget {
   const _RankCard({
     required this.player,
     required this.rank,
+    required this.width,
     required this.height,
     required this.rankLabel,
     this.showCrown = false,
@@ -94,6 +99,7 @@ class _RankCard extends StatelessWidget {
 
   final PlayerInfo player;
   final int rank;
+  final double width;
   final double height;
   final String rankLabel;
   final bool showCrown;
@@ -120,64 +126,62 @@ class _RankCard extends StatelessWidget {
     final placeChipColor = HSLColor.fromColor(themeColor)
         .withLightness((HSLColor.fromColor(themeColor).lightness * 0.58).clamp(0.16, 0.42))
         .toColor();
-    final crownAreaHeight = showCrown ? avatarSize * 0.52 : 0.0;
+    final crownSlotHeight = showCrown ? avatarSize * 0.6 : 0.0;
+    final crownSize = avatarSize * 1.75;
+    final crownDownOffset = avatarSize * 0.18;
 
     return SizedBox(
-      height: height + crownAreaHeight,
+      width: width,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned(
-            top: crownAreaHeight,
-            left: 0,
-            right: 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF6DA),
-                borderRadius: BorderRadius.circular(radius),
-                border: Border.all(
-                  color: borderColor,
-                  width: rank == 1 ? 6.2 : 5.8,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: borderColor.withValues(alpha: 0.38),
-                    blurRadius: 14,
-                    spreadRadius: 1.2,
+          Padding(
+            padding: EdgeInsets.only(top: crownSlotHeight),
+            child: SizedBox(
+              width: width,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF6DA),
+                  borderRadius: BorderRadius.circular(radius),
+                  border: Border.all(
+                    color: borderColor,
+                    width: rank == 1 ? 6.2 : 5.8,
                   ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.34),
-                    blurRadius: 6,
-                    offset: const Offset(-1.5, -1.5),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 7),
-                  ),
-                  if (rank == 1)
+                  boxShadow: [
                     BoxShadow(
-                      color: themeColor.withValues(alpha: 0.42),
-                      blurRadius: 22,
-                      spreadRadius: 2,
+                      color: borderColor.withValues(alpha: 0.38),
+                      blurRadius: 14,
+                      spreadRadius: 1.2,
                     ),
-                ],
-              ),
-              child: SizedBox(
-                height: height,
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.34),
+                      blurRadius: 6,
+                      offset: const Offset(-1.5, -1.5),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 16,
+                      offset: const Offset(0, 7),
+                    ),
+                    if (rank == 1)
+                      BoxShadow(
+                        color: themeColor.withValues(alpha: 0.42),
+                        blurRadius: 22,
+                        spreadRadius: 2,
+                      ),
+                  ],
+                ),
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     10,
                     isSecondOrThird ? 8 : 10,
                     10,
-                    isSecondOrThird ? 8 : 12,
+                    isSecondOrThird ? 8 : 10,
                   ),
                   child: Column(
-                    mainAxisAlignment:
-                        isSecondOrThird ? MainAxisAlignment.center : MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      if (!showCrown)
-                        SizedBox(height: isSecondOrThird ? 0 : avatarSize * 0.25),
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -194,7 +198,7 @@ class _RankCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: isSecondOrThird ? 6 : 8),
+                      SizedBox(height: isSecondOrThird ? 6 : 7),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           color: player.color,
@@ -213,7 +217,7 @@ class _RankCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(height: isSecondOrThird ? 5 : 7),
+                      SizedBox(height: isSecondOrThird ? 6 : 7),
                       if (_rankEmblemAsset != null)
                         Image.asset(
                           _rankEmblemAsset!,
@@ -226,7 +230,7 @@ class _RankCard extends StatelessWidget {
                           color: borderColor,
                           size: height * 0.13,
                         ),
-                      SizedBox(height: isSecondOrThird ? 5 : 7),
+                      SizedBox(height: isSecondOrThird ? 6 : 7),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           color: placeChipColor,
@@ -250,12 +254,21 @@ class _RankCard extends StatelessWidget {
             ),
           ),
           if (showCrown)
-            Align(
-              alignment: Alignment.topCenter,
-              child: Image.asset(
-                _firstRankCrownAsset,
-                width: avatarSize * 1.02,
-                fit: BoxFit.contain,
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: crownSlotHeight,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Transform.translate(
+                  offset: Offset(0, crownDownOffset),
+                  child: Image.asset(
+                    _firstRankCrownAsset,
+                    width: crownSize,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
             ),
         ],
