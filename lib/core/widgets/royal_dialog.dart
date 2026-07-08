@@ -1,6 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 
+const _royalDialogTransitionDuration = Duration(milliseconds: 280);
+
+Future<T?> showRoyalDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  bool barrierDismissible = true,
+}) {
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: barrierDismissible,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: _royalDialogTransitionDuration,
+    pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+    transitionBuilder: _royalDialogTransition,
+  );
+}
+
+Widget _royalDialogTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  final curved = CurvedAnimation(
+    parent: animation,
+    curve: Curves.easeOutBack,
+    reverseCurve: Curves.easeInCubic,
+  );
+
+  return FadeTransition(
+    opacity: curved,
+    child: ScaleTransition(
+      scale: Tween<double>(begin: 0.86, end: 1).animate(curved),
+      alignment: Alignment.center,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.04),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      ),
+    ),
+  );
+}
+
 class RoyalDialog extends StatelessWidget {
   const RoyalDialog({
     required this.title,

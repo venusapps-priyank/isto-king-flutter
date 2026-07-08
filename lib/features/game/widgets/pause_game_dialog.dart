@@ -20,7 +20,7 @@ class PauseGameDialog extends StatelessWidget {
     required VoidCallback onRestart,
     required VoidCallback onQuitMatch,
   }) {
-    return showDialog<void>(
+    return showRoyalDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (_) => PauseGameDialog(

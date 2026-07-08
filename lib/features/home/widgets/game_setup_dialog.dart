@@ -9,7 +9,7 @@ class GameSetupDialog extends StatefulWidget {
   const GameSetupDialog({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showDialog<void>(
+    return showRoyalDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (_) => const GameSetupDialog(),
