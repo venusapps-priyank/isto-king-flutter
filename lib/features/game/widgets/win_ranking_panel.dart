@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
 
+const _matchResultBannerAsset = 'assets/images/match_result_banner.png';
 const _firstRankCrownAsset = 'assets/images/rank_crown_1.png';
 const _firstPlaceAsset = 'assets/images/1st.png';
 const _secondPlaceAsset = 'assets/images/2nd.png';
@@ -11,6 +14,7 @@ const _sideCardWidth = 160.0;
 const _lowerCardWidth = 170.0;
 const _positionLockWidth = 500.0;
 const _bgTopInset = 0.17;
+const _headerTopInset = 0.03;
 const _bgBottomInset = 0.18;
 const _bgHorizontalInset = 0.015;
 
@@ -34,6 +38,12 @@ class WinRankingPanel extends StatelessWidget {
 
         return Stack(
           children: [
+            Positioned(
+              top: height * _headerTopInset,
+              left: layoutLeftOffset,
+              width: layoutWidth,
+              child: _MatchResultHeader(width: layoutWidth),
+            ),
             Positioned(
               left: layoutLeftOffset + layoutWidth * _bgHorizontalInset,
               top: height * _bgTopInset,
@@ -98,6 +108,58 @@ class WinRankingPanel extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _MatchResultHeader extends StatelessWidget {
+  const _MatchResultHeader({required this.width});
+
+  final double width;
+
+  static const _starStyle = TextStyle(
+    color: RoyalColors.gold,
+    fontSize: 18,
+    fontWeight: FontWeight.w900,
+    height: 1,
+  );
+
+  static TextStyle get _titleStyle => GoogleFonts.nunito(
+        color: RoyalColors.darkBrown,
+        fontWeight: FontWeight.w900,
+        fontSize: 18,
+        height: 1,
+        letterSpacing: 0.2,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(width * 0.05, 20, width * 0.05, 0),
+          child: Image.asset(
+            _matchResultBannerAsset,
+            width: width * 0.68,
+            fit: BoxFit.contain,
+          ),
+        ),
+        Transform.translate(
+          offset: const Offset(0, -15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('★', style: _starStyle),
+              const SizedBox(width: 8),
+              Text('Great Game!', style: _titleStyle),
+              const SizedBox(width: 8),
+              const Text('★', style: _starStyle),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
