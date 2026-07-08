@@ -196,80 +196,117 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                     280.0,
                     math.min(boardMaxWidth, boardMaxHeight),
                   );
+                  const winOverlayTopInset = 0.52;
+                  const winOverlayBottomExtra = 0.22;
+                  const winOverlayVerticalShift = 0.18;
+                  final winOverlayTop = topBarHeight +
+                      gap +
+                      cardHeight * (winOverlayTopInset + winOverlayVerticalShift);
+                  final winOverlayHeight = cardHeight +
+                      gap +
+                      boardSize +
+                      gap +
+                      cardHeight -
+                      cardHeight * winOverlayTopInset +
+                      cardHeight * winOverlayBottomExtra;
+                  final winOverlayWidth = width - horizontalPadding * 2;
+                  final winOverlayLeft = horizontalPadding;
+                  final showWinRanking =
+                      _turnController.isGameOver || _showWinPreview;
 
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: topBarHeight,
-                          child: TopGameBar(
-                            onSettingsTap: () {
-                              setState(() {
-                                _showWinPreview = !_showWinPreview;
-                              });
-                            },
-                          ),
+                  return Stack(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
                         ),
-                        const SizedBox(height: gap),
-                        SizedBox(
-                          height: cardHeight,
-                          child: PlayerRow(
-                            left: _buildPlayerCard(topRowPlayers[0]),
-                            right: _buildPlayerCard(topRowPlayers[1]),
-                          ),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: topBarHeight,
+                              child: TopGameBar(
+                                onSettingsTap: () {
+                                  setState(() {
+                                    _showWinPreview = !_showWinPreview;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: gap),
+                            SizedBox(
+                              height: cardHeight,
+                              child: showWinRanking
+                                  ? null
+                                  : PlayerRow(
+                                      left: _buildPlayerCard(topRowPlayers[0]),
+                                      right: _buildPlayerCard(topRowPlayers[1]),
+                                    ),
+                            ),
+                            const SizedBox(height: gap),
+                            Center(
+                              child: SizedBox.square(
+                                dimension: boardSize,
+                                child: GameBoard(
+                                  tokens: _turnController.tokens,
+                                  movableTokenIds: _isMoveAnimating
+                                      ? const {}
+                                      : _turnController.legalTokenIds,
+                                  innerPathAccess:
+                                      _turnController.innerPathAccess,
+                                  movePaths: _activeMovePaths,
+                                  moveDelays: _activeMoveDelays,
+                                  pairPromptTokenIds:
+                                      _visiblePairCandidate?.tokenIds,
+                                  onJoinPairPrompt: _handleJoinPairPrompt,
+                                  onDismissPairPrompt:
+                                      _handlePlaySinglePairPrompt,
+                                  onTokenTap: _handleTokenTap,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: gap),
+                            SizedBox(
+                              height: cardHeight,
+                              child: showWinRanking
+                                  ? null
+                                  : PlayerRow(
+                                      left:
+                                          _buildPlayerCard(bottomRowPlayers[0]),
+                                      right:
+                                          _buildPlayerCard(bottomRowPlayers[1]),
+                                    ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: gap),
-                        Center(
-                          child: SizedBox.square(
-                            dimension: boardSize,
-                            child: GameBoard(
-                              tokens: _turnController.tokens,
-                              movableTokenIds: _isMoveAnimating
-                                  ? const {}
-                                  : _turnController.legalTokenIds,
-                              innerPathAccess: _turnController.innerPathAccess,
-                              movePaths: _activeMovePaths,
-                              moveDelays: _activeMoveDelays,
-                              pairPromptTokenIds:
-                                  _visiblePairCandidate?.tokenIds,
-                              onJoinPairPrompt: _handleJoinPairPrompt,
-                              onDismissPairPrompt: _handlePlaySinglePairPrompt,
-                              onTokenTap: _handleTokenTap,
+                      ),
+                      if (showWinRanking) ...[
+                        Positioned(
+                          left: winOverlayLeft,
+                          top: winOverlayTop,
+                          width: winOverlayWidth,
+                          height: winOverlayHeight,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2A190D)
+                                  .withValues(alpha: 0.78),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
-                        const SizedBox(height: gap),
-                        SizedBox(
-                          height: cardHeight,
-                          child: PlayerRow(
-                            left: _buildPlayerCard(bottomRowPlayers[0]),
-                            right: _buildPlayerCard(bottomRowPlayers[1]),
+                        Positioned.fill(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: WinRankingPanel(
+                              playersByRank: _playersByRank(),
+                            ),
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   );
                 },
               ),
             ),
-            if (_turnController.isGameOver || _showWinPreview) ...[
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A190D).withValues(alpha: 0.78),
-                  ),
-                ),
-              ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: WinRankingPanel(playersByRank: _playersByRank()),
-                ),
-              ),
-            ],
           ],
         ),
       ),
