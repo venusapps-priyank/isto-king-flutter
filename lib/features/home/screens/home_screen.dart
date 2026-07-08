@@ -32,16 +32,14 @@ class HomeScreen extends StatelessWidget {
             const _BottomCorner(isLeft: true),
             const _BottomCorner(isLeft: false),
             SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(14, 28, 14, 0),
                       child: Column(
                         children: [
+                          const SizedBox(height: 8),
                           _TopProfileBar(onNotificationTap: () {}),
                           const SizedBox(height: 14),
                           const _TitleBadge(),
@@ -92,13 +90,15 @@ class HomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           const _UtilityStrip(),
-                          const SizedBox(height: 10),
-                          const HomeBottomNavBar(),
                         ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(14, 10, 14, 10),
+                    child: HomeBottomNavBar(),
+                  ),
+                ],
               ),
             ),
           ],
@@ -398,7 +398,7 @@ class _UtilityItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 30, color: RoyalColors.cornerRed),
+          Icon(icon, size: 36, color: RoyalColors.darkRed),
           const SizedBox(height: 2),
           Text(
             label,

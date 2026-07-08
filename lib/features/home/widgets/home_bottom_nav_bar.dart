@@ -7,9 +7,9 @@ class HomeBottomNavBar extends StatelessWidget {
 
   static const _maxWidth = 340.0;
   static const _barHeight = 72.0;
-  static const _borderWidth = 4.0;
+  static const _borderWidth = 2.5;
   static const _circleSize = 72.0;
-  static const _circleBorderWidth = 2.2;
+  static const _circleBorderWidth = 1.8;
   static const _barColor = Color(0xFF720B07);
   static const _borderColor = Color(0xFFE8C06A);
   static const _barTopInset = 18.0;

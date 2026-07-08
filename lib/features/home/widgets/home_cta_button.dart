@@ -125,7 +125,7 @@ class _SecondaryHomeButton extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 12,
+                  vertical: 16,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
