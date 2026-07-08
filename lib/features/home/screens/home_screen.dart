@@ -54,47 +54,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 painter: ScreenOrnamentPainter(
                   topCornerScale: 0.5,
                   bottomCornerScale: 1.38,
-                  bottomConnectorHeight: 18,
+                  bottomConnectorHeight: 28,
                 ),
               ),
             ),
             const _BottomCorner(isLeft: true),
             const _BottomCorner(isLeft: false),
             SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(14, 28, 14, 0),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          _TopProfileBar(onNotificationTap: () {}),
-                          const SizedBox(height: 14),
-                          const _TitleBadge(),
-                          const SizedBox(height: 10),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 330),
-                            child: Image.asset(
-                              HomeScreen._boardAsset,
-                              fit: BoxFit.contain,
-                            ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final layout = _HomeLayout.from(constraints);
+
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: layout.scrollPadding,
+                          child: Column(
+                            children: [
+                              SizedBox(height: layout.topGap),
+                              _TopProfileBar(onNotificationTap: () {}),
+                              SizedBox(height: layout.profileTitleGap),
+                              const _TitleBadge(),
+                              SizedBox(height: layout.titleBoardGap),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: layout.boardMaxWidth,
+                                  maxHeight: layout.boardMaxHeight,
+                                ),
+                                child: Image.asset(
+                                  HomeScreen._boardAsset,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              SizedBox(height: layout.boardActionGap),
+                              _HomeActionButtons(
+                                buttonGap: layout.actionButtonGap,
+                                onPlayNow: () =>
+                                    GameSetupDialog.show(context),
+                              ),
+                              SizedBox(height: layout.actionUtilityGap),
+                              const _UtilityStrip(),
+                            ],
                           ),
-                          const SizedBox(height: 10),
-                          _HomeActionButtons(
-                            onPlayNow: () => GameSetupDialog.show(context),
-                          ),
-                          const SizedBox(height: 12),
-                          const _UtilityStrip(),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(14, 10, 14, 10),
-                    child: HomeBottomNavBar(),
-                  ),
-                ],
+                      Padding(
+                        padding: layout.bottomNavPadding,
+                        child: const HomeBottomNavBar(),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -104,9 +115,79 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _HomeActionButtons extends StatelessWidget {
-  const _HomeActionButtons({required this.onPlayNow});
+class _HomeLayout {
+  const _HomeLayout({
+    required this.scrollPadding,
+    required this.bottomNavPadding,
+    required this.topGap,
+    required this.profileTitleGap,
+    required this.titleBoardGap,
+    required this.boardActionGap,
+    required this.actionButtonGap,
+    required this.actionUtilityGap,
+    required this.boardMaxWidth,
+    required this.boardMaxHeight,
+  });
 
+  final EdgeInsets scrollPadding;
+  final EdgeInsets bottomNavPadding;
+  final double topGap;
+  final double profileTitleGap;
+  final double titleBoardGap;
+  final double boardActionGap;
+  final double actionButtonGap;
+  final double actionUtilityGap;
+  final double boardMaxWidth;
+  final double boardMaxHeight;
+
+  factory _HomeLayout.from(BoxConstraints constraints) {
+    final width = constraints.maxWidth;
+    final height = constraints.maxHeight;
+    final shortHeight = height < 720;
+    final compactWidth = width < 360;
+    final gapScale = (height / 760).clamp(0.78, 1.08).toDouble();
+    final horizontalPadding = (width * 0.036).clamp(10.0, 16.0).toDouble();
+    final bottomNavSidePadding = compactWidth
+        ? (width * 0.11).clamp(30.0, 42.0).toDouble()
+        : (width * 0.095).clamp(32.0, 42.0).toDouble();
+    final bottomNavBottomPadding = shortHeight
+        ? (height * 0.012).clamp(7.0, 10.0).toDouble()
+        : (height * 0.01).clamp(8.0, 12.0).toDouble();
+
+    return _HomeLayout(
+      scrollPadding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        shortHeight ? 18 : 40,
+        horizontalPadding,
+        shortHeight ? 4 : 0,
+      ),
+      bottomNavPadding: EdgeInsets.fromLTRB(
+        bottomNavSidePadding,
+        shortHeight ? 6 : 10,
+        bottomNavSidePadding,
+        bottomNavBottomPadding,
+      ),
+      topGap: (shortHeight ? 8 : 14) * gapScale,
+      profileTitleGap: (shortHeight ? 12 : 18) * gapScale,
+      titleBoardGap: (shortHeight ? 10 : 16) * gapScale,
+      boardActionGap: (shortHeight ? 12 : 16) * gapScale,
+      actionButtonGap: (shortHeight ? 12 : 14) * gapScale,
+      actionUtilityGap: (shortHeight ? 12 : 16) * gapScale,
+      boardMaxWidth: width - horizontalPadding * 2,
+      boardMaxHeight: (height * (shortHeight ? 0.28 : 0.35))
+          .clamp(compactWidth ? 190.0 : 220.0, 330.0)
+          .toDouble(),
+    );
+  }
+}
+
+class _HomeActionButtons extends StatelessWidget {
+  const _HomeActionButtons({
+    required this.buttonGap,
+    required this.onPlayNow,
+  });
+
+  final double buttonGap;
   final VoidCallback onPlayNow;
 
   @override
@@ -115,7 +196,7 @@ class _HomeActionButtons extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final primaryInset = (width * 0.13).clamp(12.0, 52.0);
-        final secondaryInset = (width * 0.09).clamp(8.0, 40.0);
+        final secondaryInset = (width * 0.04).clamp(4.0, 24.0);
         final secondaryGap = width < 340 ? 6.0 : 8.0;
 
         return Column(
@@ -127,7 +208,7 @@ class _HomeActionButtons extends StatelessWidget {
                 onPressed: onPlayNow,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: buttonGap),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: secondaryInset),
               child: Row(
@@ -164,15 +245,25 @@ class _TopProfileBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const _ProfileIdentity(),
-        const SizedBox(width: 8),
-        const Expanded(child: SizedBox.shrink()),
-        const CoinBalancePill(),
-        const SizedBox(width: 8),
-        _NotificationButton(onTap: onNotificationTap),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 360;
+        final gap = compact ? 6.0 : 8.0;
+
+        return Row(
+          children: [
+            _ProfileIdentity(compact: compact),
+            SizedBox(width: gap),
+            const Expanded(child: SizedBox.shrink()),
+            const CoinBalancePill(),
+            SizedBox(width: gap),
+            _NotificationButton(
+              onTap: onNotificationTap,
+              size: compact ? 34 : 36,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -182,86 +273,106 @@ class _TitleBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 330),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF5DF), Color(0xFFF6E3C0)],
-          ),
-          border: Border.all(color: const Color(0xFF8D4317), width: 2.2),
-          boxShadow: [
-            BoxShadow(
-              color: RoyalColors.darkRed.withValues(alpha: 0.24),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.clamp(260.0, 330.0).toDouble();
+        final scale = (width / 330).clamp(0.78, 1.0).toDouble();
+
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 330),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30 * scale),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFFFF5DF), Color(0xFFF6E3C0)],
+              ),
+              border: Border.all(
+                color: const Color(0xFF8D4317),
+                width: 2.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: RoyalColors.darkRed.withValues(alpha: 0.24),
+                  blurRadius: 10 * scale,
+                  offset: Offset(0, 4 * scale),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: const Padding(
-          padding: EdgeInsets.fromLTRB(20, 14, 20, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'FAMILY',
-                style: TextStyle(
-                  fontSize: 52,
-                  fontWeight: FontWeight.w900,
-                  color: RoyalColors.darkRed,
-                  height: 0.85,
-                ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                20 * scale,
+                14 * scale,
+                20 * scale,
+                12 * scale,
               ),
-              Text(
-                'GAME TIME',
-                style: TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w900,
-                  color: RoyalColors.darkRed,
-                  height: 0.85,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'GAME TIME',
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 44 * scale,
+                      fontWeight: FontWeight.w900,
+                      color: RoyalColors.darkRed,
+                      height: 0.85,
+                    ),
+                  ),
+                  SizedBox(height: 6 * scale),
+                  Text(
+                    'Fun · Together · Forever',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15 * scale,
+                      fontWeight: FontWeight.w700,
+                      color: RoyalColors.brown,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 6),
-              Text(
-                'Fun · Together · Forever',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: RoyalColors.brown,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
 class _ProfileIdentity extends StatelessWidget {
-  const _ProfileIdentity();
+  const _ProfileIdentity({required this.compact});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final avatarRadius = compact ? 23.0 : 28.0;
+    final editSize = compact ? 19.0 : 22.0;
+    final editIconSize = compact ? 11.0 : 13.0;
+    final textGap = compact ? 7.0 : 10.0;
+    final nameSize = compact ? 15.0 : 18.0;
+    final levelSize = compact ? 9.0 : 10.0;
+    final progressWidth = compact ? 88.0 : 116.0;
+    final progressHeight = compact ? 6.0 : 8.0;
+
     return Row(
       children: [
         Stack(
           clipBehavior: Clip.none,
           children: [
-            const CircleAvatar(
-              radius: 28,
-              backgroundColor: Color(0xFFE6C8A1),
-              backgroundImage: AssetImage(HomeScreen._avatarAsset),
+            CircleAvatar(
+              radius: avatarRadius,
+              backgroundColor: const Color(0xFFE6C8A1),
+              backgroundImage: const AssetImage(HomeScreen._avatarAsset),
             ),
             Positioned(
               right: -2,
               bottom: -1,
               child: Container(
-                height: 22,
-                width: 22,
+                height: editSize,
+                width: editSize,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8ECD2),
                   shape: BoxShape.circle,
@@ -270,23 +381,23 @@ class _ProfileIdentity extends StatelessWidget {
                     width: 1.2,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.edit,
-                  size: 13,
+                  size: editIconSize,
                   color: RoyalColors.brown,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(width: 10),
-        const Column(
+        SizedBox(width: textGap),
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Player',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: nameSize,
                 fontWeight: FontWeight.w900,
                 height: 0.9,
                 color: RoyalColors.darkBrown,
@@ -296,21 +407,22 @@ class _ProfileIdentity extends StatelessWidget {
             Text(
               'Level 12',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: levelSize,
                 fontWeight: FontWeight.w700,
                 color: RoyalColors.darkBrown,
               ),
             ),
-            SizedBox(height: 6),
+            SizedBox(height: compact ? 4 : 6),
             SizedBox(
-              width: 116,
+              width: progressWidth,
               child: ClipRRect(
-                borderRadius: BorderRadius.all(Radius.circular(4)),
+                borderRadius: const BorderRadius.all(Radius.circular(4)),
                 child: LinearProgressIndicator(
                   value: 0.48,
-                  minHeight: 8,
-                  backgroundColor: Color(0xFFE8D6B3),
-                  valueColor: AlwaysStoppedAnimation<Color>(RoyalColors.yellow),
+                  minHeight: progressHeight,
+                  backgroundColor: const Color(0xFFE8D6B3),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(RoyalColors.yellow),
                 ),
               ),
             ),
@@ -322,18 +434,22 @@ class _ProfileIdentity extends StatelessWidget {
 }
 
 class _NotificationButton extends StatelessWidget {
-  const _NotificationButton({required this.onTap});
+  const _NotificationButton({required this.onTap, required this.size});
 
   final VoidCallback onTap;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
+    final iconSize = size * 0.58;
+    final badgeSize = size * 0.22;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Container(
-          height: 36,
-          width: 36,
+          height: size,
+          width: size,
           decoration: BoxDecoration(
             color: const Color(0xFFFFF2DC),
             shape: BoxShape.circle,
@@ -355,14 +471,14 @@ class _NotificationButton extends StatelessWidget {
               customBorder: const CircleBorder(),
               onTap: onTap,
               child: SizedBox(
-                height: 36,
-                width: 36,
+                height: size,
+                width: size,
                 child: Center(
                   child: Transform.translate(
                     offset: const Offset(0, 0.5),
-                    child: const Icon(
+                    child: Icon(
                       Icons.notifications,
-                      size: 21,
+                      size: iconSize,
                       color: RoyalColors.darkBrown,
                     ),
                   ),
@@ -375,8 +491,8 @@ class _NotificationButton extends StatelessWidget {
           right: 3,
           top: 2,
           child: Container(
-            width: 8,
-            height: 8,
+            width: badgeSize,
+            height: badgeSize,
             decoration: const BoxDecoration(
               color: Color(0xFFE22D1B),
               shape: BoxShape.circle,
@@ -396,37 +512,77 @@ class _UtilityStrip extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
-        child: Container(
-          height: 72,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7E8CC),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: const Color(0xFFE8C06A),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: RoyalColors.brown.withValues(alpha: 0.36),
-                blurRadius: 10,
-                spreadRadius: -1,
-                offset: const Offset(0, 7),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final scale = (width / 400).clamp(0.82, 1.0).toDouble();
+            final height = 72 * scale;
+            final dividerInset = 14 * scale;
+
+            return Container(
+              height: height,
+              padding: EdgeInsets.symmetric(
+                horizontal: 6 * scale,
+                vertical: 4 * scale,
               ),
-            ],
-          ),
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _UtilityItem(icon: Icons.emoji_events, label: 'LEADERBOARD'),
-              VerticalDivider(indent: 14, endIndent: 14, width: 1),
-              _UtilityItem(icon: Icons.menu_book, label: 'RULES'),
-              VerticalDivider(indent: 14, endIndent: 14, width: 1),
-              _UtilityItem(icon: Icons.inventory_2, label: 'INVENTORY'),
-              VerticalDivider(indent: 14, endIndent: 14, width: 1),
-              _UtilityItem(icon: Icons.settings, label: 'SETTINGS'),
-            ],
-          ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7E8CC),
+                borderRadius: BorderRadius.circular(18 * scale),
+                border: Border.all(
+                  color: const Color(0xFFE8C06A),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: RoyalColors.brown.withValues(alpha: 0.36),
+                    blurRadius: 10 * scale,
+                    spreadRadius: -1,
+                    offset: Offset(0, 7 * scale),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _UtilityItem(
+                    icon: Icons.emoji_events,
+                    label: 'LEADERBOARD',
+                    scale: scale,
+                  ),
+                  VerticalDivider(
+                    indent: dividerInset,
+                    endIndent: dividerInset,
+                    width: 1,
+                  ),
+                  _UtilityItem(
+                    icon: Icons.menu_book,
+                    label: 'RULES',
+                    scale: scale,
+                  ),
+                  VerticalDivider(
+                    indent: dividerInset,
+                    endIndent: dividerInset,
+                    width: 1,
+                  ),
+                  _UtilityItem(
+                    icon: Icons.inventory_2,
+                    label: 'INVENTORY',
+                    scale: scale,
+                  ),
+                  VerticalDivider(
+                    indent: dividerInset,
+                    endIndent: dividerInset,
+                    width: 1,
+                  ),
+                  _UtilityItem(
+                    icon: Icons.settings,
+                    label: 'SETTINGS',
+                    scale: scale,
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -434,10 +590,15 @@ class _UtilityStrip extends StatelessWidget {
 }
 
 class _UtilityItem extends StatelessWidget {
-  const _UtilityItem({required this.icon, required this.label});
+  const _UtilityItem({
+    required this.icon,
+    required this.label,
+    required this.scale,
+  });
 
   final IconData icon;
   final String label;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
@@ -447,15 +608,19 @@ class _UtilityItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 36, color: RoyalColors.darkRed),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: RoyalColors.darkBrown,
+          Icon(icon, size: 36 * scale, color: RoyalColors.darkRed),
+          SizedBox(height: 2 * scale),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 10 * scale,
+                fontWeight: FontWeight.w900,
+                color: RoyalColors.darkBrown,
+              ),
             ),
           ),
         ],
@@ -473,14 +638,16 @@ class _BottomCorner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const offset = -_imageSize / 2;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final imageSize = (screenWidth * 0.42).clamp(126.0, _imageSize).toDouble();
+    final offset = -imageSize / 2;
 
     return Positioned(
       left: isLeft ? offset : null,
       right: isLeft ? null : offset,
       bottom: offset,
-      width: _imageSize,
-      height: _imageSize,
+      width: imageSize,
+      height: imageSize,
       child: IgnorePointer(
         child: Opacity(
           opacity: 0.94,

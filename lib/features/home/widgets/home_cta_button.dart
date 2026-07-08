@@ -93,12 +93,12 @@ class _SecondaryHomeButton extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
-        final iconSize = (maxWidth * 0.18).clamp(25.0, 34.0);
-        final labelSize = (maxWidth * 0.085).clamp(13.0, 16.0);
-        final subtitleSize = (maxWidth * 0.06).clamp(9.0, 11.0);
-        final horizontalPadding = (maxWidth * 0.06).clamp(7.0, 10.0);
-        final verticalPadding = (maxWidth * 0.08).clamp(11.0, 16.0);
-        final gap = (maxWidth * 0.04).clamp(5.0, 7.0);
+        final iconSize = (maxWidth * 0.18).clamp(28.0, 34.0);
+        final labelSize = (maxWidth * 0.085).clamp(14.0, 16.0);
+        final subtitleSize = (maxWidth * 0.06).clamp(10.0, 11.0);
+        final horizontalPadding = (maxWidth * 0.06).clamp(8.0, 10.0);
+        final verticalPadding = (maxWidth * 0.08).clamp(14.0, 16.0);
+        final gap = (maxWidth * 0.04).clamp(6.0, 7.0);
         final darker = Color.lerp(backgroundColor, Colors.black, 0.24)!;
         final lighter = Color.lerp(backgroundColor, Colors.white, 0.16)!;
 

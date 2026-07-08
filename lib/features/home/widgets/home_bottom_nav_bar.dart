@@ -18,7 +18,6 @@ class HomeBottomNavBar extends StatelessWidget {
   static const _circleTop = 0.0;
   static const _inactiveNavColor = Color(0xFFF9E9C7);
   static const _activeNavColor = Color(0xFFFFE39D);
-  static const _canvasHeight = _barTopInset + _barHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -27,81 +26,102 @@ class HomeBottomNavBar extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: _maxWidth),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final width = constraints.maxWidth;
+            final availableWidth = constraints.maxWidth;
+            final widthScale = (availableWidth / _maxWidth)
+                .clamp(0.68, 1.0)
+                .toDouble();
+            final controlScale = (availableWidth / _maxWidth)
+                .clamp(0.78, 1.0)
+                .toDouble();
+            final minWidth = math.min(220.0, availableWidth);
+            final width = (availableWidth * widthScale)
+                .clamp(minWidth, availableWidth)
+                .toDouble();
+            final barHeight = _barHeight * controlScale;
+            final circleSize = _circleSize * controlScale;
+            final barTopInset = _barTopInset * controlScale;
+            final canvasHeight = barTopInset + barHeight;
 
             return SizedBox(
-              height: _canvasHeight,
-              width: width,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    top: _barTopInset,
-                    left: 0,
-                    right: 0,
-                    height: _barHeight,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: _barColor,
-                        borderRadius: BorderRadius.circular(_barHeight / 2),
-                        border: Border.all(
-                          color: _borderColor,
-                          width: _borderWidth,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: _barTopInset,
-                    left: 0,
-                    right: 0,
-                    height: _barHeight,
-                    child: Row(
-                      children: const [
-                        Expanded(
-                          child: _NavItem(
-                            icon: Icons.people_alt,
-                            label: 'SOCIAL',
-                          ),
-                        ),
-                        SizedBox(width: _circleSize),
-                        Expanded(
-                          child: _NavItem(
-                            icon: Icons.shopping_bag,
-                            label: 'STORE',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: _circleTop,
-                    left: (width - _circleSize) / 2,
-                    width: _circleSize,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _ActiveNavCircle(
-                          size: _circleSize,
-                          borderColor: _borderColor,
-                          borderWidth: _circleBorderWidth,
-                        ),
-                        Transform.translate(
-                          offset: const Offset(0, -10),
-                          child: const Text(
-                            'HOME',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.2,
-                              color: _inactiveNavColor,
+              height: canvasHeight,
+              child: Center(
+                child: SizedBox(
+                  width: width,
+                  height: canvasHeight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        top: barTopInset,
+                        left: 0,
+                        right: 0,
+                        height: barHeight,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: _barColor,
+                            borderRadius: BorderRadius.circular(barHeight / 2),
+                            border: Border.all(
+                              color: _borderColor,
+                              width: _borderWidth * controlScale,
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Positioned(
+                        top: barTopInset,
+                        left: 0,
+                        right: 0,
+                        height: barHeight,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.people_alt,
+                                label: 'SOCIAL',
+                                scale: controlScale,
+                              ),
+                            ),
+                            SizedBox(width: circleSize),
+                            Expanded(
+                              child: _NavItem(
+                                icon: Icons.shopping_bag,
+                                label: 'STORE',
+                                scale: controlScale,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        top: _circleTop,
+                        left: (width - circleSize) / 2,
+                        width: circleSize,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _ActiveNavCircle(
+                              size: circleSize,
+                              borderColor: _borderColor,
+                              borderWidth: _circleBorderWidth * controlScale,
+                            ),
+                            Transform.translate(
+                              offset: Offset(0, -10 * controlScale),
+                              child: Text(
+                                'HOME',
+                                style: TextStyle(
+                                  fontSize: 10 * controlScale,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.2,
+                                  color: _inactiveNavColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             );
           },
@@ -135,7 +155,7 @@ class _ActiveNavCircle extends StatelessWidget {
         child: Center(
           child: Icon(
             Icons.home,
-            size: 38,
+            size: size * 0.53,
             color: HomeBottomNavBar._inactiveNavColor,
           ),
         ),
@@ -208,22 +228,24 @@ class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.icon,
     required this.label,
+    required this.scale,
   });
 
   final IconData icon;
   final String label;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 28, color: HomeBottomNavBar._activeNavColor),
-        const SizedBox(height: 3),
+        Icon(icon, size: 30 * scale, color: HomeBottomNavBar._activeNavColor),
+        SizedBox(height: 3 * scale),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
+          style: TextStyle(
+            fontSize: 10 * scale,
             fontWeight: FontWeight.w900,
             letterSpacing: 0.2,
             color: HomeBottomNavBar._activeNavColor,
