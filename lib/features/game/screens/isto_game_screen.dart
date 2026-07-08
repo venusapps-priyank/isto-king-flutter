@@ -29,7 +29,6 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   Map<int, Duration> _activeMoveDelays = {};
   TokenPairCandidate? _visiblePairCandidate;
   int? _pairPromptTokenId;
-  bool _showWinPreview = false;
 
   void _handleRollComplete(int playerIndex, int value) {
     if (_isMoveAnimating) return;
@@ -150,7 +149,6 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       _activeMoveDelays = {};
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
-      _showWinPreview = false;
     });
   }
 
@@ -220,8 +218,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                     280.0,
                     math.min(boardMaxWidth, boardMaxHeight),
                   );
-                  final showWinRanking =
-                      _turnController.isGameOver || _showWinPreview;
+                  final showWinRanking = _turnController.isGameOver;
 
                   return Stack(
                     children: [
@@ -233,13 +230,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                           children: [
                             SizedBox(
                               height: topBarHeight,
-                              child: TopGameBar(
-                                onSettingsTap: () {
-                                  setState(() {
-                                    _showWinPreview = !_showWinPreview;
-                                  });
-                                },
-                              ),
+                              child: const TopGameBar(),
                             ),
                             const SizedBox(height: gap),
                             SizedBox(
