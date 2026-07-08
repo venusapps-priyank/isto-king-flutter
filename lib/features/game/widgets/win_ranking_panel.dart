@@ -10,6 +10,9 @@ const _centerCardWidth = 200.0;
 const _sideCardWidth = 160.0;
 const _lowerCardWidth = 170.0;
 const _positionLockWidth = 500.0;
+const _bgTopInset = 0.17;
+const _bgBottomInset = 0.18;
+const _bgHorizontalInset = 0.015;
 
 class WinRankingPanel extends StatelessWidget {
   const WinRankingPanel({required this.playersByRank, super.key});
@@ -31,6 +34,18 @@ class WinRankingPanel extends StatelessWidget {
 
         return Stack(
           children: [
+            Positioned(
+              left: layoutLeftOffset + layoutWidth * _bgHorizontalInset,
+              top: height * _bgTopInset,
+              bottom: height * _bgBottomInset,
+              width: layoutWidth * (1 - _bgHorizontalInset * 2),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2A190D).withValues(alpha: 0.78),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
             Positioned(
               left: layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2,
               top: height * 0.16,

@@ -196,21 +196,6 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                     280.0,
                     math.min(boardMaxWidth, boardMaxHeight),
                   );
-                  const winOverlayTopInset = 0.52;
-                  const winOverlayBottomExtra = 0.22;
-                  const winOverlayVerticalShift = 0.18;
-                  final winOverlayTop = topBarHeight +
-                      gap +
-                      cardHeight * (winOverlayTopInset + winOverlayVerticalShift);
-                  final winOverlayHeight = cardHeight +
-                      gap +
-                      boardSize +
-                      gap +
-                      cardHeight -
-                      cardHeight * winOverlayTopInset +
-                      cardHeight * winOverlayBottomExtra;
-                  final winOverlayWidth = width - horizontalPadding * 2;
-                  final winOverlayLeft = horizontalPadding;
                   final showWinRanking =
                       _turnController.isGameOver || _showWinPreview;
 
@@ -279,20 +264,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                           ],
                         ),
                       ),
-                      if (showWinRanking) ...[
-                        Positioned(
-                          left: winOverlayLeft,
-                          top: winOverlayTop,
-                          width: winOverlayWidth,
-                          height: winOverlayHeight,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2A190D)
-                                  .withValues(alpha: 0.78),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
+                      if (showWinRanking)
                         Positioned.fill(
                           child: Padding(
                             padding: const EdgeInsets.all(10),
@@ -301,7 +273,6 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             ),
                           ),
                         ),
-                      ],
                     ],
                   );
                 },
