@@ -20,7 +20,9 @@ class HomeScreen extends StatelessWidget {
         child: Stack(
           children: [
             const Positioned.fill(
-              child: CustomPaint(painter: ScreenOrnamentPainter()),
+              child: CustomPaint(
+                painter: ScreenOrnamentPainter(topCornerScale: 0.5),
+              ),
             ),
             const _BottomCorner(isLeft: true),
             const _BottomCorner(isLeft: false),
@@ -230,17 +232,17 @@ class _ProfileIdentity extends StatelessWidget {
             Text(
               'Player',
               style: TextStyle(
-                fontSize: 38,
+                fontSize: 18,
                 fontWeight: FontWeight.w900,
                 height: 0.9,
                 color: RoyalColors.darkBrown,
               ),
             ),
-            SizedBox(height: 1),
+            SizedBox(height: 4),
             Text(
               'Level 12',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: RoyalColors.darkBrown,
               ),
@@ -275,32 +277,55 @@ class _NotificationButton extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Material(
-          color: const Color(0xFFF7EAD0),
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: const SizedBox(
-              height: 42,
-              width: 42,
-              child: Icon(
-                Icons.notifications_none,
-                color: RoyalColors.darkBrown,
+        Container(
+          height: 36,
+          width: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF2DC),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFFD8B98F),
+              width: 1.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: RoyalColors.brown.withValues(alpha: 0.16),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onTap,
+              child: SizedBox(
+                height: 36,
+                width: 36,
+                child: Center(
+                  child: Transform.translate(
+                    offset: const Offset(0, 0.5),
+                    child: const Icon(
+                      Icons.notifications,
+                      size: 21,
+                      color: RoyalColors.darkBrown,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
         Positioned(
-          right: 6,
-          top: 5,
+          right: 3,
+          top: 2,
           child: Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE22D1B),
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE22D1B),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1),
             ),
           ),
         ),

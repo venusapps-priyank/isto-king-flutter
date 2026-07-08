@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 
 class ScreenOrnamentPainter extends CustomPainter {
-  const ScreenOrnamentPainter();
+  const ScreenOrnamentPainter({
+    this.topCornerScale = 1.0,
+    this.bottomCornerScale = 1.18,
+  });
 
-  static const _bottomCornerScale = 1.18;
+  final double topCornerScale;
+  final double bottomCornerScale;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -17,7 +21,11 @@ class ScreenOrnamentPainter extends CustomPainter {
     ]) {
       final sx = corner.dx == 0 ? 1.0 : -1.0;
       final sy = corner.dy == 0 ? 1.0 : -1.0;
-      final scale = corner.dy == size.height ? _bottomCornerScale : 1.0;
+      final scale = corner.dy == size.height
+          ? bottomCornerScale
+          : corner.dy == 0
+          ? topCornerScale
+          : 1.0;
       canvas.save();
       canvas.translate(corner.dx, corner.dy);
       canvas.scale(sx * scale, sy * scale);
