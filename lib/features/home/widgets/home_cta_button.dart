@@ -1,0 +1,277 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:isto_king/core/theme/royal_colors.dart';
+
+class HomeCtaButton extends StatelessWidget {
+  const HomeCtaButton({
+    required this.label,
+    this.subtitle,
+    this.icon,
+    this.onPressed,
+    this.backgroundColor = RoyalColors.red,
+    this.textColor = Colors.white,
+    this.expanded = false,
+    super.key,
+  });
+
+  final String label;
+  final String? subtitle;
+  final IconData? icon;
+  final VoidCallback? onPressed;
+  final Color backgroundColor;
+  final Color textColor;
+  final bool expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPrimaryCta = subtitle == null && icon == null;
+    final isSecondaryCta = subtitle != null;
+
+    final content = isPrimaryCta
+        ? _PrimaryHomeButton(
+            label: label,
+            onPressed: onPressed,
+            textColor: textColor,
+          )
+        : isSecondaryCta
+        ? _SecondaryHomeButton(
+            label: label,
+            subtitle: subtitle!,
+            icon: icon,
+            onPressed: onPressed,
+            backgroundColor: backgroundColor,
+            textColor: textColor,
+          )
+        : FilledButton(
+            onPressed: onPressed,
+            style: FilledButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: expanded ? 14 : 24,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              backgroundColor: backgroundColor,
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.3,
+              ),
+            ),
+          );
+
+    if (!expanded) return content;
+
+    return Expanded(child: content);
+  }
+}
+
+class _SecondaryHomeButton extends StatelessWidget {
+  const _SecondaryHomeButton({
+    required this.label,
+    required this.subtitle,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.textColor,
+    this.icon,
+  });
+
+  final String label;
+  final String subtitle;
+  final IconData? icon;
+  final VoidCallback? onPressed;
+  final Color backgroundColor;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final darker = Color.lerp(backgroundColor, Colors.black, 0.24)!;
+    final lighter = Color.lerp(backgroundColor, Colors.white, 0.16)!;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFCE8AA), Color(0xFFD69A2D)],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(2.6),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFFFFF4CD).withValues(alpha: 0.72),
+              width: 1.8,
+            ),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [lighter, darker],
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(18),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, color: textColor, size: 34),
+                      const SizedBox(width: 7),
+                    ],
+                    Flexible(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.2,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.95),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w300,
+                              height: 1.05,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrimaryHomeButton extends StatelessWidget {
+  const _PrimaryHomeButton({
+    required this.label,
+    required this.onPressed,
+    required this.textColor,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Color textColor;
+
+  static TextStyle get _labelStyle => GoogleFonts.robotoSlab(
+        fontSize: 40,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFFFDF5E6),
+        letterSpacing: 0.6,
+        height: 1,
+      );
+
+  static const _pillRadius = 999.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_pillRadius),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFBE79B), Color(0xFFD59A2C)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: RoyalColors.darkRed.withValues(alpha: 0.22),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3.0),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_pillRadius),
+            border: Border.all(color: const Color(0xFFFFD879), width: 2.2),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFE32622), Color(0xFF7A0808)],
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(_pillRadius),
+              child: SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        left: 6,
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 18,
+                          color: const Color(0xFFFFD879),
+                        ),
+                      ),
+                      Positioned(
+                        right: 6,
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 18,
+                          color: const Color(0xFFFFD879),
+                        ),
+                      ),
+                      Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style: _labelStyle,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
