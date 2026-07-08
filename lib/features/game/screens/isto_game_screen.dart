@@ -11,7 +11,6 @@ import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 import 'package:isto_king/features/game/widgets/player_row.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
-import 'package:isto_king/features/game/widgets/win_action_buttons.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 
 class IstoGameScreen extends StatefulWidget {
@@ -295,15 +294,6 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             padding: const EdgeInsets.all(10),
                             child: WinRankingPanel(
                               playersByRank: _playersByRank(),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: compact ? 90 : 100,
-                          child: Center(
-                            child: WinActionButtons(
                               onPlayAgain: _resetGame,
                               onHome: _handleHomeTap,
                             ),

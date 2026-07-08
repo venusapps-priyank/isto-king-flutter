@@ -89,19 +89,22 @@ class _WinPillButton extends StatelessWidget {
         horizontal: _horizontalPadding,
         vertical: 13,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: _labelColor,
-            size: _iconSize,
-            fill: 1,
-            weight: 700,
-          ),
-          const SizedBox(width: _iconSpacing),
-          Text(label, style: _labelStyle),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: _labelColor,
+              size: _iconSize,
+              fill: 1,
+              weight: 700,
+            ),
+            const SizedBox(width: _iconSpacing),
+            Text(label, style: _labelStyle),
+          ],
+        ),
       ),
     );
 

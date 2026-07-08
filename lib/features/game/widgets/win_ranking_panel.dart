@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
+import 'package:isto_king/features/game/widgets/win_action_buttons.dart';
 
 const _matchResultBannerAsset = 'assets/images/match_result_banner.png';
 const _firstRankCrownAsset = 'assets/images/rank_crown_1.png';
@@ -17,11 +18,19 @@ const _bgTopInset = 0.17;
 const _headerTopInset = 0.03;
 const _bgBottomInset = 0.18;
 const _bgHorizontalInset = 0.015;
+const _buttonGapBelowBg = 12.0;
 
 class WinRankingPanel extends StatelessWidget {
-  const WinRankingPanel({required this.playersByRank, super.key});
+  const WinRankingPanel({
+    required this.playersByRank,
+    required this.onPlayAgain,
+    required this.onHome,
+    super.key,
+  });
 
   final List<PlayerInfo> playersByRank;
+  final VoidCallback onPlayAgain;
+  final VoidCallback onHome;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +44,14 @@ class WinRankingPanel extends StatelessWidget {
         final height = constraints.maxHeight;
         final layoutWidth = width > _positionLockWidth ? _positionLockWidth : width;
         final layoutLeftOffset = (width - layoutWidth) / 2;
+        final bgTopInset = height * _bgTopInset;
+        final bgWidth = width * (1 - _bgHorizontalInset * 2);
+        final baseBgWidth = _positionLockWidth * (1 - _bgHorizontalInset * 2);
+        final widthScale = (bgWidth / baseBgWidth).clamp(1.0, 1.6);
+        final boostedScale = (1 + ((widthScale - 1) * 1.65)).toDouble();
+        final bgBottomInset =
+            (height * _bgBottomInset / boostedScale).clamp(height * 0.08, height).toDouble();
+        final bgHeight = (height - bgTopInset - bgBottomInset).clamp(0.0, height).toDouble();
 
         return Stack(
           children: [
@@ -45,10 +62,10 @@ class WinRankingPanel extends StatelessWidget {
               child: _MatchResultHeader(width: layoutWidth),
             ),
             Positioned(
-              left: layoutLeftOffset + layoutWidth * _bgHorizontalInset,
-              top: height * _bgTopInset,
-              bottom: height * _bgBottomInset,
-              width: layoutWidth * (1 - _bgHorizontalInset * 2),
+              left: width * _bgHorizontalInset,
+              top: bgTopInset,
+              height: bgHeight,
+              width: bgWidth,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: const Color(0xFF2A190D).withValues(alpha: 0.78),
@@ -103,6 +120,17 @@ class WinRankingPanel extends StatelessWidget {
                 width: _sideCardWidth,
                 height: height * 0.30,
                 rankLabel: '3rd Place',
+              ),
+            ),
+            Positioned(
+              top: bgTopInset + bgHeight + _buttonGapBelowBg,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: WinActionButtons(
+                  onPlayAgain: onPlayAgain,
+                  onHome: onHome,
+                ),
               ),
             ),
           ],
