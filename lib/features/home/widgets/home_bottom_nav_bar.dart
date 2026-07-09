@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 
@@ -27,19 +28,22 @@ class HomeBottomNavBar extends StatelessWidget {
   static const _circleTop = 0.0;
   static const _inactiveNavColor = Color(0xFFF9E9C7);
   static const _activeNavColor = Color(0xFFFFE39D);
-  static const _animationDuration = Duration(milliseconds: 320);
-  static const _animationCurve = Curves.easeInOutCubic;
+  static const _animationDuration = Duration(milliseconds: 260);
 
-  static double circleLeftForTab(
+  static double _hiddenCircleTop(double barTopInset, double barHeight) {
+    return barTopInset + barHeight * 0.35;
+  }
+
+  static (double left, double width) slotBoundsForTab(
     HomeNavTab tab,
     double width,
     double circleSize,
   ) {
     final sideWidth = (width - circleSize) / 2;
     return switch (tab) {
-      HomeNavTab.rules => sideWidth / 2 - circleSize / 2,
-      HomeNavTab.home => (width - circleSize) / 2,
-      HomeNavTab.store => width - sideWidth / 2 - circleSize / 2,
+      HomeNavTab.rules => (0.0, sideWidth),
+      HomeNavTab.home => (sideWidth, circleSize),
+      HomeNavTab.store => (sideWidth + circleSize, sideWidth),
     };
   }
 
@@ -57,6 +61,22 @@ class HomeBottomNavBar extends StatelessWidget {
       HomeNavTab.home => 'HOME',
       HomeNavTab.store => 'STORE',
     };
+  }
+
+  static double inactiveLabelHeight(double scale) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: 'HOME',
+        style: TextStyle(
+          fontSize: 10 * scale,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    return painter.height;
   }
 
   @override
@@ -81,8 +101,7 @@ class HomeBottomNavBar extends StatelessWidget {
             final circleSize = _circleSize * controlScale;
             final barTopInset = _barTopInset * controlScale;
             final canvasHeight = barTopInset + barHeight;
-            final circleLeft =
-                circleLeftForTab(selectedTab, width, circleSize);
+            final hiddenCircleTop = _hiddenCircleTop(barTopInset, barHeight);
 
             return SizedBox(
               height: canvasHeight,
@@ -109,88 +128,25 @@ class HomeBottomNavBar extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: barTopInset,
-                        left: 0,
-                        right: 0,
-                        height: barHeight,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: selectedTab == HomeNavTab.rules
-                                  ? const SizedBox.shrink()
-                                  : _NavItem(
-                                      icon: Icons.menu_book,
-                                      label: 'RULES',
-                                      scale: controlScale,
-                                      onTap: () => onTabSelected
-                                          ?.call(HomeNavTab.rules),
-                                    ),
-                            ),
-                            SizedBox(
-                              width: circleSize,
-                              child: selectedTab == HomeNavTab.home
-                                  ? const SizedBox.shrink()
-                                  : _NavItem(
-                                      icon: Icons.home,
-                                      label: 'HOME',
-                                      scale: controlScale,
-                                      onTap: () =>
-                                          onTabSelected?.call(HomeNavTab.home),
-                                    ),
-                            ),
-                            Expanded(
-                              child: selectedTab == HomeNavTab.store
-                                  ? const SizedBox.shrink()
-                                  : _NavItem(
-                                      icon: Icons.shopping_bag,
-                                      label: 'STORE',
-                                      scale: controlScale,
-                                      onTap: () => onTabSelected
-                                          ?.call(HomeNavTab.store),
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      AnimatedPositioned(
-                        duration: _animationDuration,
-                        curve: _animationCurve,
-                        top: _circleTop,
-                        left: circleLeft,
-                        width: circleSize,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _ActiveNavCircle(
-                              size: circleSize,
-                              borderColor: _borderColor,
-                              borderWidth: _circleBorderWidth * controlScale,
-                              tab: selectedTab,
-                              onTap: () =>
-                                  onTabSelected?.call(selectedTab),
-                            ),
-                            Transform.translate(
-                              offset: Offset(0, -10 * controlScale),
-                              child: AnimatedSwitcher(
-                                duration: _animationDuration,
-                                switchInCurve: _animationCurve,
-                                switchOutCurve: _animationCurve,
-                                child: Text(
-                                  labelForTab(selectedTab),
-                                  key: ValueKey(selectedTab),
-                                  style: TextStyle(
-                                    fontSize: 10 * controlScale,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.2,
-                                    color: _activeNavColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ...HomeNavTab.values.map((tab) {
+                        final slotBounds =
+                            slotBoundsForTab(tab, width, circleSize);
+                        return _AnimatedTabSlot(
+                          tab: tab,
+                          isSelected: tab == selectedTab,
+                          slotLeft: slotBounds.$1,
+                          slotWidth: slotBounds.$2,
+                          canvasHeight: canvasHeight,
+                          barTopInset: barTopInset,
+                          barHeight: barHeight,
+                          circleSize: circleSize,
+                          hiddenCircleTop: hiddenCircleTop,
+                          controlScale: controlScale,
+                          borderColor: _borderColor,
+                          borderWidth: _circleBorderWidth * controlScale,
+                          onTap: () => onTabSelected?.call(tab),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -203,52 +159,174 @@ class HomeBottomNavBar extends StatelessWidget {
   }
 }
 
-class _ActiveNavCircle extends StatelessWidget {
-  const _ActiveNavCircle({
-    required this.size,
+class _AnimatedTabSlot extends StatefulWidget {
+  const _AnimatedTabSlot({
+    required this.tab,
+    required this.isSelected,
+    required this.slotLeft,
+    required this.slotWidth,
+    required this.canvasHeight,
+    required this.barTopInset,
+    required this.barHeight,
+    required this.circleSize,
+    required this.hiddenCircleTop,
+    required this.controlScale,
     required this.borderColor,
     required this.borderWidth,
-    required this.tab,
     this.onTap,
   });
 
-  final double size;
+  final HomeNavTab tab;
+  final bool isSelected;
+  final double slotLeft;
+  final double slotWidth;
+  final double canvasHeight;
+  final double barTopInset;
+  final double barHeight;
+  final double circleSize;
+  final double hiddenCircleTop;
+  final double controlScale;
   final Color borderColor;
   final double borderWidth;
-  final HomeNavTab tab;
   final VoidCallback? onTap;
 
   @override
+  State<_AnimatedTabSlot> createState() => _AnimatedTabSlotState();
+}
+
+class _AnimatedTabSlotState extends State<_AnimatedTabSlot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: HomeBottomNavBar._animationDuration,
+      vsync: this,
+      value: widget.isSelected ? 1 : 0,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedTabSlot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected != oldWidget.isSelected) {
+      if (widget.isSelected) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: CustomPaint(
-          painter: _ActiveCircleBorderPainter(
-            borderColor: borderColor,
-            borderWidth: borderWidth,
-          ),
-          child: Center(
-            child: AnimatedSwitcher(
-              duration: HomeBottomNavBar._animationDuration,
-              switchInCurve: HomeBottomNavBar._animationCurve,
-              switchOutCurve: HomeBottomNavBar._animationCurve,
-              transitionBuilder: (child, animation) {
-                return ScaleTransition(
-                  scale: animation,
-                  child: FadeTransition(opacity: animation, child: child),
-                );
-              },
-              child: Icon(
-                HomeBottomNavBar.iconForTab(tab),
-                key: ValueKey(tab),
-                size: size * 0.53,
-                color: HomeBottomNavBar._activeNavColor,
-              ),
-            ),
-          ),
+    final scale = widget.controlScale;
+    final inactiveIconSize = 30 * scale;
+    final activeIconSize = widget.circleSize * 0.53;
+    final inactiveGap = 3 * scale;
+    final inactiveLabelHeight = HomeBottomNavBar.inactiveLabelHeight(scale);
+    final inactiveContentHeight =
+        inactiveIconSize + inactiveGap + inactiveLabelHeight;
+    final inactiveBlockTop =
+        widget.barTopInset + (widget.barHeight - inactiveContentHeight) / 2;
+    final inactiveIconTop = inactiveBlockTop;
+    final inactiveLabelTop = inactiveBlockTop + inactiveIconSize + inactiveGap;
+    final activeIconTop = widget.circleSize * 0.235;
+    final activeLabelTop = widget.circleSize - 10 * scale;
+    final circleInsetLeft = (widget.slotWidth - widget.circleSize) / 2;
+
+    return Positioned(
+      left: widget.slotLeft,
+      top: 0,
+      width: widget.slotWidth,
+      height: widget.canvasHeight,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final t = _controller.value;
+            final circleProgress = Curves.easeOutCubic.transform(t);
+            final contentProgress = Curves.easeInOutCubic.transform(t);
+            final circleTop = lerpDouble(
+              widget.hiddenCircleTop,
+              HomeBottomNavBar._circleTop,
+              circleProgress,
+            )!;
+            final circleOpacity = Curves.easeIn.transform(t);
+            final circleScale = lerpDouble(0.78, 1, circleProgress)!;
+            final iconTop =
+                lerpDouble(inactiveIconTop, activeIconTop, contentProgress)!;
+            final labelTop =
+                lerpDouble(inactiveLabelTop, activeLabelTop, contentProgress)!;
+            final iconSize =
+                lerpDouble(inactiveIconSize, activeIconSize, contentProgress)!;
+            final contentColor = Color.lerp(
+              HomeBottomNavBar._inactiveNavColor,
+              HomeBottomNavBar._activeNavColor,
+              contentProgress,
+            )!;
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  top: circleTop,
+                  left: circleInsetLeft,
+                  width: widget.circleSize,
+                  height: widget.circleSize,
+                  child: Opacity(
+                    opacity: circleOpacity,
+                    child: Transform.scale(
+                      scale: circleScale,
+                      child: CustomPaint(
+                        size: Size(widget.circleSize, widget.circleSize),
+                        painter: _ActiveCircleBorderPainter(
+                          borderColor: widget.borderColor,
+                          borderWidth: widget.borderWidth,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: iconTop,
+                  left: 0,
+                  right: 0,
+                  height: iconSize,
+                  child: Icon(
+                    HomeBottomNavBar.iconForTab(widget.tab),
+                    size: iconSize,
+                    color: contentColor,
+                  ),
+                ),
+                Positioned(
+                  top: labelTop,
+                  left: 0,
+                  right: 0,
+                  child: Text(
+                    HomeBottomNavBar.labelForTab(widget.tab),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10 * scale,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
+                      color: contentColor,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -312,46 +390,5 @@ class _ActiveCircleBorderPainter extends CustomPainter {
   bool shouldRepaint(covariant _ActiveCircleBorderPainter oldDelegate) {
     return oldDelegate.borderColor != borderColor ||
         oldDelegate.borderWidth != borderWidth;
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.scale,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final double scale;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 30 * scale,
-            color: HomeBottomNavBar._inactiveNavColor,
-          ),
-          SizedBox(height: 3 * scale),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10 * scale,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.2,
-              color: HomeBottomNavBar._inactiveNavColor,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
