@@ -1,23 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/rules_catalog.dart';
-import 'package:isto_king/features/rules/models/game_rule_config.dart';
-import 'package:isto_king/features/rules/widgets/rules_action_bar.dart';
 import 'package:isto_king/features/rules/widgets/rules_row.dart';
 
 class RulesPanel extends StatelessWidget {
-  const RulesPanel({
-    required this.config,
-    required this.onRuleChanged,
-    required this.onReset,
-    required this.onSave,
-    super.key,
-  });
-
-  final GameRuleConfig config;
-  final void Function(String ruleId, bool value) onRuleChanged;
-  final VoidCallback onReset;
-  final VoidCallback onSave;
+  const RulesPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,22 +33,20 @@ class RulesPanel extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (var i = 0; i < gameRuleDefinitions.length; i++) ...[
-                  RulesRow(
-                    definition: gameRuleDefinitions[i],
-                    value: config.valueFor(gameRuleDefinitions[i].id),
-                    onChanged: (value) =>
-                        onRuleChanged(gameRuleDefinitions[i].id, value),
-                    iconSize: iconSize,
-                  ),
-                  if (i < gameRuleDefinitions.length - 1) const RulesDivider(),
+                for (var s = 0; s < gameRuleSections.length; s++) ...[
+                  if (s > 0) const SizedBox(height: 4),
+                  RulesSectionHeading(title: gameRuleSections[s].title),
+                  for (var r = 0; r < gameRuleSections[s].rules.length; r++) ...[
+                    RulesRow(
+                      rule: gameRuleSections[s].rules[r],
+                      iconSize: iconSize,
+                    ),
+                    if (r < gameRuleSections[s].rules.length - 1)
+                      const RulesDivider(),
+                  ],
                 ],
-                const SizedBox(height: 8),
-                RulesActionBar(
-                  onReset: onReset,
-                  onSave: onSave,
-                ),
               ],
             ),
           ),

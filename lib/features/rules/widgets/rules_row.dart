@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/rules/models/game_rule_definition.dart';
-import 'package:isto_king/features/rules/widgets/rules_controls.dart';
 import 'package:isto_king/features/rules/widgets/rules_rule_icon.dart';
 
 class RulesRow extends StatelessWidget {
   const RulesRow({
-    required this.definition,
-    required this.value,
-    required this.onChanged,
+    required this.rule,
     required this.iconSize,
     super.key,
   });
 
-  final GameRuleDefinition definition;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final GameRuleInfo rule;
   final double iconSize;
 
   @override
@@ -23,16 +18,16 @@ class RulesRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RulesRuleIcon(iconType: definition.iconType, size: iconSize),
+          RulesRuleIcon(iconType: rule.iconType, size: iconSize),
           SizedBox(width: iconSize * 0.22),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  definition.title,
+                  rule.title,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -42,28 +37,17 @@ class RulesRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  definition.description,
+                  rule.description,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: RoyalColors.brown.withValues(alpha: 0.82),
-                    height: 1.2,
+                    height: 1.25,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          switch (definition.controlType) {
-            GameRuleControlType.toggle => RulesToggleSwitch(
-              value: value,
-              onChanged: onChanged,
-            ),
-            GameRuleControlType.checkbox => RulesCheckbox(
-              value: value,
-              onChanged: onChanged,
-            ),
-          },
         ],
       ),
     );
@@ -82,6 +66,28 @@ class RulesDivider extends StatelessWidget {
         child: CustomPaint(
           painter: _DividerPainter(),
           size: Size.infinite,
+        ),
+      ),
+    );
+  }
+}
+
+class RulesSectionHeading extends StatelessWidget {
+  const RulesSectionHeading({required this.title, super.key});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.6,
+          color: RoyalColors.darkRed.withValues(alpha: 0.9),
         ),
       ),
     );

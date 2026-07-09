@@ -1,27 +1,35 @@
-enum GameRuleControlType { toggle, checkbox }
-
 enum GameRuleIconType {
   cowrie,
   redToken,
   greenToken,
+  yellowToken,
+  blueToken,
   pot,
   shield,
   overlappingTokens,
   dice,
+  trophy,
+  turnOrder,
 }
 
-class GameRuleDefinition {
-  const GameRuleDefinition({
-    required this.id,
+class GameRuleInfo {
+  const GameRuleInfo({
     required this.title,
     required this.description,
-    required this.controlType,
     required this.iconType,
   });
 
-  final String id;
   final String title;
   final String description;
-  final GameRuleControlType controlType;
   final GameRuleIconType iconType;
+}
+
+class GameRuleSection {
+  const GameRuleSection({
+    required this.title,
+    required this.rules,
+  });
+
+  final String title;
+  final List<GameRuleInfo> rules;
 }

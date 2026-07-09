@@ -29,41 +29,37 @@ class RulesRuleIcon extends StatelessWidget {
           rulesPotAsset,
           fit: BoxFit.contain,
         ),
-        GameRuleIconType.redToken => _TokenIcon(
-          color: RoyalColors.red,
-          starColor: RoyalColors.gold,
-        ),
-        GameRuleIconType.greenToken => _TokenIcon(
-          color: RoyalColors.green,
-          starColor: RoyalColors.gold,
-        ),
+        GameRuleIconType.redToken => _TokenIcon(color: RoyalColors.red),
+        GameRuleIconType.greenToken => _TokenIcon(color: RoyalColors.green),
+        GameRuleIconType.yellowToken => _TokenIcon(color: RoyalColors.yellow),
+        GameRuleIconType.blueToken => _TokenIcon(color: RoyalColors.blue),
         GameRuleIconType.shield => const _ShieldIcon(),
         GameRuleIconType.overlappingTokens => const _OverlappingTokensIcon(),
         GameRuleIconType.dice => const _DiceIcon(),
+        GameRuleIconType.trophy => const _TrophyIcon(),
+        GameRuleIconType.turnOrder => const _TurnOrderIcon(),
       },
     );
   }
 }
 
 class _TokenIcon extends StatelessWidget {
-  const _TokenIcon({required this.color, required this.starColor});
+  const _TokenIcon({required this.color});
 
   final Color color;
-  final Color starColor;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _TokenPainter(color: color, starColor: starColor),
+      painter: _TokenPainter(color: color),
     );
   }
 }
 
 class _TokenPainter extends CustomPainter {
-  const _TokenPainter({required this.color, required this.starColor});
+  const _TokenPainter({required this.color});
 
   final Color color;
-  final Color starColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -100,13 +96,13 @@ class _TokenPainter extends CustomPainter {
     );
 
     final starPath = _starPath(center, radius * 0.42, 5);
-    canvas.drawPath(starPath, Paint()..color = starColor);
+    canvas.drawPath(starPath, Paint()..color = RoyalColors.gold);
   }
 
   Path _starPath(Offset center, double radius, int points) {
     final path = Path();
     for (var i = 0; i < points * 2; i++) {
-      final angle = (i * 3.14159 / points) - 3.14159 / 2;
+      final angle = (i * math.pi / points) - math.pi / 2;
       final r = i.isEven ? radius : radius * 0.45;
       final point = Offset(
         center.dx + r * math.cos(angle),
@@ -131,9 +127,7 @@ class _ShieldIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _ShieldPainter(),
-    );
+    return CustomPaint(painter: _ShieldPainter());
   }
 }
 
@@ -170,14 +164,6 @@ class _ShieldPainter extends CustomPainter {
 
     final starCenter = Offset(w * 0.5, h * 0.42);
     canvas.drawCircle(starCenter, w * 0.12, Paint()..color = RoyalColors.red);
-    canvas.drawCircle(
-      starCenter,
-      w * 0.12,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.35)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
-    );
   }
 
   @override
@@ -192,16 +178,8 @@ class _OverlappingTokensIcon extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned(
-          left: 2,
-          top: 6,
-          child: _miniToken(RoyalColors.green),
-        ),
-        Positioned(
-          right: 2,
-          bottom: 6,
-          child: _miniToken(RoyalColors.red),
-        ),
+        Positioned(left: 2, top: 6, child: _miniToken(RoyalColors.green)),
+        Positioned(right: 2, bottom: 6, child: _miniToken(RoyalColors.red)),
       ],
     );
   }
@@ -213,10 +191,7 @@ class _OverlappingTokensIcon extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [
-            Color.lerp(color, Colors.white, 0.3)!,
-            color,
-          ],
+          colors: [Color.lerp(color, Colors.white, 0.3)!, color],
         ),
         boxShadow: [
           BoxShadow(
@@ -244,20 +219,65 @@ class _DiceIcon extends StatelessWidget {
           colors: [Color(0xFFFFF8EA), Color(0xFFE8D4A8)],
         ),
         border: Border.all(color: RoyalColors.brown.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: const Center(
-        child: Icon(
-          Icons.casino,
-          color: RoyalColors.darkRed,
-          size: 28,
-        ),
+        child: Icon(Icons.casino, color: RoyalColors.darkRed, size: 28),
+      ),
+    );
+  }
+}
+
+class _TrophyIcon extends StatelessWidget {
+  const _TrophyIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Icon(Icons.emoji_events_rounded, color: RoyalColors.gold, size: 34),
+    );
+  }
+}
+
+class _TurnOrderIcon extends StatelessWidget {
+  const _TurnOrderIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        _MiniDot(color: RoyalColors.blue),
+        SizedBox(width: 2),
+        Icon(Icons.arrow_forward_rounded, size: 10, color: RoyalColors.brown),
+        SizedBox(width: 2),
+        _MiniDot(color: RoyalColors.green),
+        SizedBox(width: 2),
+        Icon(Icons.arrow_forward_rounded, size: 10, color: RoyalColors.brown),
+        SizedBox(width: 2),
+        _MiniDot(color: RoyalColors.red),
+        SizedBox(width: 2),
+        Icon(Icons.arrow_forward_rounded, size: 10, color: RoyalColors.brown),
+        SizedBox(width: 2),
+        _MiniDot(color: RoyalColors.yellow),
+      ],
+    );
+  }
+}
+
+class _MiniDot extends StatelessWidget {
+  const _MiniDot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 1),
       ),
     );
   }

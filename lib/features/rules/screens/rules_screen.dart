@@ -5,7 +5,6 @@ import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_top_bar.dart';
-import 'package:isto_king/features/rules/models/game_rule_config.dart';
 import 'package:isto_king/features/rules/widgets/rules_panel.dart';
 import 'package:isto_king/features/rules/widgets/rules_subtitle.dart';
 import 'package:isto_king/features/rules/widgets/rules_title_badge.dart';
@@ -30,7 +29,6 @@ class RulesScreen extends StatefulWidget {
 }
 
 class _RulesScreenState extends State<RulesScreen> {
-  GameRuleConfig _config = GameRuleConfig.defaults;
   bool _didWarmAssets = false;
 
   Future<void> _onEditProfileTap(BuildContext context) async {
@@ -41,37 +39,6 @@ class _RulesScreenState extends State<RulesScreen> {
     if (updatedProfile != null) {
       widget.onProfileChanged?.call(updatedProfile);
     }
-  }
-
-  void _onRuleChanged(String ruleId, bool value) {
-    setState(() {
-      _config = _config.withValue(ruleId, value);
-    });
-  }
-
-  void _onReset() {
-    setState(() {
-      _config = GameRuleConfig.defaults;
-    });
-  }
-
-  void _onSave() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Rules saved successfully',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: RoyalColors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
   }
 
   @override
@@ -124,12 +91,7 @@ class _RulesScreenState extends State<RulesScreen> {
                         SizedBox(height: layout.sectionGap * 0.7),
                         const RulesSubtitle(),
                         SizedBox(height: layout.sectionGap),
-                        RulesPanel(
-                          config: _config,
-                          onRuleChanged: _onRuleChanged,
-                          onReset: _onReset,
-                          onSave: _onSave,
-                        ),
+                        const RulesPanel(),
                       ],
                     ),
                   );
