@@ -160,7 +160,7 @@ class _HomeLayout {
     return _HomeLayout(
       scrollPadding: EdgeInsets.fromLTRB(
         horizontalPadding,
-        shortHeight ? 18 : 40,
+        shortHeight ? 8 : 24,
         horizontalPadding,
         shortHeight ? 4 : 0,
       ),
@@ -170,7 +170,7 @@ class _HomeLayout {
         bottomNavSidePadding,
         bottomNavBottomPadding,
       ),
-      topGap: (shortHeight ? 8 : 14) * gapScale,
+      topGap: (shortHeight ? 4 : 8) * gapScale,
       profileTitleGap: (shortHeight ? 12 : 18) * gapScale,
       titleBoardGap: (shortHeight ? 10 : 16) * gapScale,
       boardActionGap: (shortHeight ? 12 : 16) * gapScale,
