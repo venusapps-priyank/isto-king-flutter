@@ -8,6 +8,7 @@ import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
+import 'package:isto_king/features/store/screens/store_screen.dart';
 import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -31,6 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
     'assets/images/cowrie_closed.png',
     'assets/images/rank_crown_1.png',
   ];
+
+  void _onNavTabSelected(HomeNavTab tab) {
+    if (tab == HomeNavTab.store) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => StoreScreen(profile: _profile),
+        ),
+      );
+    }
+  }
 
   Future<void> _onEditProfileTap() async {
     final updatedProfile = await EditPlayerDialog.show(
@@ -127,7 +138,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Padding(
                         padding: layout.bottomNavPadding,
-                        child: const HomeBottomNavBar(),
+                        child: HomeBottomNavBar(
+                          onTabSelected: _onNavTabSelected,
+                        ),
                       ),
                     ],
                   );

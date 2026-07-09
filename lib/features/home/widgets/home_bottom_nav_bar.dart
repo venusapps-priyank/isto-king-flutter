@@ -2,8 +2,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+enum HomeNavTab { rules, home, store }
+
 class HomeBottomNavBar extends StatelessWidget {
-  const HomeBottomNavBar({super.key});
+  const HomeBottomNavBar({
+    this.selectedTab = HomeNavTab.home,
+    this.onTabSelected,
+    super.key,
+  });
+
+  final HomeNavTab selectedTab;
+  final ValueChanged<HomeNavTab>? onTabSelected;
 
   static const _maxWidth = 340.0;
   static const _barHeight = 72.0;
@@ -79,6 +88,9 @@ class HomeBottomNavBar extends StatelessWidget {
                                 icon: Icons.menu_book,
                                 label: 'RULES',
                                 scale: controlScale,
+                                isActive: selectedTab == HomeNavTab.rules,
+                                onTap: () =>
+                                    onTabSelected?.call(HomeNavTab.rules),
                               ),
                             ),
                             SizedBox(width: circleSize),
@@ -87,6 +99,9 @@ class HomeBottomNavBar extends StatelessWidget {
                                 icon: Icons.shopping_bag,
                                 label: 'STORE',
                                 scale: controlScale,
+                                isActive: selectedTab == HomeNavTab.store,
+                                onTap: () =>
+                                    onTabSelected?.call(HomeNavTab.store),
                               ),
                             ),
                           ],
@@ -103,6 +118,9 @@ class HomeBottomNavBar extends StatelessWidget {
                               size: circleSize,
                               borderColor: _borderColor,
                               borderWidth: _circleBorderWidth * controlScale,
+                              isActive: selectedTab == HomeNavTab.home,
+                              onTap: () =>
+                                  onTabSelected?.call(HomeNavTab.home),
                             ),
                             Transform.translate(
                               offset: Offset(0, -10 * controlScale),
@@ -136,27 +154,36 @@ class _ActiveNavCircle extends StatelessWidget {
     required this.size,
     required this.borderColor,
     required this.borderWidth,
+    required this.isActive,
+    this.onTap,
   });
 
   final double size;
   final Color borderColor;
   final double borderWidth;
+  final bool isActive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(
-        painter: _ActiveCircleBorderPainter(
-          borderColor: borderColor,
-          borderWidth: borderWidth,
-        ),
-        child: Center(
-          child: Icon(
-            Icons.home,
-            size: size * 0.53,
-            color: HomeBottomNavBar._inactiveNavColor,
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _ActiveCircleBorderPainter(
+            borderColor: borderColor,
+            borderWidth: borderWidth,
+          ),
+          child: Center(
+            child: Icon(
+              Icons.home,
+              size: size * 0.53,
+              color: isActive
+                  ? HomeBottomNavBar._activeNavColor
+                  : HomeBottomNavBar._inactiveNavColor,
+            ),
           ),
         ),
       ),
@@ -229,29 +256,40 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.scale,
+    required this.isActive,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
   final double scale;
+  final bool isActive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 30 * scale, color: HomeBottomNavBar._activeNavColor),
-        SizedBox(height: 3 * scale),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10 * scale,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.2,
-            color: HomeBottomNavBar._activeNavColor,
+    final color = isActive
+        ? HomeBottomNavBar._activeNavColor
+        : HomeBottomNavBar._inactiveNavColor;
+
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 30 * scale, color: color),
+          SizedBox(height: 3 * scale),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10 * scale,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.2,
+              color: color,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

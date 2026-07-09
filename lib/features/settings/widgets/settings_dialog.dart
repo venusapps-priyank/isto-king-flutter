@@ -21,10 +21,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
   bool _soundEffects = true;
   bool _backgroundMusic = true;
   bool _vibration = true;
-  String _boardTheme = 'Classic';
+  // String _boardTheme = 'Classic';
   String _language = 'English';
 
-  static const _boardThemes = ['Classic', 'Royal', 'Night'];
+  // static const _boardThemes = ['Classic', 'Royal', 'Night'];
   static const _languages = ['English', 'Hindi', 'Marathi'];
 
   void _resetToDefaults() {
@@ -32,7 +32,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
       _soundEffects = true;
       _backgroundMusic = true;
       _vibration = true;
-      _boardTheme = 'Classic';
+      // _boardTheme = 'Classic';
       _language = 'English';
     });
   }
@@ -99,17 +99,17 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ),
           const _SettingsDivider(),
           const _SettingsSectionLabel('OTHER'),
-          _SettingsNavRow(
-            icon: Icons.palette_rounded,
-            label: 'Board Theme',
-            value: _boardTheme,
-            onTap: () => _pickOption(
-              title: 'Board Theme',
-              options: _boardThemes,
-              current: _boardTheme,
-              onSelected: (v) => setState(() => _boardTheme = v),
-            ),
-          ),
+          // _SettingsNavRow(
+          //   icon: Icons.palette_rounded,
+          //   label: 'Board Theme',
+          //   value: _boardTheme,
+          //   onTap: () => _pickOption(
+          //     title: 'Board Theme',
+          //     options: _boardThemes,
+          //     current: _boardTheme,
+          //     onSelected: (v) => setState(() => _boardTheme = v),
+          //   ),
+          // ),
           _SettingsNavRow(
             icon: Icons.language_rounded,
             label: 'Language',
