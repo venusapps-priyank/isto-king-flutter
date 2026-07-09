@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/data/rules_assets.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_top_bar.dart';
+import 'package:isto_king/features/rules/models/game_rule_config.dart';
+import 'package:isto_king/features/rules/widgets/rules_panel.dart';
+import 'package:isto_king/features/rules/widgets/rules_subtitle.dart';
+import 'package:isto_king/features/rules/widgets/rules_title_badge.dart';
 import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
 class RulesScreen extends StatefulWidget {
@@ -25,6 +30,9 @@ class RulesScreen extends StatefulWidget {
 }
 
 class _RulesScreenState extends State<RulesScreen> {
+  GameRuleConfig _config = GameRuleConfig.defaults;
+  bool _didWarmAssets = false;
+
   Future<void> _onEditProfileTap(BuildContext context) async {
     final updatedProfile = await EditPlayerDialog.show(
       context,
@@ -32,6 +40,48 @@ class _RulesScreenState extends State<RulesScreen> {
     );
     if (updatedProfile != null) {
       widget.onProfileChanged?.call(updatedProfile);
+    }
+  }
+
+  void _onRuleChanged(String ruleId, bool value) {
+    setState(() {
+      _config = _config.withValue(ruleId, value);
+    });
+  }
+
+  void _onReset() {
+    setState(() {
+      _config = GameRuleConfig.defaults;
+    });
+  }
+
+  void _onSave() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Rules saved successfully',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: RoyalColors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didWarmAssets) return;
+    _didWarmAssets = true;
+
+    for (final asset in [rulesCowrieAsset, rulesPotAsset]) {
+      precacheImage(AssetImage(asset), context);
     }
   }
 
@@ -70,9 +120,16 @@ class _RulesScreenState extends State<RulesScreen> {
                           onSettingsTap: () => SettingsDialog.show(context),
                         ),
                         SizedBox(height: layout.sectionGap),
-                        const _RulesTitleBadge(),
+                        const RulesTitleBadge(),
+                        SizedBox(height: layout.sectionGap * 0.7),
+                        const RulesSubtitle(),
                         SizedBox(height: layout.sectionGap),
-                        const _RulesPlaceholder(),
+                        RulesPanel(
+                          config: _config,
+                          onRuleChanged: _onRuleChanged,
+                          onReset: _onReset,
+                          onSave: _onSave,
+                        ),
                       ],
                     ),
                   );
@@ -142,58 +199,6 @@ class _RulesLayout {
       bottomGap: embedded
           ? (shortHeight ? 120.0 : 132.0)
           : (shortHeight ? 24.0 : 32.0),
-    );
-  }
-}
-
-class _RulesTitleBadge extends StatelessWidget {
-  const _RulesTitleBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
-      decoration: BoxDecoration(
-        color: RoyalColors.darkRed,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: RoyalColors.gold, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: const Text(
-        'RULES',
-        style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 2,
-          color: RoyalColors.gold,
-        ),
-      ),
-    );
-  }
-}
-
-class _RulesPlaceholder extends StatelessWidget {
-  const _RulesPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 32),
-      child: Text(
-        'Game rules coming soon.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: RoyalColors.darkRed,
-        ),
-      ),
     );
   }
 }
