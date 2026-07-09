@@ -14,6 +14,7 @@ import 'package:isto_king/features/game/widgets/pause_game_dialog.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 
 class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({
@@ -43,6 +44,10 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     return GameTurnController(
       activePlayers: widget.setup.activePlayerIndexSet,
       mustKillForInner: widget.setup.rulesSettings.mustKillForInner,
+      killPermissionReset:
+          widget.setup.rulesSettings.isSettingActive(
+            GameRuleSettingKey.killPermissionReset,
+          ),
     );
   }
 

@@ -48,6 +48,7 @@ class GameTurnController {
   GameTurnController({
     Set<int>? activePlayers,
     this.mustKillForInner = true,
+    this.killPermissionReset = true,
   }) : activePlayerIndexes = activePlayers ?? const {0, 1, 2, 3} {
     _deactivateInactivePlayers();
     currentPlayerIndex = turnOrder.firstWhere(
@@ -58,6 +59,7 @@ class GameTurnController {
 
   final Set<int> activePlayerIndexes;
   final bool mustKillForInner;
+  final bool killPermissionReset;
   late int currentPlayerIndex;
   final List<int?> lastRolls = List<int?>.filled(4, null);
   final List<PlayerGameState> playerStates = List<PlayerGameState>.generate(
@@ -561,6 +563,8 @@ class GameTurnController {
   }
 
   void _resetKillPermissionIfAllAtStart(int playerIndex) {
+    if (!mustKillForInner || !killPermissionReset) return;
+
     final allAtStart = _tokens
         .where((token) => token.playerIndex == playerIndex)
         .every((token) => token.isAtStart);

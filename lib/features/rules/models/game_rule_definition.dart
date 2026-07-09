@@ -18,12 +18,14 @@ class GameRuleInfo {
     required this.description,
     required this.iconType,
     this.settingKey,
+    this.requiresSettingKey,
   });
 
   final String title;
   final String description;
   final GameRuleIconType iconType;
   final String? settingKey;
+  final String? requiresSettingKey;
 
   bool get isToggleable => settingKey != null;
 }

@@ -9,6 +9,7 @@ class RulesRow extends StatelessWidget {
     required this.rule,
     required this.iconSize,
     this.isEnabled = true,
+    this.isCheckboxEnabled = true,
     this.onEnabledChanged,
     super.key,
   });
@@ -16,6 +17,7 @@ class RulesRow extends StatelessWidget {
   final GameRuleInfo rule;
   final double iconSize;
   final bool isEnabled;
+  final bool isCheckboxEnabled;
   final ValueChanged<bool>? onEnabledChanged;
 
   @override
@@ -63,6 +65,7 @@ class RulesRow extends StatelessWidget {
             const SizedBox(width: 8),
             RulesCheckbox(
               value: isEnabled,
+              enabled: isCheckboxEnabled,
               onChanged: onEnabledChanged ?? (_) {},
             ),
           ],

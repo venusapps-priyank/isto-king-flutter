@@ -87,6 +87,8 @@ const gameRuleSections = [
         description:
             'If all your tokens return home, you must capture again to re-enter the inner path.',
         iconType: GameRuleIconType.pot,
+        settingKey: GameRuleSettingKey.killPermissionReset,
+        requiresSettingKey: GameRuleSettingKey.mustKillForInner,
       ),
     ],
   ),

@@ -50,18 +50,23 @@ class RulesPanel extends StatelessWidget {
                     Builder(
                       builder: (context) {
                         final rule = gameRuleSections[s].rules[r];
-                        final isEnabled = rule.settingKey == null
+                        final settingKey = rule.settingKey;
+                        final isCheckboxEnabled = settingKey == null
+                            ? false
+                            : settings.isSettingToggleEnabled(settingKey);
+                        final isEnabled = settingKey == null
                             ? true
-                            : settings.valueFor(rule.settingKey!);
+                            : settings.isSettingActive(settingKey);
 
                         return RulesRow(
                           rule: rule,
                           iconSize: iconSize,
                           isEnabled: isEnabled,
-                          onEnabledChanged: rule.settingKey == null
-                              ? null
-                              : (value) =>
-                                  onSettingChanged(rule.settingKey!, value),
+                          isCheckboxEnabled: isCheckboxEnabled,
+                          onEnabledChanged: isCheckboxEnabled
+                              ? (value) =>
+                                  onSettingChanged(settingKey, value)
+                              : null,
                         );
                       },
                     ),
