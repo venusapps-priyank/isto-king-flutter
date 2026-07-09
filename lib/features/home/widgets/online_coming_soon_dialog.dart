@@ -17,7 +17,7 @@ class OnlineComingSoonDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RoyalDialog(
-      title: 'ONLINE MATCH',
+      title: 'ONLINE',
       maxWidth: 360,
       child: Column(
         mainAxisSize: MainAxisSize.min,
