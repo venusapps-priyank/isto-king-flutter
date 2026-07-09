@@ -103,45 +103,58 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
 
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Padding(
+                        padding: layout.headerPadding,
+                        child: HomeTopBar(
+                          profile: _profile,
+                          onEditProfileTap: _onEditProfileTap,
+                          onSettingsTap: () =>
+                              SettingsDialog.show(context),
+                        ),
+                      ),
                       Expanded(
-                        child: SingleChildScrollView(
-                          padding: layout.scrollPadding,
-                          child: Column(
-                            children: [
-                              SizedBox(height: layout.topGap),
-                              HomeTopBar(
-                                profile: _profile,
-                                onEditProfileTap: _onEditProfileTap,
-                                onSettingsTap: () =>
-                                    SettingsDialog.show(context),
-                              ),
-                              SizedBox(height: layout.profileTitleGap),
-                              const _TitleBadge(),
-                              SizedBox(height: layout.titleBoardGap),
-                              ConstrainedBox(
+                        child: LayoutBuilder(
+                          builder: (context, contentConstraints) {
+                            return SingleChildScrollView(
+                              padding: layout.contentPadding,
+                              child: ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  maxWidth: layout.boardMaxWidth,
-                                  maxHeight: layout.boardMaxHeight,
+                                  minHeight: contentConstraints.maxHeight,
                                 ),
-                                child: Image.asset(
-                                  HomeScreen._boardAsset,
-                                  fit: BoxFit.contain,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: layout.profileTitleGap),
+                                    const _TitleBadge(),
+                                    SizedBox(height: layout.titleBoardGap),
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: layout.boardMaxWidth,
+                                        maxHeight: layout.boardMaxHeight,
+                                      ),
+                                      child: Image.asset(
+                                        HomeScreen._boardAsset,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    SizedBox(height: layout.boardActionGap),
+                                    _HomeActionButtons(
+                                      buttonGap: layout.actionButtonGap,
+                                      onPlayNow: () => GameSetupDialog.show(
+                                        context,
+                                        profile: _profile,
+                                        rulesSettings: widget.rulesSettings,
+                                      ),
+                                    ),
+                                    if (widget.embedded)
+                                      SizedBox(height: layout.bottomGap),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: layout.boardActionGap),
-                              _HomeActionButtons(
-                                buttonGap: layout.actionButtonGap,
-                                onPlayNow: () => GameSetupDialog.show(
-                                  context,
-                                  profile: _profile,
-                                  rulesSettings: widget.rulesSettings,
-                                ),
-                              ),
-                              if (widget.embedded)
-                                SizedBox(height: layout.bottomGap),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -158,9 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _HomeLayout {
   const _HomeLayout({
-    required this.scrollPadding,
-    required this.bottomNavPadding,
-    required this.topGap,
+    required this.headerPadding,
+    required this.contentPadding,
     required this.profileTitleGap,
     required this.titleBoardGap,
     required this.boardActionGap,
@@ -170,9 +182,8 @@ class _HomeLayout {
     required this.bottomGap,
   });
 
-  final EdgeInsets scrollPadding;
-  final EdgeInsets bottomNavPadding;
-  final double topGap;
+  final EdgeInsets headerPadding;
+  final EdgeInsets contentPadding;
   final double profileTitleGap;
   final double titleBoardGap;
   final double boardActionGap;
@@ -181,6 +192,15 @@ class _HomeLayout {
   final double boardMaxHeight;
   final double bottomGap;
 
+  static double _sectionGap(
+    double height, {
+    required double ratio,
+    required double min,
+    required double max,
+  }) {
+    return (height * ratio).clamp(min, max).toDouble();
+  }
+
   factory _HomeLayout.from(
     BoxConstraints constraints, {
     bool embedded = false,
@@ -188,42 +208,52 @@ class _HomeLayout {
     final width = constraints.maxWidth;
     final height = constraints.maxHeight;
     final shortHeight = height < 720;
+    final veryShortHeight = height < 620;
     final compactWidth = width < 360;
-    final narrowWidth = width < 430;
-    final gapScale = (height / 760).clamp(0.78, 1.08).toDouble();
     final horizontalPadding = (width * 0.036).clamp(10.0, 16.0).toDouble();
-    final bottomNavSidePadding = compactWidth
-        ? (width * 0.16).clamp(42.0, 60.0).toDouble()
-        : narrowWidth
-            ? (width * 0.13).clamp(42.0, 56.0).toDouble()
-            : (width * 0.095).clamp(32.0, 42.0).toDouble();
-    final bottomNavBottomPadding = shortHeight
-        ? (height * 0.012).clamp(7.0, 10.0).toDouble()
-        : (height * 0.01).clamp(8.0, 12.0).toDouble();
 
     return _HomeLayout(
-      scrollPadding: EdgeInsets.fromLTRB(
+      headerPadding: EdgeInsets.fromLTRB(
         horizontalPadding,
         shortHeight ? 8 : 24,
         horizontalPadding,
-        shortHeight ? 4 : 0,
+        0,
       ),
-      bottomNavPadding: EdgeInsets.fromLTRB(
-        bottomNavSidePadding,
-        shortHeight ? 6 : 10,
-        bottomNavSidePadding,
-        bottomNavBottomPadding,
+      contentPadding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        0,
+        horizontalPadding,
+        embedded ? (shortHeight ? 8 : 12) : 0,
       ),
-      topGap: (shortHeight ? 4 : 8) * gapScale,
-      profileTitleGap: (shortHeight ? 12 : 18) * gapScale,
-      titleBoardGap: (shortHeight ? 10 : 16) * gapScale,
-      boardActionGap: (shortHeight ? 12 : 16) * gapScale,
-      actionButtonGap: (shortHeight ? 12 : 14) * gapScale,
+      profileTitleGap: _sectionGap(
+        height,
+        ratio: veryShortHeight ? 0.018 : shortHeight ? 0.024 : 0.032,
+        min: veryShortHeight ? 8 : shortHeight ? 12 : 18,
+        max: veryShortHeight ? 14 : shortHeight ? 22 : 36,
+      ),
+      titleBoardGap: _sectionGap(
+        height,
+        ratio: veryShortHeight ? 0.022 : shortHeight ? 0.03 : 0.042,
+        min: veryShortHeight ? 10 : shortHeight ? 14 : 20,
+        max: veryShortHeight ? 18 : shortHeight ? 28 : 44,
+      ),
+      boardActionGap: _sectionGap(
+        height,
+        ratio: veryShortHeight ? 0.022 : shortHeight ? 0.03 : 0.042,
+        min: veryShortHeight ? 10 : shortHeight ? 14 : 20,
+        max: veryShortHeight ? 18 : shortHeight ? 28 : 44,
+      ),
+      actionButtonGap: _sectionGap(
+        height,
+        ratio: veryShortHeight ? 0.018 : shortHeight ? 0.022 : 0.028,
+        min: veryShortHeight ? 8 : shortHeight ? 10 : 14,
+        max: veryShortHeight ? 14 : shortHeight ? 18 : 28,
+      ),
       boardMaxWidth: width - horizontalPadding * 2,
-      boardMaxHeight: (height * (shortHeight ? 0.28 : 0.35))
-          .clamp(compactWidth ? 190.0 : 220.0, 330.0)
+      boardMaxHeight: (height * (veryShortHeight ? 0.24 : shortHeight ? 0.28 : 0.34))
+          .clamp(compactWidth ? 170.0 : 200.0, 330.0)
           .toDouble(),
-      bottomGap: embedded ? (shortHeight ? 100.0 : 112.0) : 0,
+      bottomGap: embedded ? (shortHeight ? 96.0 : 108.0) : 0,
     );
   }
 }
