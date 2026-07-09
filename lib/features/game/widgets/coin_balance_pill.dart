@@ -3,7 +3,9 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/widgets/coin_icon.dart';
 
 class CoinBalancePill extends StatelessWidget {
-  const CoinBalancePill({super.key});
+  const CoinBalancePill({this.onAddTap, super.key});
+
+  final VoidCallback? onAddTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +27,12 @@ class CoinBalancePill extends StatelessWidget {
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CoinIcon(size: 24),
-          SizedBox(width: 6),
-          Text(
+          const CoinIcon(size: 24),
+          const SizedBox(width: 6),
+          const Text(
             '120',
             style: TextStyle(
               color: RoyalColors.darkBrown,
@@ -38,11 +40,14 @@ class CoinBalancePill extends StatelessWidget {
               fontSize: 17,
             ),
           ),
-          SizedBox(width: 7),
-          CircleAvatar(
-            radius: 13,
-            backgroundColor: Color(0xFF3AAA45),
-            child: Icon(Icons.add, color: Colors.white, size: 19),
+          const SizedBox(width: 7),
+          GestureDetector(
+            onTap: onAddTap,
+            child: const CircleAvatar(
+              radius: 13,
+              backgroundColor: Color(0xFF3AAA45),
+              child: Icon(Icons.add, color: Colors.white, size: 19),
+            ),
           ),
         ],
       ),

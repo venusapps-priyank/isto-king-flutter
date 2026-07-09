@@ -37,6 +37,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   Map<int, Duration> _activeMoveDelays = {};
   TokenPairCandidate? _visiblePairCandidate;
   int? _pairPromptTokenId;
+  bool _showWinRankingPreview = false;
 
   GameTurnController _createTurnController() {
     return GameTurnController(
@@ -174,6 +175,20 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       _activeMoveDelays = {};
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
+      _showWinRankingPreview = false;
+    });
+  }
+
+  void _showWinPanelPreview() {
+    if (_turnController.isGameOver) return;
+    setState(() {
+      _showWinRankingPreview = true;
+    });
+  }
+
+  void _dismissWinPanelPreview() {
+    setState(() {
+      _showWinRankingPreview = false;
     });
   }
 
@@ -276,7 +291,9 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                     280.0,
                     math.min(boardMaxWidth, boardMaxHeight),
                   );
-                  final showWinRanking = _turnController.isGameOver;
+                  final showWinRanking =
+                      _turnController.isGameOver || _showWinRankingPreview;
+                  final isActualGameOver = _turnController.isGameOver;
 
                   return Stack(
                     children: [
@@ -346,6 +363,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                               child: TopGameBar(
                                 onBackTap: _handleHomeTap,
                                 onSettingsTap: _handleSettingsTap,
+                                onCoinAddTap: _showWinPanelPreview,
                               ),
                             ),
                           ],
@@ -357,7 +375,9 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                             padding: const EdgeInsets.all(10),
                             child: WinRankingPanel(
                               playersByRank: _playersByRank(),
-                              onPlayAgain: _resetGame,
+                              onPlayAgain: isActualGameOver
+                                  ? _resetGame
+                                  : _dismissWinPanelPreview,
                               onHome: _handleHomeTap,
                             ),
                           ),
