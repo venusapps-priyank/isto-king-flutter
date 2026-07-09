@@ -3,16 +3,22 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/core/widgets/royal_dialog.dart';
 import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/screens/isto_game_screen.dart';
+import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/player_count_icons.dart';
 
 class GameSetupDialog extends StatefulWidget {
-  const GameSetupDialog({super.key});
+  const GameSetupDialog({required this.profile, super.key});
 
-  static Future<void> show(BuildContext context) {
+  final UserProfile profile;
+
+  static Future<void> show(
+    BuildContext context, {
+    required UserProfile profile,
+  }) {
     return showRoyalDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (_) => const GameSetupDialog(),
+      builder: (_) => GameSetupDialog(profile: profile),
     );
   }
 
@@ -35,6 +41,8 @@ class _GameSetupDialogState extends State<GameSetupDialog> {
     final setup = GameSetupConfig(
       playerCount: _playerCount,
       chipColor: _chipColor,
+      humanPlayerName: widget.profile.name,
+      humanPlayerAvatarAsset: widget.profile.avatarAsset,
     );
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(

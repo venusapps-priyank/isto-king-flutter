@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/data/avatar_assets.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
+import 'package:isto_king/features/home/models/user_profile.dart';
+import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
@@ -10,7 +13,6 @@ import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  static const _avatarAsset = 'assets/avatar/avatar-1.png';
   static const _boardAsset = 'assets/images/full-board.png';
   static const _cornerAsset = 'assets/images/corner_mandala.png';
 
@@ -20,17 +22,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _didWarmGameAssets = false;
+  UserProfile _profile = UserProfile.defaultProfile;
 
   static const _gameEntryAssets = [
-    HomeScreen._avatarAsset,
-    'assets/avatar/avatar-f-1.png',
-    'assets/avatar/avatar-2.png',
-    'assets/avatar/avatar-f-2.png',
+    ...avatarAssets,
     'assets/images/corner_mandala.png',
     'assets/images/cowrie_open.png',
     'assets/images/cowrie_closed.png',
     'assets/images/rank_crown_1.png',
   ];
+
+  Future<void> _onEditProfileTap() async {
+    final updatedProfile = await EditPlayerDialog.show(
+      context,
+      initialProfile: _profile,
+    );
+    if (updatedProfile != null && mounted) {
+      setState(() => _profile = updatedProfile);
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -85,6 +95,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               SizedBox(height: layout.topGap),
                               _TopProfileBar(
+                                profile: _profile,
+                                onEditProfileTap: _onEditProfileTap,
                                 onSettingsTap: () =>
                                     SettingsDialog.show(context),
                               ),
@@ -104,8 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizedBox(height: layout.boardActionGap),
                               _HomeActionButtons(
                                 buttonGap: layout.actionButtonGap,
-                                onPlayNow: () =>
-                                    GameSetupDialog.show(context),
+                                onPlayNow: () => GameSetupDialog.show(
+                                  context,
+                                  profile: _profile,
+                                ),
                               ),
                             ],
                           ),
@@ -256,8 +270,14 @@ class _HomeActionButtons extends StatelessWidget {
 }
 
 class _TopProfileBar extends StatelessWidget {
-  const _TopProfileBar({required this.onSettingsTap});
+  const _TopProfileBar({
+    required this.profile,
+    required this.onEditProfileTap,
+    required this.onSettingsTap,
+  });
 
+  final UserProfile profile;
+  final VoidCallback onEditProfileTap;
   final VoidCallback onSettingsTap;
 
   @override
@@ -269,7 +289,11 @@ class _TopProfileBar extends StatelessWidget {
 
         return Row(
           children: [
-            _ProfileIdentity(compact: compact),
+            _ProfileIdentity(
+              compact: compact,
+              profile: profile,
+              onEditTap: onEditProfileTap,
+            ),
             SizedBox(width: gap),
             const Expanded(child: SizedBox.shrink()),
             const CoinBalancePill(),
@@ -359,9 +383,15 @@ class _TitleBadge extends StatelessWidget {
 }
 
 class _ProfileIdentity extends StatelessWidget {
-  const _ProfileIdentity({required this.compact});
+  const _ProfileIdentity({
+    required this.compact,
+    required this.profile,
+    required this.onEditTap,
+  });
 
   final bool compact;
+  final UserProfile profile;
+  final VoidCallback onEditTap;
 
   @override
   Widget build(BuildContext context) {
@@ -376,43 +406,50 @@ class _ProfileIdentity extends StatelessWidget {
 
     return Row(
       children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            CircleAvatar(
-              radius: avatarRadius,
-              backgroundColor: const Color(0xFFE6C8A1),
-              backgroundImage: const AssetImage(HomeScreen._avatarAsset),
-            ),
-            Positioned(
-              right: -2,
-              bottom: -1,
-              child: Container(
-                height: editSize,
-                width: editSize,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8ECD2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFD8B98F),
-                    width: 1.2,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onEditTap,
+            customBorder: const CircleBorder(),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: avatarRadius,
+                  backgroundColor: const Color(0xFFE6C8A1),
+                  backgroundImage: AssetImage(profile.avatarAsset),
+                ),
+                Positioned(
+                  right: -2,
+                  bottom: -1,
+                  child: Container(
+                    height: editSize,
+                    width: editSize,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8ECD2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFD8B98F),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.edit,
+                      size: editIconSize,
+                      color: RoyalColors.brown,
+                    ),
                   ),
                 ),
-                child: Icon(
-                  Icons.edit,
-                  size: editIconSize,
-                  color: RoyalColors.brown,
-                ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
         SizedBox(width: textGap),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Player',
+              profile.name,
               style: TextStyle(
                 fontSize: nameSize,
                 fontWeight: FontWeight.w900,
@@ -439,7 +476,7 @@ class _ProfileIdentity extends StatelessWidget {
                   minHeight: progressHeight,
                   backgroundColor: const Color(0xFFE8D6B3),
                   valueColor:
-                      const AlwaysStoppedAnimation<Color>(RoyalColors.yellow),
+                      AlwaysStoppedAnimation<Color>(profile.themeColor),
                 ),
               ),
             ),

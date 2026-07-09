@@ -39,9 +39,9 @@ List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
       player.index == config.humanPlayerIndex
           ? PlayerInfo(
               index: player.index,
-              name: 'Player',
+              name: config.humanPlayerName,
               color: config.chipColor,
-              avatarAsset: player.avatarAsset,
+              avatarAsset: config.humanPlayerAvatarAsset,
               avatarOnRight: player.avatarOnRight,
             )
           : player,

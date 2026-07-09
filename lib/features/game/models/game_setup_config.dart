@@ -5,10 +5,14 @@ class GameSetupConfig {
   const GameSetupConfig({
     required this.playerCount,
     required this.chipColor,
+    this.humanPlayerName = 'Player',
+    this.humanPlayerAvatarAsset = 'assets/avatar/avatar-1.png',
   });
 
   final int playerCount;
   final Color chipColor;
+  final String humanPlayerName;
+  final String humanPlayerAvatarAsset;
 
   static const defaultConfig = GameSetupConfig(
     playerCount: 4,
