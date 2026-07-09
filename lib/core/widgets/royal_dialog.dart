@@ -54,6 +54,7 @@ class RoyalDialog extends StatelessWidget {
     this.onClose,
     this.maxWidth = 320,
     this.insetPadding,
+    this.crestAsset,
     super.key,
   });
 
@@ -62,6 +63,7 @@ class RoyalDialog extends StatelessWidget {
   final VoidCallback? onClose;
   final double maxWidth;
   final EdgeInsets? insetPadding;
+  final String? crestAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +93,7 @@ class RoyalDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: RoyalColors.parchmentLight,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: RoyalColors.gold, width: 3.5),
+                border: Border.all(color: RoyalColors.brown, width: 4),
                 boxShadow: [
                   BoxShadow(
                     color: RoyalColors.darkBrown.withValues(alpha: 0.3),
@@ -100,18 +102,45 @@ class RoyalDialog extends StatelessWidget {
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _RoyalDialogHeader(title: title),
-                    const SizedBox(height: 14),
-                    child,
-                  ],
+              child: Container(
+                margin: const EdgeInsets.all(2.5),
+                decoration: BoxDecoration(
+                  color: RoyalColors.parchmentLight,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: RoyalColors.gold, width: 2.5),
+                ),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    18,
+                    crestAsset != null ? 28 : 18,
+                    18,
+                    16,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _RoyalDialogHeader(title: title),
+                      const SizedBox(height: 14),
+                      child,
+                    ],
+                  ),
                 ),
               ),
             ),
+            if (crestAsset != null)
+              Positioned(
+                top: -22,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Image.asset(
+                    crestAsset!,
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
             Positioned(
               top: -10,
               right: -8,

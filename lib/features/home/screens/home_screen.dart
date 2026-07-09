@@ -5,6 +5,7 @@ import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
+import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -83,7 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             children: [
                               SizedBox(height: layout.topGap),
-                              _TopProfileBar(onSettingsTap: () {}),
+                              _TopProfileBar(
+                                onSettingsTap: () =>
+                                    SettingsDialog.show(context),
+                              ),
                               SizedBox(height: layout.profileTitleGap),
                               const _TitleBadge(),
                               SizedBox(height: layout.titleBoardGap),
