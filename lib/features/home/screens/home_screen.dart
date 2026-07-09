@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             children: [
                               SizedBox(height: layout.topGap),
-                              _TopProfileBar(onNotificationTap: () {}),
+                              _TopProfileBar(onSettingsTap: () {}),
                               SizedBox(height: layout.profileTitleGap),
                               const _TitleBadge(),
                               SizedBox(height: layout.titleBoardGap),
@@ -103,8 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPlayNow: () =>
                                     GameSetupDialog.show(context),
                               ),
-                              SizedBox(height: layout.actionUtilityGap),
-                              const _UtilityStrip(),
                             ],
                           ),
                         ),
@@ -134,7 +132,6 @@ class _HomeLayout {
     required this.titleBoardGap,
     required this.boardActionGap,
     required this.actionButtonGap,
-    required this.actionUtilityGap,
     required this.boardMaxWidth,
     required this.boardMaxHeight,
   });
@@ -146,7 +143,6 @@ class _HomeLayout {
   final double titleBoardGap;
   final double boardActionGap;
   final double actionButtonGap;
-  final double actionUtilityGap;
   final double boardMaxWidth;
   final double boardMaxHeight;
 
@@ -185,7 +181,6 @@ class _HomeLayout {
       titleBoardGap: (shortHeight ? 10 : 16) * gapScale,
       boardActionGap: (shortHeight ? 12 : 16) * gapScale,
       actionButtonGap: (shortHeight ? 12 : 14) * gapScale,
-      actionUtilityGap: (shortHeight ? 12 : 16) * gapScale,
       boardMaxWidth: width - horizontalPadding * 2,
       boardMaxHeight: (height * (shortHeight ? 0.28 : 0.35))
           .clamp(compactWidth ? 190.0 : 220.0, 330.0)
@@ -241,7 +236,7 @@ class _HomeActionButtons extends StatelessWidget {
                   SizedBox(width: secondaryGap),
                   const HomeCtaButton(
                     expanded: true,
-                    label: 'ONLINE MATCH',
+                    label: 'ONLINE',
                     subtitle: 'Challenge players',
                     icon: Icons.public,
                     backgroundColor: RoyalColors.green,
@@ -257,9 +252,9 @@ class _HomeActionButtons extends StatelessWidget {
 }
 
 class _TopProfileBar extends StatelessWidget {
-  const _TopProfileBar({required this.onNotificationTap});
+  const _TopProfileBar({required this.onSettingsTap});
 
-  final VoidCallback onNotificationTap;
+  final VoidCallback onSettingsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -275,8 +270,8 @@ class _TopProfileBar extends StatelessWidget {
             const Expanded(child: SizedBox.shrink()),
             const CoinBalancePill(),
             SizedBox(width: gap),
-            _NotificationButton(
-              onTap: onNotificationTap,
+            _SettingsButton(
+              onTap: onSettingsTap,
               size: compact ? 34 : 36,
             ),
           ],
@@ -451,8 +446,8 @@ class _ProfileIdentity extends StatelessWidget {
   }
 }
 
-class _NotificationButton extends StatelessWidget {
-  const _NotificationButton({required this.onTap, required this.size});
+class _SettingsButton extends StatelessWidget {
+  const _SettingsButton({required this.onTap, required this.size});
 
   final VoidCallback onTap;
   final double size;
@@ -460,188 +455,42 @@ class _NotificationButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconSize = size * 0.58;
-    final badgeSize = size * 0.22;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          height: size,
-          width: size,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF2DC),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFFD8B98F),
-              width: 1.8,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: RoyalColors.brown.withValues(alpha: 0.16),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onTap,
-              child: SizedBox(
-                height: size,
-                width: size,
-                child: Center(
-                  child: Transform.translate(
-                    offset: const Offset(0, 0.5),
-                    child: Icon(
-                      Icons.notifications,
-                      size: iconSize,
-                      color: RoyalColors.darkBrown,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+    return Container(
+      height: size,
+      width: size,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF2DC),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFFD8B98F),
+          width: 1.8,
         ),
-        Positioned(
-          right: 3,
-          top: 2,
-          child: Container(
-            width: badgeSize,
-            height: badgeSize,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE22D1B),
-              shape: BoxShape.circle,
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: RoyalColors.brown.withValues(alpha: 0.16),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _UtilityStrip extends StatelessWidget {
-  const _UtilityStrip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final scale = (width / 400).clamp(0.82, 1.0).toDouble();
-            final height = 72 * scale;
-            final dividerInset = 14 * scale;
-
-            return Container(
-              height: height,
-              padding: EdgeInsets.symmetric(
-                horizontal: 6 * scale,
-                vertical: 4 * scale,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7E8CC),
-                borderRadius: BorderRadius.circular(18 * scale),
-                border: Border.all(
-                  color: const Color(0xFFE8C06A),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: RoyalColors.brown.withValues(alpha: 0.36),
-                    blurRadius: 10 * scale,
-                    spreadRadius: -1,
-                    offset: Offset(0, 7 * scale),
-                  ),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _UtilityItem(
-                    icon: Icons.emoji_events,
-                    label: 'LEADERBOARD',
-                    scale: scale,
-                  ),
-                  VerticalDivider(
-                    indent: dividerInset,
-                    endIndent: dividerInset,
-                    width: 1,
-                  ),
-                  _UtilityItem(
-                    icon: Icons.menu_book,
-                    label: 'RULES',
-                    scale: scale,
-                  ),
-                  VerticalDivider(
-                    indent: dividerInset,
-                    endIndent: dividerInset,
-                    width: 1,
-                  ),
-                  _UtilityItem(
-                    icon: Icons.inventory_2,
-                    label: 'INVENTORY',
-                    scale: scale,
-                  ),
-                  VerticalDivider(
-                    indent: dividerInset,
-                    endIndent: dividerInset,
-                    width: 1,
-                  ),
-                  _UtilityItem(
-                    icon: Icons.settings,
-                    label: 'SETTINGS',
-                    scale: scale,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+        ],
       ),
-    );
-  }
-}
-
-class _UtilityItem extends StatelessWidget {
-  const _UtilityItem({
-    required this.icon,
-    required this.label,
-    required this.scale,
-  });
-
-  final IconData icon;
-  final String label;
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(icon, size: 36 * scale, color: RoyalColors.darkRed),
-          SizedBox(height: 2 * scale),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 10 * scale,
-                fontWeight: FontWeight.w900,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            height: size,
+            width: size,
+            child: Center(
+              child: Icon(
+                Icons.settings,
+                size: iconSize,
                 color: RoyalColors.darkBrown,
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

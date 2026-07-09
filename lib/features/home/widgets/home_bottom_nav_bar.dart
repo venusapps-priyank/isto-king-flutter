@@ -76,8 +76,8 @@ class HomeBottomNavBar extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _NavItem(
-                                icon: Icons.people_alt,
-                                label: 'SOCIAL',
+                                icon: Icons.menu_book,
+                                label: 'RULES',
                                 scale: controlScale,
                               ),
                             ),
