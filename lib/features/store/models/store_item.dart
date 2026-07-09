@@ -38,6 +38,7 @@ class FeaturedBundle {
     required this.priceLabel,
     required this.limitedBadge,
     required this.valueBadge,
+    required this.imageAsset,
   });
 
   final String title;
@@ -46,6 +47,7 @@ class FeaturedBundle {
   final String priceLabel;
   final String limitedBadge;
   final String valueBadge;
+  final String imageAsset;
 }
 
 class DailyDeal {
@@ -56,6 +58,7 @@ class DailyDeal {
     required this.discountBadge,
     required this.priceLabel,
     required this.endsIn,
+    required this.imageAsset,
   });
 
   final String id;
@@ -64,4 +67,5 @@ class DailyDeal {
   final String discountBadge;
   final String priceLabel;
   final String endsIn;
+  final String imageAsset;
 }

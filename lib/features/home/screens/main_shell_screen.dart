@@ -48,6 +48,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 ),
                 StoreScreen(
                   profile: _profile,
+                  onProfileChanged: _onProfileChanged,
                   embedded: true,
                 ),
               ],

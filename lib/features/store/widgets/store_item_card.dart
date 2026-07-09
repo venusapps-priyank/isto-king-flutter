@@ -105,36 +105,10 @@ class _ItemPreview extends StatelessWidget {
       return Image.asset(item.imageAsset!, fit: BoxFit.contain);
     }
 
-    if (item.coinAmount != null) {
-      return _ScaledCoinStack(amount: item.coinAmount!);
-    }
-
     return Icon(
       item.icon ?? Icons.shopping_bag,
       size: 42,
       color: RoyalColors.brown.withValues(alpha: 0.7),
-    );
-  }
-}
-
-class _ScaledCoinStack extends StatelessWidget {
-  const _ScaledCoinStack({required this.amount});
-
-  final int amount;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = amount >= 10000 ? 48.0 : amount >= 5000 ? 42.0 : 36.0;
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (amount >= 5000)
-          const Positioned(left: 4, top: 8, child: CoinIcon(size: 24)),
-        if (amount >= 2500)
-          const Positioned(right: 4, top: 6, child: CoinIcon(size: 22)),
-        CoinIcon(size: size),
-      ],
     );
   }
 }

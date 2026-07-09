@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isto_king/data/store_assets.dart';
 import 'package:isto_king/features/store/models/store_item.dart';
 
 const featuredBundles = [
@@ -9,6 +10,7 @@ const featuredBundles = [
     priceLabel: '₹399.00',
     limitedBadge: 'LIMITED DEAL',
     valueBadge: '70% VALUE',
+    imageAsset: storeSackAsset,
   ),
   FeaturedBundle(
     title: 'ROYAL STARTER',
@@ -17,6 +19,7 @@ const featuredBundles = [
     priceLabel: '₹199.00',
     limitedBadge: 'NEW PLAYER',
     valueBadge: '50% VALUE',
+    imageAsset: storePotAsset,
   ),
 ];
 
@@ -27,7 +30,7 @@ const storeItems = [
     name: 'Pile of Coins',
     coinAmount: 2500,
     priceLabel: '₹149.00',
-    icon: Icons.monetization_on,
+    imageAsset: storeMoneyAsset,
   ),
   StoreItem(
     id: 'coins_6500',
@@ -36,7 +39,7 @@ const storeItems = [
     coinAmount: 6500,
     priceLabel: '₹249.00',
     discountBadge: '20% OFF',
-    icon: Icons.work,
+    imageAsset: storePotAsset,
   ),
   StoreItem(
     id: 'coins_15000',
@@ -45,7 +48,7 @@ const storeItems = [
     coinAmount: 15000,
     priceLabel: '₹499.00',
     discountBadge: '30% OFF',
-    icon: Icons.shopping_bag,
+    imageAsset: storeSackAsset,
   ),
   StoreItem(
     id: 'board_premium',
@@ -72,15 +75,6 @@ const storeItems = [
     discountBadge: '15% OFF',
     icon: Icons.casino,
   ),
-  StoreItem(
-    id: 'festival_bundle',
-    category: StoreCategory.coins,
-    name: 'Festival Bundle',
-    subtitle: 'Coins & More!',
-    priceLabel: '₹699.00',
-    valueBadge: 'BEST VALUE',
-    icon: Icons.card_giftcard,
-  ),
 ];
 
 const dailyDeals = [
@@ -91,6 +85,7 @@ const dailyDeals = [
     discountBadge: '40% OFF',
     priceLabel: '₹89.00',
     endsIn: '10h 32m',
+    imageAsset: storeMoneyAsset,
   ),
   DailyDeal(
     id: 'daily_coins_small',
@@ -99,5 +94,6 @@ const dailyDeals = [
     discountBadge: '30% OFF',
     priceLabel: '₹59.00',
     endsIn: '10h 32m',
+    imageAsset: storePotAsset,
   ),
 ];

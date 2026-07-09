@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/widgets/coin_icon.dart';
 import 'package:isto_king/features/store/models/store_item.dart';
 
 class StoreDailyDeals extends StatelessWidget {
@@ -85,7 +84,14 @@ class _DailyDealCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const CoinIcon(size: 28),
+                SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Image.asset(
+                    deal.imageAsset,
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
