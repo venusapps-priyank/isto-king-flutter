@@ -14,6 +14,9 @@ class RulesRow extends StatelessWidget {
     super.key,
   });
 
+  static const _checkboxSize = 30.0;
+  static const _checkboxGap = 12.0;
+
   final GameRuleInfo rule;
   final double iconSize;
   final bool isEnabled;
@@ -27,9 +30,9 @@ class RulesRow extends StatelessWidget {
         : RoyalColors.brown.withValues(alpha: 0.5);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           RulesRuleIcon(iconType: rule.iconType, size: iconSize),
           SizedBox(width: iconSize * 0.22),
@@ -61,14 +64,18 @@ class RulesRow extends StatelessWidget {
               ],
             ),
           ),
-          if (rule.isToggleable) ...[
-            const SizedBox(width: 8),
-            RulesCheckbox(
-              value: isEnabled,
-              enabled: isCheckboxEnabled,
-              onChanged: onEnabledChanged ?? (_) {},
-            ),
-          ],
+          const SizedBox(width: _checkboxGap),
+          SizedBox(
+            width: _checkboxSize,
+            height: _checkboxSize,
+            child: rule.isToggleable
+                ? RulesCheckbox(
+                    value: isEnabled,
+                    enabled: isCheckboxEnabled,
+                    onChanged: onEnabledChanged ?? (_) {},
+                  )
+                : null,
+          ),
         ],
       ),
     );
