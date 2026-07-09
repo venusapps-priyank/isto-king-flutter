@@ -2,20 +2,25 @@ class GameRulesSettings {
   const GameRulesSettings({
     this.mustKillForInner = true,
     this.killPermissionReset = true,
+    this.stashedKillPermissionReset = true,
   });
 
   final bool mustKillForInner;
   final bool killPermissionReset;
+  final bool stashedKillPermissionReset;
 
   static const defaults = GameRulesSettings();
 
   GameRulesSettings copyWith({
     bool? mustKillForInner,
     bool? killPermissionReset,
+    bool? stashedKillPermissionReset,
   }) {
     return GameRulesSettings(
       mustKillForInner: mustKillForInner ?? this.mustKillForInner,
       killPermissionReset: killPermissionReset ?? this.killPermissionReset,
+      stashedKillPermissionReset:
+          stashedKillPermissionReset ?? this.stashedKillPermissionReset,
     );
   }
 
@@ -44,12 +49,19 @@ class GameRulesSettings {
 
   GameRulesSettings withValue(String settingKey, bool value) {
     return switch (settingKey) {
-      GameRuleSettingKey.mustKillForInner => copyWith(
-        mustKillForInner: value,
-        killPermissionReset: value ? killPermissionReset : false,
-      ),
+      GameRuleSettingKey.mustKillForInner => value
+          ? copyWith(
+              mustKillForInner: true,
+              killPermissionReset: stashedKillPermissionReset,
+            )
+          : copyWith(
+              mustKillForInner: false,
+              stashedKillPermissionReset: killPermissionReset,
+              killPermissionReset: false,
+            ),
       GameRuleSettingKey.killPermissionReset => copyWith(
         killPermissionReset: value,
+        stashedKillPermissionReset: value,
       ),
       _ => this,
     };
