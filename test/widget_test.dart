@@ -90,7 +90,7 @@ void main() {
             child: PlayerCard(
               name: 'Chandrakishore',
               color: Colors.green,
-              avatarAsset: 'assets/avatar/avatar-f-1.png',
+              avatarAsset: 'assets/avatar/avatar-f1.png',
               finishRank: 1,
             ),
           ),

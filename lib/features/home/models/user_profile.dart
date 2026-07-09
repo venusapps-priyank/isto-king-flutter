@@ -14,7 +14,7 @@ class UserProfile {
 
   static const defaultProfile = UserProfile(
     name: 'Player',
-    avatarAsset: 'assets/avatar/avatar-1.png',
+    avatarAsset: 'assets/avatar/avatar-m1.png',
     themeColor: RoyalColors.red,
   );
 

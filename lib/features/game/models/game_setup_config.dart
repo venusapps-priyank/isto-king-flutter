@@ -6,7 +6,7 @@ class GameSetupConfig {
     required this.playerCount,
     required this.chipColor,
     this.humanPlayerName = 'Player',
-    this.humanPlayerAvatarAsset = 'assets/avatar/avatar-1.png',
+    this.humanPlayerAvatarAsset = 'assets/avatar/avatar-m1.png',
   });
 
   final int playerCount;
