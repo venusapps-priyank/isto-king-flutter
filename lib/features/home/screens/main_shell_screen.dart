@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/screens/home_screen.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
+import 'package:isto_king/features/rules/screens/rules_screen.dart';
 import 'package:isto_king/features/store/screens/store_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
@@ -40,7 +41,11 @@ class _MainShellScreenState extends State<MainShellScreen> {
             child: IndexedStack(
               index: _tabIndex,
               children: [
-                const _RulesTabPlaceholder(),
+                RulesScreen(
+                  profile: _profile,
+                  onProfileChanged: _onProfileChanged,
+                  embedded: true,
+                ),
                 HomeScreen(
                   profile: _profile,
                   onProfileChanged: _onProfileChanged,
@@ -84,27 +89,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
       0,
       horizontalPadding,
       bottomInset > 0 ? bottomInset : 8,
-    );
-  }
-}
-
-class _RulesTabPlaceholder extends StatelessWidget {
-  const _RulesTabPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(color: Color(0xFFFBE9C9)),
-      child: Center(
-        child: Text(
-          'RULES',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF700000),
-          ),
-        ),
-      ),
     );
   }
 }
