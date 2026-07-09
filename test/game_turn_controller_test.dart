@@ -69,6 +69,16 @@ void main() {
       expect(controller.currentPlayerIndex, 1);
     });
 
+    test('only exposes tokens for active players', () {
+      final controller = GameTurnController(activePlayers: {0, 3});
+
+      expect(controller.tokens, hasLength(8));
+      expect(
+        controller.tokens.map((token) => token.playerIndex).toSet(),
+        {0, 3},
+      );
+    });
+
     test('auto-selects one of several equivalent home tokens', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;
 

@@ -70,7 +70,9 @@ class GameTurnController {
   int? pendingRoll;
   Set<int> legalTokenIds = {};
 
-  List<TokenState> get tokens => List<TokenState>.unmodifiable(_tokens);
+  List<TokenState> get tokens => List<TokenState>.unmodifiable(
+    _tokens.where((token) => activePlayerIndexes.contains(token.playerIndex)),
+  );
 
   List<int> get rankedPlayerIndexes =>
       List<int>.unmodifiable(_rankedPlayerIndexes);
