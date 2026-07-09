@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/screens/home_screen.dart';
+import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/rules/screens/rules_screen.dart';
@@ -26,6 +27,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _onTabSelected(HomeNavTab tab) {
     setState(() => _selectedTab = tab);
+  }
+
+  void _openRulesFromGameSetup() {
+    setState(() => _selectedTab = HomeNavTab.rules);
+  }
+
+  Future<void> _showGameSetupDialog({bool isPassAndPlay = false}) {
+    return GameSetupDialog.show(
+      context,
+      profile: _profile,
+      rulesSettings: _rulesSettings,
+      isPassAndPlay: isPassAndPlay,
+      onOpenRules: _openRulesFromGameSetup,
+    );
   }
 
   void _onProfileChanged(UserProfile profile) {
@@ -58,6 +73,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   profile: _profile,
                   onProfileChanged: _onProfileChanged,
                   rulesSettings: _rulesSettings,
+                  onShowGameSetup: (isPassAndPlay) => _showGameSetupDialog(
+                    isPassAndPlay: isPassAndPlay,
+                  ),
                   embedded: true,
                 ),
                 StoreScreen(

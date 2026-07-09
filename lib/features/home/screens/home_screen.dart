@@ -4,7 +4,6 @@ import 'package:isto_king/data/avatar_assets.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
-import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
 import 'package:isto_king/features/home/widgets/home_top_bar.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
@@ -16,12 +15,14 @@ class HomeScreen extends StatefulWidget {
     this.profile = UserProfile.defaultProfile,
     this.onProfileChanged,
     this.rulesSettings = GameRulesSettings.defaults,
+    this.onShowGameSetup,
     this.embedded = false,
   });
 
   final UserProfile profile;
   final ValueChanged<UserProfile>? onProfileChanged;
   final GameRulesSettings rulesSettings;
+  final ValueChanged<bool>? onShowGameSetup;
   final bool embedded;
 
   static const _boardAsset = 'assets/images/full-board.png';
@@ -142,11 +143,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     SizedBox(height: layout.boardActionGap),
                                     _HomeActionButtons(
                                       buttonGap: layout.actionButtonGap,
-                                      onPlayNow: () => GameSetupDialog.show(
-                                        context,
-                                        profile: _profile,
-                                        rulesSettings: widget.rulesSettings,
-                                      ),
+                                      onPlayNow: () =>
+                                          widget.onShowGameSetup?.call(false),
+                                      onPassAndPlay: () =>
+                                          widget.onShowGameSetup?.call(true),
                                     ),
                                     if (widget.embedded)
                                       SizedBox(height: layout.bottomGap),
@@ -262,10 +262,12 @@ class _HomeActionButtons extends StatelessWidget {
   const _HomeActionButtons({
     required this.buttonGap,
     required this.onPlayNow,
+    required this.onPassAndPlay,
   });
 
   final double buttonGap;
   final VoidCallback onPlayNow;
+  final VoidCallback onPassAndPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -295,12 +297,13 @@ class _HomeActionButtons extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: secondaryInset),
               child: Row(
                 children: [
-                  const HomeCtaButton(
+                  HomeCtaButton(
                     expanded: true,
                     label: 'PASS & PLAY',
                     subtitle: 'Play with friends',
                     icon: Icons.people_outlined,
                     backgroundColor: RoyalColors.yellow,
+                    onPressed: onPassAndPlay,
                   ),
                   SizedBox(width: secondaryGap),
                   const HomeCtaButton(

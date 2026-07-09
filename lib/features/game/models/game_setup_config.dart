@@ -9,6 +9,7 @@ class GameSetupConfig {
     this.humanPlayerName = 'Player',
     this.humanPlayerAvatarAsset = 'assets/avatar/avatar-m1.png',
     this.rulesSettings = GameRulesSettings.defaults,
+    this.isPassAndPlay = false,
   });
 
   final int playerCount;
@@ -16,6 +17,7 @@ class GameSetupConfig {
   final String humanPlayerName;
   final String humanPlayerAvatarAsset;
   final GameRulesSettings rulesSettings;
+  final bool isPassAndPlay;
 
   static const defaultConfig = GameSetupConfig(
     playerCount: 4,

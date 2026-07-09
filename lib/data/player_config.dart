@@ -34,6 +34,10 @@ const baseGamePlayers = [
 const gamePlayers = baseGamePlayers;
 
 List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
+  if (config.isPassAndPlay) {
+    return baseGamePlayers;
+  }
+
   return [
     for (final player in baseGamePlayers)
       player.index == config.humanPlayerIndex
