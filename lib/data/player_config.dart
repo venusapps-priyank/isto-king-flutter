@@ -35,8 +35,23 @@ const gamePlayers = baseGamePlayers;
 
 List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
   if (config.isPassAndPlay) {
-    return baseGamePlayers;
+    return [
+      for (final player in baseGamePlayers)
+        PlayerInfo(
+          index: player.index,
+          name: 'Player ${player.index + 1}',
+          color: player.color,
+          avatarAsset: player.avatarAsset,
+          avatarOnRight: player.avatarOnRight,
+        ),
+    ];
   }
+
+  final computerIndexes = config.computerPlayerIndexes.toList()..sort();
+  final computerNumberByIndex = {
+    for (var i = 0; i < computerIndexes.length; i++)
+      computerIndexes[i]: i + 1,
+  };
 
   return [
     for (final player in baseGamePlayers)
@@ -48,10 +63,11 @@ List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
           avatarAsset: config.humanPlayerAvatarAsset,
           avatarOnRight: player.avatarOnRight,
         )
-      else if (config.isVsComputer)
+      else if (config.isVsComputer &&
+          computerNumberByIndex.containsKey(player.index))
         PlayerInfo(
           index: player.index,
-          name: 'Computer',
+          name: 'Computer ${computerNumberByIndex[player.index]}',
           color: player.color,
           avatarAsset: player.avatarAsset,
           avatarOnRight: player.avatarOnRight,
