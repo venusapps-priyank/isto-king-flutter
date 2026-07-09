@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/rules/models/game_rule_definition.dart';
-import 'package:isto_king/features/rules/widgets/rules_checkbox.dart';
+// import 'package:isto_king/features/rules/widgets/rules_checkbox.dart';
 import 'package:isto_king/features/rules/widgets/rules_rule_icon.dart';
 
 class RulesRow extends StatelessWidget {
@@ -14,8 +14,8 @@ class RulesRow extends StatelessWidget {
     super.key,
   });
 
-  static const _checkboxSize = 30.0;
-  static const _checkboxGap = 12.0;
+  // static const _checkboxSize = 30.0;
+  // static const _checkboxGap = 12.0;
 
   final GameRuleInfo rule;
   final double iconSize;
@@ -64,18 +64,19 @@ class RulesRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: _checkboxGap),
-          SizedBox(
-            width: _checkboxSize,
-            height: _checkboxSize,
-            child: rule.isToggleable
-                ? RulesCheckbox(
-                    value: isEnabled,
-                    enabled: isCheckboxEnabled,
-                    onChanged: onEnabledChanged ?? (_) {},
-                  )
-                : null,
-          ),
+          // Rule toggles temporarily disabled.
+          // const SizedBox(width: _checkboxGap),
+          // SizedBox(
+          //   width: _checkboxSize,
+          //   height: _checkboxSize,
+          //   child: rule.isToggleable
+          //       ? RulesCheckbox(
+          //           value: isEnabled,
+          //           enabled: isCheckboxEnabled,
+          //           onChanged: onEnabledChanged ?? (_) {},
+          //         )
+          //       : null,
+          // ),
         ],
       ),
     );
