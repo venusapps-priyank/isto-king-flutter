@@ -3,7 +3,6 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/store_catalog.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
-import 'package:isto_king/features/store/widgets/store_bottom_nav_bar.dart';
 import 'package:isto_king/features/store/widgets/store_daily_deals.dart';
 import 'package:isto_king/features/store/widgets/store_featured_banner.dart';
 import 'package:isto_king/features/store/widgets/store_item_card.dart';
@@ -13,18 +12,14 @@ import 'package:isto_king/features/store/widgets/store_top_bar.dart';
 class StoreScreen extends StatelessWidget {
   const StoreScreen({
     this.profile = UserProfile.defaultProfile,
+    this.embedded = false,
     super.key,
   });
 
   final UserProfile profile;
+  final bool embedded;
 
   static const cornerAsset = 'assets/images/corner_mandala.png';
-
-  void _onNavTap(BuildContext context, StoreNavTab tab) {
-    if (tab == StoreNavTab.home) {
-      Navigator.of(context).pop();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,56 +50,45 @@ class StoreScreen extends StatelessWidget {
             const _BottomCorner(isLeft: true),
             const _BottomCorner(isLeft: false),
             SafeArea(
+              bottom: !embedded,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final layout = _StoreLayout.from(constraints);
+                  final layout = _StoreLayout.from(
+                    constraints,
+                    embedded: embedded,
+                  );
 
-                  return Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: layout.scrollPadding,
-                          child: Column(
-                            children: [
-                              SizedBox(height: layout.topGap),
-                              StoreTopBar(profile: profile),
-                              SizedBox(height: layout.sectionGap),
-                              const StoreTitleBadge(),
-                              SizedBox(height: layout.sectionGap),
-                              StoreFeaturedBanner(bundles: featuredBundles),
-                              SizedBox(height: layout.sectionGap),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  mainAxisSpacing: layout.gridGap,
-                                  crossAxisSpacing: layout.gridGap,
-                                  childAspectRatio: layout.cardAspectRatio,
-                                ),
-                                itemCount: storeItems.length,
-                                itemBuilder: (context, index) {
-                                  return StoreItemCard(
-                                    item: storeItems[index],
-                                  );
-                                },
-                              ),
-                              SizedBox(height: layout.sectionGap),
-                              const StoreDailyDeals(deals: dailyDeals),
-                              SizedBox(height: layout.bottomGap),
-                            ],
+                  return SingleChildScrollView(
+                    padding: layout.scrollPadding,
+                    child: Column(
+                      children: [
+                        SizedBox(height: layout.topGap),
+                        StoreTopBar(profile: profile),
+                        SizedBox(height: layout.sectionGap),
+                        const StoreTitleBadge(),
+                        SizedBox(height: layout.sectionGap),
+                        StoreFeaturedBanner(bundles: featuredBundles),
+                        SizedBox(height: layout.sectionGap),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: layout.gridGap,
+                            crossAxisSpacing: layout.gridGap,
+                            childAspectRatio: layout.cardAspectRatio,
                           ),
+                          itemCount: storeItems.length,
+                          itemBuilder: (context, index) {
+                            return StoreItemCard(item: storeItems[index]);
+                          },
                         ),
-                      ),
-                      Padding(
-                        padding: layout.bottomNavPadding,
-                        child: StoreBottomNavBar(
-                          selectedTab: StoreNavTab.store,
-                          onTabSelected: (tab) => _onNavTap(context, tab),
-                        ),
-                      ),
-                    ],
+                        SizedBox(height: layout.sectionGap),
+                        const StoreDailyDeals(deals: dailyDeals),
+                        SizedBox(height: layout.bottomGap),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -119,7 +103,6 @@ class StoreScreen extends StatelessWidget {
 class _StoreLayout {
   const _StoreLayout({
     required this.scrollPadding,
-    required this.bottomNavPadding,
     required this.topGap,
     required this.sectionGap,
     required this.gridGap,
@@ -128,14 +111,16 @@ class _StoreLayout {
   });
 
   final EdgeInsets scrollPadding;
-  final EdgeInsets bottomNavPadding;
   final double topGap;
   final double sectionGap;
   final double gridGap;
   final double bottomGap;
   final double cardAspectRatio;
 
-  factory _StoreLayout.from(BoxConstraints constraints) {
+  factory _StoreLayout.from(
+    BoxConstraints constraints, {
+    bool embedded = false,
+  }) {
     final width = constraints.maxWidth;
     final height = constraints.maxHeight;
     final shortHeight = height < 720;
@@ -144,16 +129,12 @@ class _StoreLayout {
 
     return _StoreLayout(
       scrollPadding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      bottomNavPadding: EdgeInsets.fromLTRB(
-        horizontalPadding,
-        shortHeight ? 4 : 8,
-        horizontalPadding,
-        shortHeight ? 6 : 10,
-      ),
       topGap: shortHeight ? 4 : 8,
       sectionGap: shortHeight ? 10 : 14,
       gridGap: compactWidth ? 6 : 8,
-      bottomGap: shortHeight ? 8 : 12,
+      bottomGap: embedded
+          ? (shortHeight ? 100.0 : 112.0)
+          : (shortHeight ? 8 : 12),
       cardAspectRatio: compactWidth ? 0.62 : 0.68,
     );
   }

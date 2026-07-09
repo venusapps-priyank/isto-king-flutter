@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/widgets/coin_icon.dart';
-import 'package:isto_king/features/game/widgets/gem_icon.dart';
 import 'package:isto_king/features/store/models/store_item.dart';
 
 class StoreDailyDeals extends StatelessWidget {
@@ -86,9 +85,7 @@ class _DailyDealCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                deal.isGems
-                    ? const GemIcon(size: 28)
-                    : const CoinIcon(size: 28),
+                const CoinIcon(size: 28),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -103,7 +100,7 @@ class _DailyDealCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${deal.amount} ${deal.isGems ? 'Gems' : 'Coins'}',
+                        '${deal.amount} Coins',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -158,9 +155,7 @@ class _DailyDealCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: deal.isGems
-                        ? const Color(0xFF7B3FA0)
-                        : RoyalColors.green,
+                    color: RoyalColors.green,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

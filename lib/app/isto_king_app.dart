@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/home/screens/home_screen.dart';
+import 'package:isto_king/features/home/screens/main_shell_screen.dart';
 
 class IstoKingApp extends StatelessWidget {
   const IstoKingApp({super.key});
@@ -23,7 +23,7 @@ class IstoKingApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: RoyalColors.red),
           fontFamily: 'Georgia',
         ),
-        home: const HomeScreen(),
+        home: const MainShellScreen(),
       ),
     );
   }

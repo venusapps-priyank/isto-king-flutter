@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/widgets/coin_icon.dart';
-import 'package:isto_king/features/game/widgets/gem_icon.dart';
 import 'package:isto_king/features/store/models/store_item.dart';
 
 class StoreItemCard extends StatelessWidget {
@@ -77,9 +76,9 @@ class StoreItemCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (item.coinAmount != null || item.gemAmount != null) ...[
+                if (item.coinAmount != null) ...[
                   const SizedBox(height: 4),
-                  _AmountRow(item: item),
+                  _AmountRow(amount: item.coinAmount!),
                 ],
                 const SizedBox(height: 6),
                 _BuyButton(
@@ -108,10 +107,6 @@ class _ItemPreview extends StatelessWidget {
 
     if (item.coinAmount != null) {
       return _ScaledCoinStack(amount: item.coinAmount!);
-    }
-
-    if (item.gemAmount != null) {
-      return _ScaledGemStack(amount: item.gemAmount!);
     }
 
     return Icon(
@@ -144,47 +139,21 @@ class _ScaledCoinStack extends StatelessWidget {
   }
 }
 
-class _ScaledGemStack extends StatelessWidget {
-  const _ScaledGemStack({required this.amount});
+class _AmountRow extends StatelessWidget {
+  const _AmountRow({required this.amount});
 
   final int amount;
 
   @override
   Widget build(BuildContext context) {
-    final size = amount >= 200 ? 46.0 : 38.0;
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (amount >= 150)
-          const Positioned(left: 2, top: 10, child: GemIcon(size: 22)),
-        GemIcon(size: size),
-      ],
-    );
-  }
-}
-
-class _AmountRow extends StatelessWidget {
-  const _AmountRow({required this.item});
-
-  final StoreItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final amount = item.coinAmount ?? item.gemAmount!;
-    final label = item.coinAmount != null ? '$amount Coins' : '$amount Gems';
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (item.coinAmount != null)
-          const CoinIcon(size: 14)
-        else
-          const GemIcon(size: 14),
+        const CoinIcon(size: 14),
         const SizedBox(width: 4),
         Flexible(
           child: Text(
-            label,
+            '$amount Coins',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(

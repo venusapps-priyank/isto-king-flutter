@@ -27,6 +27,37 @@ class HomeBottomNavBar extends StatelessWidget {
   static const _circleTop = 0.0;
   static const _inactiveNavColor = Color(0xFFF9E9C7);
   static const _activeNavColor = Color(0xFFFFE39D);
+  static const _animationDuration = Duration(milliseconds: 320);
+  static const _animationCurve = Curves.easeInOutCubic;
+
+  static double circleLeftForTab(
+    HomeNavTab tab,
+    double width,
+    double circleSize,
+  ) {
+    final sideWidth = (width - circleSize) / 2;
+    return switch (tab) {
+      HomeNavTab.rules => sideWidth / 2 - circleSize / 2,
+      HomeNavTab.home => (width - circleSize) / 2,
+      HomeNavTab.store => width - sideWidth / 2 - circleSize / 2,
+    };
+  }
+
+  static IconData iconForTab(HomeNavTab tab) {
+    return switch (tab) {
+      HomeNavTab.rules => Icons.menu_book,
+      HomeNavTab.home => Icons.home,
+      HomeNavTab.store => Icons.shopping_bag,
+    };
+  }
+
+  static String labelForTab(HomeNavTab tab) {
+    return switch (tab) {
+      HomeNavTab.rules => 'RULES',
+      HomeNavTab.home => 'HOME',
+      HomeNavTab.store => 'STORE',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +81,8 @@ class HomeBottomNavBar extends StatelessWidget {
             final circleSize = _circleSize * controlScale;
             final barTopInset = _barTopInset * controlScale;
             final canvasHeight = barTopInset + barHeight;
+            final circleLeft =
+                circleLeftForTab(selectedTab, width, circleSize);
 
             return SizedBox(
               height: canvasHeight,
@@ -84,32 +117,47 @@ class HomeBottomNavBar extends StatelessWidget {
                         child: Row(
                           children: [
                             Expanded(
-                              child: _NavItem(
-                                icon: Icons.menu_book,
-                                label: 'RULES',
-                                scale: controlScale,
-                                isActive: selectedTab == HomeNavTab.rules,
-                                onTap: () =>
-                                    onTabSelected?.call(HomeNavTab.rules),
-                              ),
+                              child: selectedTab == HomeNavTab.rules
+                                  ? const SizedBox.shrink()
+                                  : _NavItem(
+                                      icon: Icons.menu_book,
+                                      label: 'RULES',
+                                      scale: controlScale,
+                                      onTap: () => onTabSelected
+                                          ?.call(HomeNavTab.rules),
+                                    ),
                             ),
-                            SizedBox(width: circleSize),
+                            SizedBox(
+                              width: circleSize,
+                              child: selectedTab == HomeNavTab.home
+                                  ? const SizedBox.shrink()
+                                  : _NavItem(
+                                      icon: Icons.home,
+                                      label: 'HOME',
+                                      scale: controlScale,
+                                      onTap: () =>
+                                          onTabSelected?.call(HomeNavTab.home),
+                                    ),
+                            ),
                             Expanded(
-                              child: _NavItem(
-                                icon: Icons.shopping_bag,
-                                label: 'STORE',
-                                scale: controlScale,
-                                isActive: selectedTab == HomeNavTab.store,
-                                onTap: () =>
-                                    onTabSelected?.call(HomeNavTab.store),
-                              ),
+                              child: selectedTab == HomeNavTab.store
+                                  ? const SizedBox.shrink()
+                                  : _NavItem(
+                                      icon: Icons.shopping_bag,
+                                      label: 'STORE',
+                                      scale: controlScale,
+                                      onTap: () => onTabSelected
+                                          ?.call(HomeNavTab.store),
+                                    ),
                             ),
                           ],
                         ),
                       ),
-                      Positioned(
+                      AnimatedPositioned(
+                        duration: _animationDuration,
+                        curve: _animationCurve,
                         top: _circleTop,
-                        left: (width - circleSize) / 2,
+                        left: circleLeft,
                         width: circleSize,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -118,19 +166,25 @@ class HomeBottomNavBar extends StatelessWidget {
                               size: circleSize,
                               borderColor: _borderColor,
                               borderWidth: _circleBorderWidth * controlScale,
-                              isActive: selectedTab == HomeNavTab.home,
+                              tab: selectedTab,
                               onTap: () =>
-                                  onTabSelected?.call(HomeNavTab.home),
+                                  onTabSelected?.call(selectedTab),
                             ),
                             Transform.translate(
                               offset: Offset(0, -10 * controlScale),
-                              child: Text(
-                                'HOME',
-                                style: TextStyle(
-                                  fontSize: 10 * controlScale,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.2,
-                                  color: _inactiveNavColor,
+                              child: AnimatedSwitcher(
+                                duration: _animationDuration,
+                                switchInCurve: _animationCurve,
+                                switchOutCurve: _animationCurve,
+                                child: Text(
+                                  labelForTab(selectedTab),
+                                  key: ValueKey(selectedTab),
+                                  style: TextStyle(
+                                    fontSize: 10 * controlScale,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.2,
+                                    color: _activeNavColor,
+                                  ),
                                 ),
                               ),
                             ),
@@ -154,14 +208,14 @@ class _ActiveNavCircle extends StatelessWidget {
     required this.size,
     required this.borderColor,
     required this.borderWidth,
-    required this.isActive,
+    required this.tab,
     this.onTap,
   });
 
   final double size;
   final Color borderColor;
   final double borderWidth;
-  final bool isActive;
+  final HomeNavTab tab;
   final VoidCallback? onTap;
 
   @override
@@ -177,12 +231,22 @@ class _ActiveNavCircle extends StatelessWidget {
             borderWidth: borderWidth,
           ),
           child: Center(
-            child: Icon(
-              Icons.home,
-              size: size * 0.53,
-              color: isActive
-                  ? HomeBottomNavBar._activeNavColor
-                  : HomeBottomNavBar._inactiveNavColor,
+            child: AnimatedSwitcher(
+              duration: HomeBottomNavBar._animationDuration,
+              switchInCurve: HomeBottomNavBar._animationCurve,
+              switchOutCurve: HomeBottomNavBar._animationCurve,
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(
+                  scale: animation,
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: Icon(
+                HomeBottomNavBar.iconForTab(tab),
+                key: ValueKey(tab),
+                size: size * 0.53,
+                color: HomeBottomNavBar._activeNavColor,
+              ),
             ),
           ),
         ),
@@ -256,28 +320,26 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.scale,
-    required this.isActive,
     this.onTap,
   });
 
   final IconData icon;
   final String label;
   final double scale;
-  final bool isActive;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive
-        ? HomeBottomNavBar._activeNavColor
-        : HomeBottomNavBar._inactiveNavColor;
-
     return InkWell(
       onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 30 * scale, color: color),
+          Icon(
+            icon,
+            size: 30 * scale,
+            color: HomeBottomNavBar._inactiveNavColor,
+          ),
           SizedBox(height: 3 * scale),
           Text(
             label,
@@ -285,7 +347,7 @@ class _NavItem extends StatelessWidget {
               fontSize: 10 * scale,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.2,
-              color: color,
+              color: HomeBottomNavBar._inactiveNavColor,
             ),
           ),
         ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/widgets/coin_icon.dart';
-import 'package:isto_king/features/game/widgets/gem_icon.dart';
 import 'package:isto_king/features/store/models/store_item.dart';
 
 class StoreFeaturedBanner extends StatefulWidget {
@@ -143,17 +142,6 @@ class _FeaturedCard extends StatelessWidget {
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          const GemIcon(size: 20),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${bundle.gems}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
-                          ),
                           const SizedBox(width: 8),
                           Icon(
                             Icons.grid_on,
@@ -208,10 +196,14 @@ class _BundleIllustration extends StatelessWidget {
             left: 8,
             child: CoinIcon(size: 34),
           ),
-          const Positioned(
+          Positioned(
             top: 8,
             right: 4,
-            child: GemIcon(size: 28),
+            child: Icon(
+              Icons.grid_on,
+              size: 28,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
           ),
           Positioned(
             bottom: 18,

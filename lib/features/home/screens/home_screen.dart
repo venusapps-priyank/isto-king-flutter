@@ -6,13 +6,20 @@ import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
-import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
-import 'package:isto_king/features/store/screens/store_screen.dart';
 import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.profile = UserProfile.defaultProfile,
+    this.onProfileChanged,
+    this.embedded = false,
+  });
+
+  final UserProfile profile;
+  final ValueChanged<UserProfile>? onProfileChanged;
+  final bool embedded;
 
   static const _boardAsset = 'assets/images/full-board.png';
   static const _cornerAsset = 'assets/images/corner_mandala.png';
@@ -23,7 +30,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _didWarmGameAssets = false;
-  UserProfile _profile = UserProfile.defaultProfile;
+
+  UserProfile get _profile => widget.profile;
 
   static const _gameEntryAssets = [
     ...avatarAssets,
@@ -33,23 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
     'assets/images/rank_crown_1.png',
   ];
 
-  void _onNavTabSelected(HomeNavTab tab) {
-    if (tab == HomeNavTab.store) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => StoreScreen(profile: _profile),
-        ),
-      );
-    }
-  }
-
   Future<void> _onEditProfileTap() async {
     final updatedProfile = await EditPlayerDialog.show(
       context,
       initialProfile: _profile,
     );
     if (updatedProfile != null && mounted) {
-      setState(() => _profile = updatedProfile);
+      widget.onProfileChanged?.call(updatedProfile);
     }
   }
 
@@ -93,9 +91,13 @@ class _HomeScreenState extends State<HomeScreen> {
             const _BottomCorner(isLeft: true),
             const _BottomCorner(isLeft: false),
             SafeArea(
+              bottom: !widget.embedded,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final layout = _HomeLayout.from(constraints);
+                  final layout = _HomeLayout.from(
+                    constraints,
+                    embedded: widget.embedded,
+                  );
 
                   return Column(
                     children: [
@@ -132,14 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   profile: _profile,
                                 ),
                               ),
+                              if (widget.embedded)
+                                SizedBox(height: layout.bottomGap),
                             ],
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding: layout.bottomNavPadding,
-                        child: HomeBottomNavBar(
-                          onTabSelected: _onNavTabSelected,
                         ),
                       ),
                     ],
@@ -165,6 +163,7 @@ class _HomeLayout {
     required this.actionButtonGap,
     required this.boardMaxWidth,
     required this.boardMaxHeight,
+    required this.bottomGap,
   });
 
   final EdgeInsets scrollPadding;
@@ -176,8 +175,12 @@ class _HomeLayout {
   final double actionButtonGap;
   final double boardMaxWidth;
   final double boardMaxHeight;
+  final double bottomGap;
 
-  factory _HomeLayout.from(BoxConstraints constraints) {
+  factory _HomeLayout.from(
+    BoxConstraints constraints, {
+    bool embedded = false,
+  }) {
     final width = constraints.maxWidth;
     final height = constraints.maxHeight;
     final shortHeight = height < 720;
@@ -216,6 +219,7 @@ class _HomeLayout {
       boardMaxHeight: (height * (shortHeight ? 0.28 : 0.35))
           .clamp(compactWidth ? 190.0 : 220.0, 330.0)
           .toDouble(),
+      bottomGap: embedded ? (shortHeight ? 100.0 : 112.0) : 0,
     );
   }
 }

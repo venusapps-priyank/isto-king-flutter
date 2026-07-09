@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/widgets/coin_icon.dart';
-import 'package:isto_king/features/game/widgets/gem_icon.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 
 class StoreTopBar extends StatelessWidget {
@@ -29,13 +28,6 @@ class StoreTopBar extends StatelessWidget {
               icon: const CoinIcon(size: 22),
               amount: '120',
               addColor: const Color(0xFF3AAA45),
-            ),
-            SizedBox(width: gap),
-            _CurrencyPill(
-              compact: compact,
-              icon: const GemIcon(size: 22),
-              amount: '45',
-              addColor: const Color(0xFF7B3FA0),
             ),
             SizedBox(width: gap),
             _NotificationButton(size: compact ? 32 : 36),
