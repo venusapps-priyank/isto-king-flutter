@@ -32,7 +32,9 @@ class _EditPlayerDialogState extends State<EditPlayerDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialProfile.name);
-    _selectedAvatar = widget.initialProfile.avatarAsset;
+    _selectedAvatar = avatarAssets.contains(widget.initialProfile.avatarAsset)
+        ? widget.initialProfile.avatarAsset
+        : avatarAssets.first;
   }
 
   @override
@@ -61,23 +63,13 @@ class _EditPlayerDialogState extends State<EditPlayerDialog> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final contentWidth = constraints.maxWidth;
-          final avatarPreviewSize =
-              (contentWidth * 0.34).clamp(88.0, 112.0).toDouble();
-          final gridAvatarSize =
-              ((contentWidth - 32) / 5).clamp(44.0, 56.0).toDouble();
           final sectionGap = contentWidth < 280 ? 14.0 : 18.0;
+          const gridGap = 10.0;
 
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: _AvatarPreview(
-                  asset: _selectedAvatar,
-                  size: avatarPreviewSize,
-                ),
-              ),
-              SizedBox(height: sectionGap),
               const _FieldLabel(text: 'Player Name'),
               const SizedBox(height: 6),
               _NameInputField(controller: _nameController),
@@ -87,10 +79,10 @@ class _EditPlayerDialogState extends State<EditPlayerDialog> {
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: gridGap,
+                  crossAxisSpacing: gridGap,
                   childAspectRatio: 1,
                 ),
                 itemCount: avatarAssets.length,
@@ -98,7 +90,6 @@ class _EditPlayerDialogState extends State<EditPlayerDialog> {
                   final asset = avatarAssets[index];
                   return _AvatarTile(
                     asset: asset,
-                    size: gridAvatarSize,
                     isSelected: _selectedAvatar == asset,
                     onTap: () => setState(() => _selectedAvatar = asset),
                   );
@@ -133,63 +124,6 @@ class _EditPlayerDialogState extends State<EditPlayerDialog> {
           );
         },
       ),
-    );
-  }
-}
-
-class _AvatarPreview extends StatelessWidget {
-  const _AvatarPreview({required this.asset, required this.size});
-
-  final String asset;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final editSize = size * 0.22;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: RoyalColors.gold, width: 3.2),
-            boxShadow: [
-              BoxShadow(
-                color: RoyalColors.darkBrown.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: ColoredBox(
-              color: RoyalColors.parchmentLight,
-              child: Image.asset(asset, fit: BoxFit.cover),
-            ),
-          ),
-        ),
-        Positioned(
-          right: 2,
-          bottom: 2,
-          child: Container(
-            width: editSize,
-            height: editSize,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: RoyalColors.gold, width: 1.4),
-            ),
-            child: Icon(
-              Icons.edit,
-              size: editSize * 0.55,
-              color: RoyalColors.darkBrown,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -308,78 +242,79 @@ class _GoldDivider extends StatelessWidget {
 class _AvatarTile extends StatelessWidget {
   const _AvatarTile({
     required this.asset,
-    required this.size,
     required this.isSelected,
     required this.onTap,
   });
 
   final String asset;
-  final double size;
   final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final checkSize = size * 0.34;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest.shortestSide;
+        final checkSize = size * 0.34;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? RoyalColors.gold : const Color(0xFFC9A06A),
-                  width: isSelected ? 3 : 1.8,
+        return GestureDetector(
+          onTap: onTap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? RoyalColors.red
+                        : const Color(0xFFC9A06A),
+                    width: isSelected ? 4.2 : 1.8,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: RoyalColors.red.withValues(alpha: 0.35),
+                            blurRadius: 6,
+                          ),
+                        ]
+                      : null,
                 ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: RoyalColors.gold.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: ClipOval(
-                child: ColoredBox(
-                  color: RoyalColors.parchmentLight,
-                  child: Image.asset(asset, fit: BoxFit.cover),
+                child: ClipOval(
+                  child: ColoredBox(
+                    color: RoyalColors.parchmentLight,
+                    child: Image.asset(asset, fit: BoxFit.cover),
+                  ),
                 ),
               ),
-            ),
-            if (isSelected)
-              Positioned(
-                right: -1,
-                bottom: -1,
-                child: Container(
-                  width: checkSize,
-                  height: checkSize,
-                  decoration: const BoxDecoration(
-                    color: RoyalColors.red,
-                    shape: BoxShape.circle,
-                    border: Border.fromBorderSide(
-                      BorderSide(color: Colors.white, width: 1.4),
+              if (isSelected)
+                Positioned(
+                  right: -1,
+                  bottom: -1,
+                  child: Container(
+                    width: checkSize,
+                    height: checkSize,
+                    decoration: const BoxDecoration(
+                      color: RoyalColors.red,
+                      shape: BoxShape.circle,
+                      border: Border.fromBorderSide(
+                        BorderSide(color: Colors.white, width: 1.4),
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: checkSize * 0.62,
                     ),
                   ),
-                  child: Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: checkSize * 0.62,
-                  ),
                 ),
-              ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

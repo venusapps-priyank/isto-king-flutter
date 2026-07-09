@@ -8,5 +8,4 @@ const avatarAssets = [
   'assets/avatar/avatar-f4.png',
   'assets/avatar/avatar-m4.png',
   'assets/avatar/avatar-f5.png',
-  'assets/avatar/avatar-m5.png',
 ];
