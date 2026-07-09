@@ -375,7 +375,7 @@ class _DialogActionButton extends StatelessWidget {
               children: [
                 if (showStars) ...[
                   Icon(Icons.auto_awesome, color: RoyalColors.gold, size: 13),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 8),
                 ],
                 Text(
                   label,
@@ -389,7 +389,7 @@ class _DialogActionButton extends StatelessWidget {
                   ),
                 ),
                 if (showStars) ...[
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 8),
                   Icon(Icons.auto_awesome, color: RoyalColors.gold, size: 13),
                 ],
               ],
