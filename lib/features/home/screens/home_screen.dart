@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/avatar_assets.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
-import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
-import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
+import 'package:isto_king/features/home/widgets/home_top_bar.dart';
 import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.profile = UserProfile.defaultProfile,
+    this.onProfileChanged,
+    this.embedded = false,
+  });
+
+  final UserProfile profile;
+  final ValueChanged<UserProfile>? onProfileChanged;
+  final bool embedded;
 
   static const _boardAsset = 'assets/images/full-board.png';
   static const _cornerAsset = 'assets/images/corner_mandala.png';
@@ -22,7 +30,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _didWarmGameAssets = false;
-  UserProfile _profile = UserProfile.defaultProfile;
+
+  UserProfile get _profile => widget.profile;
 
   static const _gameEntryAssets = [
     ...avatarAssets,
@@ -38,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       initialProfile: _profile,
     );
     if (updatedProfile != null && mounted) {
-      setState(() => _profile = updatedProfile);
+      widget.onProfileChanged?.call(updatedProfile);
     }
   }
 
@@ -82,9 +91,13 @@ class _HomeScreenState extends State<HomeScreen> {
             const _BottomCorner(isLeft: true),
             const _BottomCorner(isLeft: false),
             SafeArea(
+              bottom: !widget.embedded,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final layout = _HomeLayout.from(constraints);
+                  final layout = _HomeLayout.from(
+                    constraints,
+                    embedded: widget.embedded,
+                  );
 
                   return Column(
                     children: [
@@ -94,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             children: [
                               SizedBox(height: layout.topGap),
-                              _TopProfileBar(
+                              HomeTopBar(
                                 profile: _profile,
                                 onEditProfileTap: _onEditProfileTap,
                                 onSettingsTap: () =>
@@ -121,13 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   profile: _profile,
                                 ),
                               ),
+                              if (widget.embedded)
+                                SizedBox(height: layout.bottomGap),
                             ],
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: layout.bottomNavPadding,
-                        child: const HomeBottomNavBar(),
                       ),
                     ],
                   );
@@ -152,6 +163,7 @@ class _HomeLayout {
     required this.actionButtonGap,
     required this.boardMaxWidth,
     required this.boardMaxHeight,
+    required this.bottomGap,
   });
 
   final EdgeInsets scrollPadding;
@@ -163,8 +175,12 @@ class _HomeLayout {
   final double actionButtonGap;
   final double boardMaxWidth;
   final double boardMaxHeight;
+  final double bottomGap;
 
-  factory _HomeLayout.from(BoxConstraints constraints) {
+  factory _HomeLayout.from(
+    BoxConstraints constraints, {
+    bool embedded = false,
+  }) {
     final width = constraints.maxWidth;
     final height = constraints.maxHeight;
     final shortHeight = height < 720;
@@ -203,6 +219,7 @@ class _HomeLayout {
       boardMaxHeight: (height * (shortHeight ? 0.28 : 0.35))
           .clamp(compactWidth ? 190.0 : 220.0, 330.0)
           .toDouble(),
+      bottomGap: embedded ? (shortHeight ? 100.0 : 112.0) : 0,
     );
   }
 }
@@ -261,46 +278,6 @@ class _HomeActionButtons extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TopProfileBar extends StatelessWidget {
-  const _TopProfileBar({
-    required this.profile,
-    required this.onEditProfileTap,
-    required this.onSettingsTap,
-  });
-
-  final UserProfile profile;
-  final VoidCallback onEditProfileTap;
-  final VoidCallback onSettingsTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 360;
-        final gap = compact ? 6.0 : 8.0;
-
-        return Row(
-          children: [
-            _ProfileIdentity(
-              compact: compact,
-              profile: profile,
-              onEditTap: onEditProfileTap,
-            ),
-            SizedBox(width: gap),
-            const Expanded(child: SizedBox.shrink()),
-            const CoinBalancePill(),
-            SizedBox(width: gap),
-            _SettingsButton(
-              onTap: onSettingsTap,
-              size: compact ? 34 : 36,
             ),
           ],
         );
@@ -378,161 +355,6 @@ class _TitleBadge extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _ProfileIdentity extends StatelessWidget {
-  const _ProfileIdentity({
-    required this.compact,
-    required this.profile,
-    required this.onEditTap,
-  });
-
-  final bool compact;
-  final UserProfile profile;
-  final VoidCallback onEditTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final avatarRadius = compact ? 23.0 : 28.0;
-    final editSize = compact ? 19.0 : 22.0;
-    final editIconSize = compact ? 11.0 : 13.0;
-    final textGap = compact ? 7.0 : 10.0;
-    final nameSize = compact ? 15.0 : 18.0;
-    final levelSize = compact ? 9.0 : 10.0;
-    final progressWidth = compact ? 88.0 : 116.0;
-    final progressHeight = compact ? 6.0 : 8.0;
-
-    return Row(
-      children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onEditTap,
-            customBorder: const CircleBorder(),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundColor: const Color(0xFFE6C8A1),
-                  backgroundImage: AssetImage(profile.avatarAsset),
-                ),
-                Positioned(
-                  right: -2,
-                  bottom: -1,
-                  child: Container(
-                    height: editSize,
-                    width: editSize,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8ECD2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFD8B98F),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      size: editIconSize,
-                      color: RoyalColors.brown,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(width: textGap),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              profile.name,
-              style: TextStyle(
-                fontSize: nameSize,
-                fontWeight: FontWeight.w900,
-                height: 0.9,
-                color: RoyalColors.darkBrown,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Level 12',
-              style: TextStyle(
-                fontSize: levelSize,
-                fontWeight: FontWeight.w700,
-                color: RoyalColors.darkBrown,
-              ),
-            ),
-            SizedBox(height: compact ? 4 : 6),
-            SizedBox(
-              width: progressWidth,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(4)),
-                child: LinearProgressIndicator(
-                  value: 0.48,
-                  minHeight: progressHeight,
-                  backgroundColor: const Color(0xFFE8D6B3),
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(profile.themeColor),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _SettingsButton extends StatelessWidget {
-  const _SettingsButton({required this.onTap, required this.size});
-
-  final VoidCallback onTap;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final iconSize = size * 0.58;
-
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF2DC),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: const Color(0xFFD8B98F),
-          width: 1.8,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: RoyalColors.brown.withValues(alpha: 0.16),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: SizedBox(
-            height: size,
-            width: size,
-            child: Center(
-              child: Icon(
-                Icons.settings,
-                size: iconSize,
-                color: RoyalColors.darkBrown,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

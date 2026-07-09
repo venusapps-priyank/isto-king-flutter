@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -28,6 +30,12 @@ const _buttonsEntranceDelayMs = 680;
 const _exitDurationMs = 240;
 const _exitStaggerMs = 35;
 const _panelExitDurationMs = _exitDurationMs + (_exitStaggerMs * 3) + 40;
+
+double _safeClamp(double value, double min, double max) {
+  final lower = math.min(min, max);
+  final upper = math.max(min, max);
+  return value.clamp(lower, upper);
+}
 
 extension _WinRankingMotion on Widget {
   Widget animateRankCard({
@@ -201,156 +209,314 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.playersByRank.length < 4) {
-      return const SizedBox.shrink();
-    }
-
     return IgnorePointer(
       ignoring: _isExiting,
       child: LayoutBuilder(
         builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final height = constraints.maxHeight;
-        final layoutWidth = width > _positionLockWidth ? _positionLockWidth : width;
-        final layoutLeftOffset = (width - layoutWidth) / 2;
-        final bgTopInset = height * _bgTopInset;
-        final bgWidth = width * (1 - _bgHorizontalInset * 2);
-        final baseBgWidth = _positionLockWidth * (1 - _bgHorizontalInset * 2);
-        final widthScale = (bgWidth / baseBgWidth).clamp(1.0, 1.6);
-        final boostedScale = (1 + ((widthScale - 1) * 1.65)).toDouble();
-        final bgBottomInset =
-            (height * _bgBottomInset / boostedScale).clamp(height * 0.08, height).toDouble();
-        final bgHeight = (height - bgTopInset - bgBottomInset).clamp(0.0, height).toDouble();
-        final firstCardLeft = layoutLeftOffset + (layoutWidth - _centerCardWidth) / 2;
-        final firstCardTop = height * 0.16;
-        final firstCardHeight = height * 0.32;
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          final playerCount = widget.playersByRank.length;
+          if (playerCount == 0) return const SizedBox.shrink();
+          final panelScale = (width / _positionLockWidth).clamp(0.78, 1.0);
+          final heightScale = (height / 820).clamp(0.8, 1.0);
+          final responsiveScale = (panelScale * heightScale).clamp(0.72, 1.0);
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              top: height * _headerTopInset,
-              left: layoutLeftOffset,
-              width: layoutWidth,
-              child: _MatchResultHeader(width: layoutWidth)
-                  .animateHeader(exiting: _isExiting),
-            ),
-            Positioned(
-              left: width * _bgHorizontalInset,
-              top: bgTopInset,
-              height: bgHeight,
-              width: bgWidth,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2A190D).withValues(alpha: 0.78),
-                  borderRadius: BorderRadius.circular(20),
+          final layoutWidth = width > _positionLockWidth ? _positionLockWidth : width;
+          final layoutLeftOffset = (width - layoutWidth) / 2;
+          final bgTopInset = height * _bgTopInset;
+          final bgWidth = width * (1 - _bgHorizontalInset * 2);
+          final baseBgWidth = _positionLockWidth * (1 - _bgHorizontalInset * 2);
+          final widthScale = (bgWidth / baseBgWidth).clamp(1.0, 1.6);
+          final boostedScale = (1 + ((widthScale - 1) * 1.65)).toDouble();
+          final bgBottomInset = (height * _bgBottomInset / boostedScale)
+              .clamp(height * 0.08, height)
+              .toDouble();
+          final bgHeight = (height - bgTopInset - bgBottomInset).clamp(0.0, height).toDouble();
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                top: height * _headerTopInset,
+                left: layoutLeftOffset,
+                width: layoutWidth,
+                child: _MatchResultHeader(width: layoutWidth).animateHeader(exiting: _isExiting),
+              ),
+              Positioned(
+                left: width * _bgHorizontalInset,
+                top: bgTopInset,
+                height: bgHeight,
+                width: bgWidth,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A190D).withValues(alpha: 0.78),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ).animateBackdrop(exiting: _isExiting),
+              ),
+              if (playerCount == 4)
+                _buildFourPlayerCards(
+                  width: width,
+                  height: height,
+                  layoutWidth: layoutWidth,
+                  layoutLeftOffset: layoutLeftOffset,
+                  responsiveScale: responsiveScale,
+                )
+              else
+                _buildCompactCards(
+                  width: width,
+                  height: height,
+                  layoutWidth: layoutWidth,
+                  layoutLeftOffset: layoutLeftOffset,
+                  responsiveScale: responsiveScale,
                 ),
-              ).animateBackdrop(exiting: _isExiting),
-            ),
-            Positioned(
-              left: firstCardLeft + (_centerCardWidth / 2),
-              top: firstCardTop + (firstCardHeight * 0.55),
-              child: ConfettiWidget(
-                confettiController: _confettiController,
-                blastDirectionality: BlastDirectionality.explosive,
-                emissionFrequency: 0.05,
-                numberOfParticles: 16,
-                maxBlastForce: 26,
-                minBlastForce: 10,
-                gravity: 0.14,
-                canvas: Size(width, height),
-                shouldLoop: false,
-                colors: const [
-                  RoyalColors.gold,
-                  RoyalColors.yellow,
-                  RoyalColors.red,
-                  RoyalColors.blue,
-                  RoyalColors.green,
-                  Colors.white,
-                ],
+              Positioned(
+                top: bgTopInset + bgHeight + _buttonGapBelowBg,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: WinActionButtons(
+                    onPlayAgain: _handlePlayAgain,
+                    onHome: widget.onHome,
+                  ).animateActionButtons(exiting: _isExiting),
+                ),
               ),
-            ),
-            Positioned(
-              left: firstCardLeft,
-              top: firstCardTop,
-              width: _centerCardWidth,
-              child: _RankCard(
-                player: widget.playersByRank[0],
-                rank: 1,
-                width: _centerCardWidth,
-                height: firstCardHeight,
-                rankLabel: '1st Place',
-                showCrown: true,
-              ).animateRankCard(
-                exiting: _isExiting,
-                order: 0,
-                slideBegin: const Offset(0, -0.2),
-              ),
-            ),
-            Positioned(
-              left: layoutLeftOffset + (layoutWidth - _lowerCardWidth) / 2,
-              bottom: height * 0.20,
-              width: _lowerCardWidth,
-              child: _RankCard(
-                player: widget.playersByRank[3],
-                rank: 4,
-                width: _lowerCardWidth,
-                height: height * 0.30,
-                rankLabel: '4th Place',
-              ).animateRankCard(
-                exiting: _isExiting,
-                order: 3,
-                slideBegin: const Offset(0, 0.32),
-              ),
-            ),
-            Positioned(
-              left: layoutLeftOffset + layoutWidth * 0.04,
-              top: height * 0.38,
-              width: _sideCardWidth,
-              child: _RankCard(
-                player: widget.playersByRank[1],
-                rank: 2,
-                width: _sideCardWidth,
-                height: height * 0.30,
-                rankLabel: '2nd Place',
-              ).animateRankCard(
-                exiting: _isExiting,
-                order: 1,
-                slideBegin: const Offset(-0.35, 0.12),
-              ),
-            ),
-            Positioned(
-              right: layoutLeftOffset + layoutWidth * 0.04,
-              top: height * 0.38,
-              width: _sideCardWidth,
-              child: _RankCard(
-                player: widget.playersByRank[2],
-                rank: 3,
-                width: _sideCardWidth,
-                height: height * 0.30,
-                rankLabel: '3rd Place',
-              ).animateRankCard(
-                exiting: _isExiting,
-                order: 2,
-                slideBegin: const Offset(0.35, 0.12),
-              ),
-            ),
-            Positioned(
-              top: bgTopInset + bgHeight + _buttonGapBelowBg,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: WinActionButtons(
-                  onPlayAgain: _handlePlayAgain,
-                  onHome: widget.onHome,
-                ).animateActionButtons(exiting: _isExiting),
-              ),
-            ),
-          ],
-        );
+            ],
+          );
         },
       ),
     );
+  }
+
+  Widget _buildFourPlayerCards({
+    required double width,
+    required double height,
+    required double layoutWidth,
+    required double layoutLeftOffset,
+    required double responsiveScale,
+  }) {
+    final firstCardWidth = _safeClamp(
+      _centerCardWidth * responsiveScale,
+      layoutWidth * 0.30,
+      math.min(_centerCardWidth, layoutWidth * 0.48),
+    );
+    final sideCardWidth = _safeClamp(
+      _sideCardWidth * responsiveScale,
+      layoutWidth * 0.24,
+      math.min(_sideCardWidth, layoutWidth * 0.38),
+    );
+    final lowerCardWidth = _safeClamp(
+      _lowerCardWidth * responsiveScale,
+      layoutWidth * 0.26,
+      math.min(_lowerCardWidth, layoutWidth * 0.40),
+    );
+    final firstCardLeft = layoutLeftOffset + (layoutWidth - firstCardWidth) / 2;
+    final firstCardTop = height * 0.16;
+    final firstCardHeight = _safeClamp(
+      height * (0.32 * responsiveScale + 0.04),
+      height * 0.24,
+      height * 0.32,
+    );
+    final sideCardHeight = _safeClamp(
+      height * (0.30 * responsiveScale + 0.03),
+      height * 0.22,
+      height * 0.30,
+    );
+
+    return Stack(
+      children: [
+        Positioned(
+          left: firstCardLeft + (firstCardWidth / 2),
+          top: firstCardTop + (firstCardHeight * 0.55),
+          child: _buildConfetti(width, height),
+        ),
+        Positioned(
+          left: firstCardLeft,
+          top: firstCardTop,
+          width: firstCardWidth,
+          child: _RankCard(
+            player: widget.playersByRank[0],
+            rank: 1,
+            width: firstCardWidth,
+            height: firstCardHeight,
+            rankLabel: '1st Place',
+            showCrown: true,
+          ).animateRankCard(
+            exiting: _isExiting,
+            order: 0,
+            slideBegin: const Offset(0, -0.2),
+          ),
+        ),
+        Positioned(
+          left: layoutLeftOffset + (layoutWidth - lowerCardWidth) / 2,
+          bottom: height * 0.20,
+          width: lowerCardWidth,
+          child: _RankCard(
+            player: widget.playersByRank[3],
+            rank: 4,
+            width: lowerCardWidth,
+            height: sideCardHeight,
+            rankLabel: '4th Place',
+          ).animateRankCard(
+            exiting: _isExiting,
+            order: 3,
+            slideBegin: const Offset(0, 0.32),
+          ),
+        ),
+        Positioned(
+          left: layoutLeftOffset + layoutWidth * 0.04,
+          top: height * 0.38,
+          width: sideCardWidth,
+          child: _RankCard(
+            player: widget.playersByRank[1],
+            rank: 2,
+            width: sideCardWidth,
+            height: sideCardHeight,
+            rankLabel: '2nd Place',
+          ).animateRankCard(
+            exiting: _isExiting,
+            order: 1,
+            slideBegin: const Offset(-0.35, 0.12),
+          ),
+        ),
+        Positioned(
+          right: layoutLeftOffset + layoutWidth * 0.04,
+          top: height * 0.38,
+          width: sideCardWidth,
+          child: _RankCard(
+            player: widget.playersByRank[2],
+            rank: 3,
+            width: sideCardWidth,
+            height: sideCardHeight,
+            rankLabel: '3rd Place',
+          ).animateRankCard(
+            exiting: _isExiting,
+            order: 2,
+            slideBegin: const Offset(0.35, 0.12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactCards({
+    required double width,
+    required double height,
+    required double layoutWidth,
+    required double layoutLeftOffset,
+    required double responsiveScale,
+  }) {
+    final firstCardWidth = _safeClamp(
+      layoutWidth * (0.42 * responsiveScale + 0.05),
+      layoutWidth * 0.32,
+      layoutWidth * 0.48,
+    );
+    final sideCardWidth = _safeClamp(
+      layoutWidth * (0.35 * responsiveScale + 0.04),
+      layoutWidth * 0.26,
+      layoutWidth * 0.40,
+    );
+    final firstCardTop = height * 0.16;
+    final firstCardHeight = _safeClamp(
+      height * (0.30 * responsiveScale + 0.04),
+      height * 0.23,
+      height * 0.30,
+    );
+    final compactCardGap = height * 0.045;
+    final rowTop = firstCardTop + firstCardHeight + compactCardGap;
+    final rowHeight = _safeClamp(
+      height * (0.25 * responsiveScale + 0.03),
+      height * 0.20,
+      height * 0.25,
+    );
+    final remainingPlayers = widget.playersByRank.skip(1).toList(growable: false);
+    if (remainingPlayers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final spacing = remainingPlayers.length <= 1 ? 0.0 : layoutWidth * 0.04;
+    final availableWidth = layoutWidth - spacing;
+    final cardWidth = _safeClamp(
+      availableWidth / remainingPlayers.length,
+      layoutWidth * 0.24,
+      sideCardWidth,
+    );
+    final cardsLeft = layoutLeftOffset + (layoutWidth - (cardWidth * remainingPlayers.length + spacing)) / 2;
+
+    return Stack(
+      children: [
+        Positioned(
+          left: layoutLeftOffset + (layoutWidth - firstCardWidth) / 2 + (firstCardWidth / 2),
+          top: firstCardTop + (firstCardHeight * 0.55),
+          child: _buildConfetti(width, height),
+        ),
+        Positioned(
+          left: layoutLeftOffset + (layoutWidth - firstCardWidth) / 2,
+          top: firstCardTop,
+          width: firstCardWidth,
+          child: _RankCard(
+            player: widget.playersByRank[0],
+            rank: 1,
+            width: firstCardWidth,
+            height: firstCardHeight,
+            rankLabel: '1st Place',
+            showCrown: true,
+          ).animateRankCard(
+            exiting: _isExiting,
+            order: 0,
+            slideBegin: const Offset(0, -0.2),
+          ),
+        ),
+        for (var i = 0; i < remainingPlayers.length; i++)
+          Positioned(
+            left: cardsLeft + (cardWidth + spacing) * i,
+            top: rowTop,
+            width: cardWidth,
+            child: _RankCard(
+              player: remainingPlayers[i],
+              rank: i + 2,
+              width: cardWidth,
+              height: rowHeight,
+              rankLabel: '${_ordinalLabel(i + 2)} Place',
+            ).animateRankCard(
+              exiting: _isExiting,
+              order: i + 1,
+              slideBegin: const Offset(0, 0.24),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildConfetti(double width, double height) {
+    return ConfettiWidget(
+      confettiController: _confettiController,
+      blastDirectionality: BlastDirectionality.explosive,
+      emissionFrequency: 0.05,
+      numberOfParticles: 16,
+      maxBlastForce: 26,
+      minBlastForce: 10,
+      gravity: 0.14,
+      canvas: Size(width, height),
+      shouldLoop: false,
+      colors: const [
+        RoyalColors.gold,
+        RoyalColors.yellow,
+        RoyalColors.red,
+        RoyalColors.blue,
+        RoyalColors.green,
+        Colors.white,
+      ],
+    );
+  }
+
+  String _ordinalLabel(int rank) {
+    return switch (rank) {
+      1 => '1st',
+      2 => '2nd',
+      3 => '3rd',
+      4 => '4th',
+      _ => '${rank}th',
+    };
   }
 }
 
@@ -435,8 +601,9 @@ class _RankCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardScale = (width / _centerCardWidth).clamp(0.72, 1.0);
     final avatarSize = height * (rank == 1 ? 0.36 : 0.34);
-    final radius = rank == 1 ? 22.0 : 18.0;
+    final radius = (rank == 1 ? 22.0 : 18.0) * cardScale;
     final isSecondOrThird = rank == 2 || rank == 3;
     final themeColor = player.color;
     final borderColor = HSLColor.fromColor(themeColor)
@@ -464,7 +631,7 @@ class _RankCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(radius),
                   border: Border.all(
                     color: borderColor,
-                    width: rank == 1 ? 6.2 : 5.8,
+                    width: (rank == 1 ? 6.2 : 5.8) * cardScale,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -492,10 +659,10 @@ class _RankCard extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    10,
-                    isSecondOrThird ? 8 : 10,
-                    10,
-                    isSecondOrThird ? 8 : 10,
+                    10 * cardScale,
+                    (isSecondOrThird ? 8 : 10) * cardScale,
+                    10 * cardScale,
+                    (isSecondOrThird ? 8 : 10) * cardScale,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -509,7 +676,7 @@ class _RankCard extends StatelessWidget {
                             height: avatarSize,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: borderColor, width: 3),
+                              border: Border.all(color: borderColor, width: 3 * cardScale),
                             ),
                             child: ClipOval(
                               child: Image.asset(player.avatarAsset, fit: BoxFit.cover),
@@ -517,26 +684,30 @@ class _RankCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: isSecondOrThird ? 6 : 7),
+                      SizedBox(height: (isSecondOrThird ? 6 : 7) * cardScale),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           color: player.color,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8 * cardScale),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10 * cardScale,
+                            vertical: 4 * cardScale,
+                          ),
                           child: Text(
                             player.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
+                              fontSize: (14 * cardScale).clamp(11.0, 14.0),
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(height: isSecondOrThird ? 6 : 7),
+                      SizedBox(height: (isSecondOrThird ? 6 : 7) * cardScale),
                       if (_rankEmblemAsset != null)
                         Image.asset(
                           _rankEmblemAsset!,
@@ -549,19 +720,23 @@ class _RankCard extends StatelessWidget {
                           color: borderColor,
                           size: height * 0.13,
                         ),
-                      SizedBox(height: isSecondOrThird ? 6 : 7),
+                      SizedBox(height: (isSecondOrThird ? 6 : 7) * cardScale),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           color: placeChipColor,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12 * cardScale,
+                            vertical: 4 * cardScale,
+                          ),
                           child: Text(
                             rankLabel,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
+                              fontSize: (13 * cardScale).clamp(10.5, 13.0),
                             ),
                           ),
                         ),
