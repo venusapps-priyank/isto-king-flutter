@@ -5,7 +5,7 @@ import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/rules/screens/rules_screen.dart';
-import 'package:isto_king/features/store/screens/store_screen.dart';
+import 'package:isto_king/features/store/screens/store_coming_soon_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -78,7 +78,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   ),
                   embedded: true,
                 ),
-                StoreScreen(
+                StoreComingSoonScreen(
                   profile: _profile,
                   onProfileChanged: _onProfileChanged,
                   embedded: true,
