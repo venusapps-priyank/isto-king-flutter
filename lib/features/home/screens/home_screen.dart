@@ -4,8 +4,10 @@ import 'package:isto_king/data/avatar_assets.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
+import 'package:isto_king/data/home_assets.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
 import 'package:isto_king/features/home/widgets/home_top_bar.dart';
+import 'package:isto_king/features/home/widgets/online_coming_soon_dialog.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
@@ -39,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _gameEntryAssets = [
     ...avatarAssets,
+    playTogetherAsset,
     'assets/images/corner_mandala.png',
     'assets/images/cowrie_open.png',
     'assets/images/cowrie_closed.png',
@@ -147,6 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           widget.onShowGameSetup?.call(false),
                                       onPassAndPlay: () =>
                                           widget.onShowGameSetup?.call(true),
+                                      onOnlinePlay: () =>
+                                          OnlineComingSoonDialog.show(context),
                                     ),
                                     if (widget.embedded)
                                       SizedBox(height: layout.bottomGap),
@@ -263,11 +268,13 @@ class _HomeActionButtons extends StatelessWidget {
     required this.buttonGap,
     required this.onPlayNow,
     required this.onPassAndPlay,
+    required this.onOnlinePlay,
   });
 
   final double buttonGap;
   final VoidCallback onPlayNow;
   final VoidCallback onPassAndPlay;
+  final VoidCallback onOnlinePlay;
 
   @override
   Widget build(BuildContext context) {
@@ -306,12 +313,13 @@ class _HomeActionButtons extends StatelessWidget {
                     onPressed: onPassAndPlay,
                   ),
                   SizedBox(width: secondaryGap),
-                  const HomeCtaButton(
+                  HomeCtaButton(
                     expanded: true,
                     label: 'ONLINE',
                     subtitle: 'Challenge players',
                     icon: Icons.public,
                     backgroundColor: RoyalColors.green,
+                    onPressed: onOnlinePlay,
                   ),
                 ],
               ),
