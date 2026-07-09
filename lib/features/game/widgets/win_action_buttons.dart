@@ -11,30 +11,66 @@ class WinActionButtons extends StatelessWidget {
   final VoidCallback onPlayAgain;
   final VoidCallback onHome;
 
+  static const _buttonGap = 10.0;
+  static const _minButtonWidth = 128.0;
+
   @override
   Widget build(BuildContext context) {
-    final buttonWidth = _WinPillButton.widthForLabel('PLAY AGAIN');
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width - 24;
+        final idealWidth = _WinPillButton.widthForLabel('PLAY AGAIN');
+        final stackVertically = maxWidth < idealWidth * 2 + _buttonGap;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _WinPillButton(
-          label: 'PLAY AGAIN',
-          icon: Icons.replay_rounded,
-          isPrimary: true,
-          width: buttonWidth,
-          onTap: onPlayAgain,
-        ),
-        const SizedBox(width: 10),
-        _WinPillButton(
-          label: 'HOME',
-          icon: Icons.home_rounded,
-          isPrimary: false,
-          width: buttonWidth,
-          onTap: onHome,
-        ),
-      ],
+        if (stackVertically) {
+          final buttonWidth = maxWidth.clamp(_minButtonWidth, idealWidth);
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _WinPillButton(
+                label: 'PLAY AGAIN',
+                icon: Icons.replay_rounded,
+                isPrimary: true,
+                width: buttonWidth,
+                onTap: onPlayAgain,
+              ),
+              const SizedBox(height: _buttonGap),
+              _WinPillButton(
+                label: 'HOME',
+                icon: Icons.home_rounded,
+                isPrimary: false,
+                width: buttonWidth,
+                onTap: onHome,
+              ),
+            ],
+          );
+        }
+
+        final buttonWidth =
+            ((maxWidth - _buttonGap) / 2).clamp(_minButtonWidth, idealWidth);
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _WinPillButton(
+              label: 'PLAY AGAIN',
+              icon: Icons.replay_rounded,
+              isPrimary: true,
+              width: buttonWidth,
+              onTap: onPlayAgain,
+            ),
+            const SizedBox(width: _buttonGap),
+            _WinPillButton(
+              label: 'HOME',
+              icon: Icons.home_rounded,
+              isPrimary: false,
+              width: buttonWidth,
+              onTap: onHome,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -109,6 +145,7 @@ class _WinPillButton extends StatelessWidget {
     );
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
         width: width,

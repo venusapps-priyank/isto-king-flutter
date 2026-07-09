@@ -147,9 +147,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _HomeActionButtons(
                                       buttonGap: layout.actionButtonGap,
                                       onPlayNow: () =>
-                                          widget.onShowGameSetup?.call(false),
-                                      onPassAndPlay: () =>
                                           widget.onShowGameSetup?.call(true),
+                                      onPassAndPlay: () =>
+                                          widget.onShowGameSetup?.call(false),
                                       onOnlinePlay: () =>
                                           OnlineComingSoonDialog.show(context),
                                     ),
@@ -307,7 +307,7 @@ class _HomeActionButtons extends StatelessWidget {
                   HomeCtaButton(
                     expanded: true,
                     label: 'PASS & PLAY',
-                    subtitle: 'Play with friends',
+                    subtitle: 'Play with AI',
                     icon: Icons.people_outlined,
                     backgroundColor: RoyalColors.yellow,
                     onPressed: onPassAndPlay,

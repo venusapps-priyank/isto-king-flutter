@@ -22,7 +22,9 @@ const _bgTopInset = 0.17;
 const _headerTopInset = 0.03;
 const _bgBottomInset = 0.18;
 const _bgHorizontalInset = 0.000;
+const _actionButtonHeight = 58.0;
 const _buttonGapBelowBg = 12.0;
+const _buttonAreaBottomPadding = 4.0;
 const _entranceBaseDelayMs = 180;
 const _entranceStaggerMs = 120;
 const _entranceDurationMs = 400;
@@ -228,10 +230,19 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
           final baseBgWidth = _positionLockWidth * (1 - _bgHorizontalInset * 2);
           final widthScale = (bgWidth / baseBgWidth).clamp(1.0, 1.6);
           final boostedScale = (1 + ((widthScale - 1) * 1.65)).toDouble();
-          final bgBottomInset = (height * _bgBottomInset / boostedScale)
-              .clamp(height * 0.08, height)
+          final buttonAreaHeight =
+              _actionButtonHeight + _buttonGapBelowBg + _buttonAreaBottomPadding;
+          final compactHeight = height < 680;
+          final bgBottomInset = math
+              .max(
+                height * _bgBottomInset / boostedScale,
+                buttonAreaHeight + (compactHeight ? 8 : 0),
+              )
+              .clamp(buttonAreaHeight, height * 0.24)
               .toDouble();
-          final bgHeight = (height - bgTopInset - bgBottomInset).clamp(0.0, height).toDouble();
+          final bgHeight =
+              (height - bgTopInset - bgBottomInset).clamp(0.0, height).toDouble();
+          final cardBottomInset = compactHeight ? 0.14 : 0.20;
 
           return Stack(
             clipBehavior: Clip.none,
@@ -254,32 +265,35 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                   ),
                 ).animateBackdrop(exiting: _isExiting),
               ),
-              if (playerCount == 4)
-                _buildFourPlayerCards(
-                  width: width,
-                  height: height,
-                  layoutWidth: layoutWidth,
-                  layoutLeftOffset: layoutLeftOffset,
-                  responsiveScale: responsiveScale,
-                )
-              else
-                _buildCompactCards(
-                  width: width,
-                  height: height,
-                  layoutWidth: layoutWidth,
-                  layoutLeftOffset: layoutLeftOffset,
-                  responsiveScale: responsiveScale,
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: playerCount == 4
+                      ? _buildFourPlayerCards(
+                          width: width,
+                          height: height,
+                          layoutWidth: layoutWidth,
+                          layoutLeftOffset: layoutLeftOffset,
+                          responsiveScale: responsiveScale,
+                          cardBottomInset: cardBottomInset,
+                        )
+                      : _buildCompactCards(
+                          width: width,
+                          height: height,
+                          layoutWidth: layoutWidth,
+                          layoutLeftOffset: layoutLeftOffset,
+                          responsiveScale: responsiveScale,
+                          cardBottomInset: cardBottomInset,
+                        ),
                 ),
+              ),
               Positioned(
-                top: bgTopInset + bgHeight + _buttonGapBelowBg,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: WinActionButtons(
-                    onPlayAgain: _handlePlayAgain,
-                    onHome: widget.onHome,
-                  ).animateActionButtons(exiting: _isExiting),
-                ),
+                left: 12,
+                right: 12,
+                bottom: _buttonAreaBottomPadding,
+                child: WinActionButtons(
+                  onPlayAgain: _handlePlayAgain,
+                  onHome: widget.onHome,
+                ).animateActionButtons(exiting: _isExiting),
               ),
             ],
           );
@@ -294,6 +308,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
     required double layoutWidth,
     required double layoutLeftOffset,
     required double responsiveScale,
+    required double cardBottomInset,
   }) {
     final firstCardWidth = _safeClamp(
       _centerCardWidth * responsiveScale,
@@ -349,7 +364,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
         ),
         Positioned(
           left: layoutLeftOffset + (layoutWidth - lowerCardWidth) / 2,
-          bottom: height * 0.20,
+          bottom: height * cardBottomInset,
           width: lowerCardWidth,
           child: _RankCard(
             player: widget.playersByRank[3],
@@ -405,6 +420,7 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
     required double layoutWidth,
     required double layoutLeftOffset,
     required double responsiveScale,
+    required double cardBottomInset,
   }) {
     final firstCardWidth = _safeClamp(
       layoutWidth * (0.42 * responsiveScale + 0.05),
