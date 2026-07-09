@@ -72,7 +72,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
     return RoyalDialog(
       title: 'SETTINGS',
       maxWidth: 340,
-      crestAsset: 'assets/images/corner_mandala.png',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

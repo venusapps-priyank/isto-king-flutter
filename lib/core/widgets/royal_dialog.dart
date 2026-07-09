@@ -54,7 +54,6 @@ class RoyalDialog extends StatelessWidget {
     this.onClose,
     this.maxWidth = 320,
     this.insetPadding,
-    this.crestAsset,
     super.key,
   });
 
@@ -63,7 +62,6 @@ class RoyalDialog extends StatelessWidget {
   final VoidCallback? onClose;
   final double maxWidth;
   final EdgeInsets? insetPadding;
-  final String? crestAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -110,12 +108,7 @@ class RoyalDialog extends StatelessWidget {
                   border: Border.all(color: RoyalColors.gold, width: 2.5),
                 ),
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    18,
-                    crestAsset != null ? 28 : 18,
-                    18,
-                    16,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -127,20 +120,6 @@ class RoyalDialog extends StatelessWidget {
                 ),
               ),
             ),
-            if (crestAsset != null)
-              Positioned(
-                top: -22,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Image.asset(
-                    crestAsset!,
-                    width: 44,
-                    height: 44,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
             Positioned(
               top: -10,
               right: -8,
