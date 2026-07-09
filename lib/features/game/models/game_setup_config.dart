@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 
 class GameSetupConfig {
   const GameSetupConfig({
@@ -7,12 +8,14 @@ class GameSetupConfig {
     required this.chipColor,
     this.humanPlayerName = 'Player',
     this.humanPlayerAvatarAsset = 'assets/avatar/avatar-m1.png',
+    this.rulesSettings = GameRulesSettings.defaults,
   });
 
   final int playerCount;
   final Color chipColor;
   final String humanPlayerName;
   final String humanPlayerAvatarAsset;
+  final GameRulesSettings rulesSettings;
 
   static const defaultConfig = GameSetupConfig(
     playerCount: 4,

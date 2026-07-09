@@ -18,7 +18,7 @@ class RulesSubtitle extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10 * scale),
                 child: Text(
-                  'Official game rules for Isto King',
+                  'Customize rules as per your game style',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11.5 * scale,

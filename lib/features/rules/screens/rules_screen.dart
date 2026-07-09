@@ -5,6 +5,7 @@ import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_top_bar.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/rules/widgets/rules_panel.dart';
 import 'package:isto_king/features/rules/widgets/rules_subtitle.dart';
 import 'package:isto_king/features/rules/widgets/rules_title_badge.dart';
@@ -14,12 +15,16 @@ class RulesScreen extends StatefulWidget {
   const RulesScreen({
     this.profile = UserProfile.defaultProfile,
     this.onProfileChanged,
+    this.rulesSettings = GameRulesSettings.defaults,
+    this.onRulesSettingsChanged,
     this.embedded = false,
     super.key,
   });
 
   final UserProfile profile;
   final ValueChanged<UserProfile>? onProfileChanged;
+  final GameRulesSettings rulesSettings;
+  final ValueChanged<GameRulesSettings>? onRulesSettingsChanged;
   final bool embedded;
 
   static const cornerAsset = 'assets/images/corner_mandala.png';
@@ -91,7 +96,14 @@ class _RulesScreenState extends State<RulesScreen> {
                         SizedBox(height: layout.sectionGap * 0.7),
                         const RulesSubtitle(),
                         SizedBox(height: layout.sectionGap),
-                        const RulesPanel(),
+                        RulesPanel(
+                          settings: widget.rulesSettings,
+                          onSettingChanged: (key, value) {
+                            widget.onRulesSettingsChanged?.call(
+                              widget.rulesSettings.withValue(key, value),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   );

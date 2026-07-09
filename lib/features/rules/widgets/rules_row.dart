@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/rules/models/game_rule_definition.dart';
+import 'package:isto_king/features/rules/widgets/rules_checkbox.dart';
 import 'package:isto_king/features/rules/widgets/rules_rule_icon.dart';
 
 class RulesRow extends StatelessWidget {
   const RulesRow({
     required this.rule,
     required this.iconSize,
+    this.isEnabled = true,
+    this.onEnabledChanged,
     super.key,
   });
 
   final GameRuleInfo rule;
   final double iconSize;
+  final bool isEnabled;
+  final ValueChanged<bool>? onEnabledChanged;
 
   @override
   Widget build(BuildContext context) {
+    final descriptionColor = isEnabled
+        ? RoyalColors.brown.withValues(alpha: 0.82)
+        : RoyalColors.brown.withValues(alpha: 0.5);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
@@ -28,10 +37,12 @@ class RulesRow extends StatelessWidget {
               children: [
                 Text(
                   rule.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: RoyalColors.darkBrown,
+                    color: isEnabled
+                        ? RoyalColors.darkBrown
+                        : RoyalColors.darkBrown.withValues(alpha: 0.55),
                     height: 1.15,
                   ),
                 ),
@@ -41,13 +52,20 @@ class RulesRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: RoyalColors.brown.withValues(alpha: 0.82),
+                    color: descriptionColor,
                     height: 1.25,
                   ),
                 ),
               ],
             ),
           ),
+          if (rule.isToggleable) ...[
+            const SizedBox(width: 8),
+            RulesCheckbox(
+              value: isEnabled,
+              onChanged: onEnabledChanged ?? (_) {},
+            ),
+          ],
         ],
       ),
     );

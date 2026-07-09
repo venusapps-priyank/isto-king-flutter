@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/screens/home_screen.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/rules/screens/rules_screen.dart';
 import 'package:isto_king/features/store/screens/store_screen.dart';
 
@@ -15,6 +16,7 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   HomeNavTab _selectedTab = HomeNavTab.home;
   UserProfile _profile = UserProfile.defaultProfile;
+  GameRulesSettings _rulesSettings = GameRulesSettings.defaults;
 
   int get _tabIndex => switch (_selectedTab) {
         HomeNavTab.rules => 0,
@@ -28,6 +30,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _onProfileChanged(UserProfile profile) {
     setState(() => _profile = profile);
+  }
+
+  void _onRulesSettingsChanged(GameRulesSettings settings) {
+    setState(() => _rulesSettings = settings);
   }
 
   @override
@@ -44,11 +50,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 RulesScreen(
                   profile: _profile,
                   onProfileChanged: _onProfileChanged,
+                  rulesSettings: _rulesSettings,
+                  onRulesSettingsChanged: _onRulesSettingsChanged,
                   embedded: true,
                 ),
                 HomeScreen(
                   profile: _profile,
                   onProfileChanged: _onProfileChanged,
+                  rulesSettings: _rulesSettings,
                   embedded: true,
                 ),
                 StoreScreen(

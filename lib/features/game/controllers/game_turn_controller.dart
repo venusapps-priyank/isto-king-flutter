@@ -45,8 +45,10 @@ class RollResolution {
 }
 
 class GameTurnController {
-  GameTurnController({Set<int>? activePlayers})
-      : activePlayerIndexes = activePlayers ?? const {0, 1, 2, 3} {
+  GameTurnController({
+    Set<int>? activePlayers,
+    this.mustKillForInner = true,
+  }) : activePlayerIndexes = activePlayers ?? const {0, 1, 2, 3} {
     _deactivateInactivePlayers();
     currentPlayerIndex = turnOrder.firstWhere(
       activePlayerIndexes.contains,
@@ -55,6 +57,7 @@ class GameTurnController {
   }
 
   final Set<int> activePlayerIndexes;
+  final bool mustKillForInner;
   late int currentPlayerIndex;
   final List<int?> lastRolls = List<int?>.filled(4, null);
   final List<PlayerGameState> playerStates = List<PlayerGameState>.generate(
@@ -84,7 +87,9 @@ class GameTurnController {
       _rankedPlayerIndexes.length >= activePlayerIndexes.length - 1;
 
   List<bool> get innerPathAccess => List<bool>.unmodifiable(
-    playerStates.map((state) => state.hasKilledOpponent),
+    playerStates.map(
+      (state) => !mustKillForInner || state.hasKilledOpponent,
+    ),
   );
 
   int? rankForPlayer(int playerIndex) {
@@ -440,7 +445,9 @@ class GameTurnController {
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final alreadyInside = currentIndex >= IstoBoardPaths.outerPathLength;
     final canEnterInner =
-        playerStates[token.playerIndex].hasKilledOpponent || alreadyInside;
+        !mustKillForInner ||
+        playerStates[token.playerIndex].hasKilledOpponent ||
+        alreadyInside;
 
     if (!canEnterInner && proposedIndex >= IstoBoardPaths.outerPathLength) {
       return proposedIndex % IstoBoardPaths.outerPathLength;

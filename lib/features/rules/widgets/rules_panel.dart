@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/rules_catalog.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/rules/widgets/rules_row.dart';
 
 class RulesPanel extends StatelessWidget {
-  const RulesPanel({super.key});
+  const RulesPanel({
+    required this.settings,
+    required this.onSettingChanged,
+    super.key,
+  });
+
+  final GameRulesSettings settings;
+  final void Function(String settingKey, bool value) onSettingChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +47,23 @@ class RulesPanel extends StatelessWidget {
                   if (s > 0) const SizedBox(height: 4),
                   RulesSectionHeading(title: gameRuleSections[s].title),
                   for (var r = 0; r < gameRuleSections[s].rules.length; r++) ...[
-                    RulesRow(
-                      rule: gameRuleSections[s].rules[r],
-                      iconSize: iconSize,
+                    Builder(
+                      builder: (context) {
+                        final rule = gameRuleSections[s].rules[r];
+                        final isEnabled = rule.settingKey == null
+                            ? true
+                            : settings.valueFor(rule.settingKey!);
+
+                        return RulesRow(
+                          rule: rule,
+                          iconSize: iconSize,
+                          isEnabled: isEnabled,
+                          onEnabledChanged: rule.settingKey == null
+                              ? null
+                              : (value) =>
+                                  onSettingChanged(rule.settingKey!, value),
+                        );
+                      },
                     ),
                     if (r < gameRuleSections[s].rules.length - 1)
                       const RulesDivider(),

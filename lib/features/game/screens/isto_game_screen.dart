@@ -42,6 +42,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   GameTurnController _createTurnController() {
     return GameTurnController(
       activePlayers: widget.setup.activePlayerIndexSet,
+      mustKillForInner: widget.setup.rulesSettings.mustKillForInner,
     );
   }
 

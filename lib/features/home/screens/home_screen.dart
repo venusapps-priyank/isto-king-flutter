@@ -7,6 +7,7 @@ import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_cta_button.dart';
 import 'package:isto_king/features/home/widgets/home_top_bar.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,11 +15,13 @@ class HomeScreen extends StatefulWidget {
     super.key,
     this.profile = UserProfile.defaultProfile,
     this.onProfileChanged,
+    this.rulesSettings = GameRulesSettings.defaults,
     this.embedded = false,
   });
 
   final UserProfile profile;
   final ValueChanged<UserProfile>? onProfileChanged;
+  final GameRulesSettings rulesSettings;
   final bool embedded;
 
   static const _boardAsset = 'assets/images/full-board.png';
@@ -132,6 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPlayNow: () => GameSetupDialog.show(
                                   context,
                                   profile: _profile,
+                                  rulesSettings: widget.rulesSettings,
                                 ),
                               ),
                               if (widget.embedded)

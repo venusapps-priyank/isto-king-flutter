@@ -1,4 +1,5 @@
 import 'package:isto_king/features/rules/models/game_rule_definition.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 
 const gameRuleSections = [
   GameRuleSection(
@@ -44,6 +45,7 @@ const gameRuleSections = [
         description:
             'You must capture at least one opponent before entering the inner path to center.',
         iconType: GameRuleIconType.pot,
+        settingKey: GameRuleSettingKey.mustKillForInner,
       ),
       GameRuleInfo(
         title: 'Outer Loop Wrap',
