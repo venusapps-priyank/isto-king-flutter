@@ -3,11 +3,13 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 
 class ScreenOrnamentPainter extends CustomPainter {
   const ScreenOrnamentPainter({
+    this.topInset = 0,
     this.topCornerScale = 1.0,
     this.bottomCornerScale = 1.18,
     this.bottomConnectorHeight = 0,
   });
 
+  final double topInset;
   final double topCornerScale;
   final double bottomCornerScale;
   final double bottomConnectorHeight;
@@ -15,6 +17,7 @@ class ScreenOrnamentPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final red = Paint()..color = RoyalColors.outerRed;
+    final topEdge = topInset.clamp(0.0, size.height);
     if (bottomConnectorHeight > 0) {
       canvas.drawRect(
         Rect.fromLTWH(
@@ -27,16 +30,17 @@ class ScreenOrnamentPainter extends CustomPainter {
       );
     }
     for (final corner in [
-      Offset.zero,
-      Offset(size.width, 0),
+      Offset(0, topEdge),
+      Offset(size.width, topEdge),
       Offset(0, size.height),
       Offset(size.width, size.height),
     ]) {
       final sx = corner.dx == 0 ? 1.0 : -1.0;
-      final sy = corner.dy == 0 ? 1.0 : -1.0;
+      final isTopCorner = corner.dy == topEdge;
+      final sy = isTopCorner ? 1.0 : -1.0;
       final scale = corner.dy == size.height
           ? bottomCornerScale
-          : corner.dy == 0
+          : isTopCorner
           ? topCornerScale
           : 1.0;
       canvas.save();
@@ -56,7 +60,8 @@ class ScreenOrnamentPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ScreenOrnamentPainter oldDelegate) {
-    return oldDelegate.topCornerScale != topCornerScale ||
+    return oldDelegate.topInset != topInset ||
+        oldDelegate.topCornerScale != topCornerScale ||
         oldDelegate.bottomCornerScale != bottomCornerScale ||
         oldDelegate.bottomConnectorHeight != bottomConnectorHeight;
   }

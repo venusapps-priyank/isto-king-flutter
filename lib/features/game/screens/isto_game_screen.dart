@@ -235,13 +235,26 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.paddingOf(context).top;
+
     return Scaffold(
       body: DecoratedBox(
         decoration: const BoxDecoration(color: RoyalColors.parchment),
         child: Stack(
           children: [
-            const Positioned.fill(
-              child: CustomPaint(painter: ScreenOrnamentPainter()),
+            Positioned.fill(
+              child: CustomPaint(
+                painter: ScreenOrnamentPainter(
+                  topInset: topInset,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              height: topInset,
+              child: const ColoredBox(color: RoyalColors.outerRed),
             ),
             const _BottomCornerMandala(isLeft: true),
             const _BottomCornerMandala(isLeft: false),
