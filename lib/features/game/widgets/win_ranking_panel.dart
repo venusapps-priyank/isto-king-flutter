@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -28,6 +30,12 @@ const _buttonsEntranceDelayMs = 680;
 const _exitDurationMs = 240;
 const _exitStaggerMs = 35;
 const _panelExitDurationMs = _exitDurationMs + (_exitStaggerMs * 3) + 40;
+
+double _safeClamp(double value, double min, double max) {
+  final lower = math.min(min, max);
+  final upper = math.max(min, max);
+  return value.clamp(lower, upper);
+}
 
 extension _WinRankingMotion on Widget {
   Widget animateRankCard({
@@ -287,16 +295,30 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
     required double layoutLeftOffset,
     required double responsiveScale,
   }) {
-    final firstCardWidth = (_centerCardWidth * responsiveScale).clamp(150.0, _centerCardWidth);
-    final sideCardWidth = (_sideCardWidth * responsiveScale).clamp(124.0, _sideCardWidth);
-    final lowerCardWidth = (_lowerCardWidth * responsiveScale).clamp(132.0, _lowerCardWidth);
+    final firstCardWidth = _safeClamp(
+      _centerCardWidth * responsiveScale,
+      layoutWidth * 0.30,
+      math.min(_centerCardWidth, layoutWidth * 0.48),
+    );
+    final sideCardWidth = _safeClamp(
+      _sideCardWidth * responsiveScale,
+      layoutWidth * 0.24,
+      math.min(_sideCardWidth, layoutWidth * 0.38),
+    );
+    final lowerCardWidth = _safeClamp(
+      _lowerCardWidth * responsiveScale,
+      layoutWidth * 0.26,
+      math.min(_lowerCardWidth, layoutWidth * 0.40),
+    );
     final firstCardLeft = layoutLeftOffset + (layoutWidth - firstCardWidth) / 2;
     final firstCardTop = height * 0.16;
-    final firstCardHeight = (height * (0.32 * responsiveScale + 0.04)).clamp(
+    final firstCardHeight = _safeClamp(
+      height * (0.32 * responsiveScale + 0.04),
       height * 0.24,
       height * 0.32,
     );
-    final sideCardHeight = (height * (0.30 * responsiveScale + 0.03)).clamp(
+    final sideCardHeight = _safeClamp(
+      height * (0.30 * responsiveScale + 0.03),
       height * 0.22,
       height * 0.30,
     );
@@ -384,22 +406,26 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
     required double layoutLeftOffset,
     required double responsiveScale,
   }) {
-    final firstCardWidth = (layoutWidth * (0.42 * responsiveScale + 0.05)).clamp(
-      142.0,
-      layoutWidth * 0.42,
+    final firstCardWidth = _safeClamp(
+      layoutWidth * (0.42 * responsiveScale + 0.05),
+      layoutWidth * 0.32,
+      layoutWidth * 0.48,
     );
-    final sideCardWidth = (layoutWidth * (0.35 * responsiveScale + 0.04)).clamp(
-      120.0,
-      layoutWidth * 0.35,
+    final sideCardWidth = _safeClamp(
+      layoutWidth * (0.35 * responsiveScale + 0.04),
+      layoutWidth * 0.26,
+      layoutWidth * 0.40,
     );
     final firstCardTop = height * 0.16;
-    final firstCardHeight = (height * (0.30 * responsiveScale + 0.04)).clamp(
+    final firstCardHeight = _safeClamp(
+      height * (0.30 * responsiveScale + 0.04),
       height * 0.23,
       height * 0.30,
     );
     final compactCardGap = height * 0.045;
     final rowTop = firstCardTop + firstCardHeight + compactCardGap;
-    final rowHeight = (height * (0.25 * responsiveScale + 0.03)).clamp(
+    final rowHeight = _safeClamp(
+      height * (0.25 * responsiveScale + 0.03),
       height * 0.20,
       height * 0.25,
     );
@@ -409,7 +435,11 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
     }
     final spacing = remainingPlayers.length <= 1 ? 0.0 : layoutWidth * 0.04;
     final availableWidth = layoutWidth - spacing;
-    final cardWidth = (availableWidth / remainingPlayers.length).clamp(132.0, sideCardWidth);
+    final cardWidth = _safeClamp(
+      availableWidth / remainingPlayers.length,
+      layoutWidth * 0.24,
+      sideCardWidth,
+    );
     final cardsLeft = layoutLeftOffset + (layoutWidth - (cardWidth * remainingPlayers.length + spacing)) / 2;
 
     return Stack(
