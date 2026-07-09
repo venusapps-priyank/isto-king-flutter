@@ -37,7 +37,10 @@ class RulesRuleIcon extends StatelessWidget {
         GameRuleIconType.overlappingTokens => const _OverlappingTokensIcon(),
         GameRuleIconType.dice => const _DiceIcon(),
         GameRuleIconType.trophy => const _TrophyIcon(),
-        GameRuleIconType.turnOrder => const _TurnOrderIcon(),
+        GameRuleIconType.turnOrder => const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: _TurnOrderIcon(),
+        ),
       },
     );
   }
@@ -241,25 +244,35 @@ class _TrophyIcon extends StatelessWidget {
 class _TurnOrderIcon extends StatelessWidget {
   const _TurnOrderIcon();
 
+  static const _sequence = [
+    RoyalColors.blue,
+    RoyalColors.green,
+    RoyalColors.red,
+    RoyalColors.yellow,
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        _MiniDot(color: RoyalColors.blue),
-        SizedBox(width: 2),
-        Icon(Icons.arrow_forward_rounded, size: 10, color: RoyalColors.brown),
-        SizedBox(width: 2),
-        _MiniDot(color: RoyalColors.green),
-        SizedBox(width: 2),
-        Icon(Icons.arrow_forward_rounded, size: 10, color: RoyalColors.brown),
-        SizedBox(width: 2),
-        _MiniDot(color: RoyalColors.red),
-        SizedBox(width: 2),
-        Icon(Icons.arrow_forward_rounded, size: 10, color: RoyalColors.brown),
-        SizedBox(width: 2),
-        _MiniDot(color: RoyalColors.yellow),
-      ],
+    return SizedBox(
+      width: 82,
+      height: 28,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var i = 0; i < _sequence.length; i++) ...[
+            if (i > 0) ...[
+              const SizedBox(width: 2),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 10,
+                color: RoyalColors.brown,
+              ),
+              const SizedBox(width: 2),
+            ],
+            _MiniDot(color: _sequence[i]),
+          ],
+        ],
+      ),
     );
   }
 }

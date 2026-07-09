@@ -47,7 +47,7 @@ class _RulesScreenState extends State<RulesScreen> {
     if (_didWarmAssets) return;
     _didWarmAssets = true;
 
-    for (final asset in [rulesCowrieAsset, rulesPotAsset]) {
+    for (final asset in [rulesCowrieAsset, rulesPotAsset, rulesLabelAsset]) {
       precacheImage(AssetImage(asset), context);
     }
   }
