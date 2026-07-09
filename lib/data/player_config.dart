@@ -40,15 +40,24 @@ List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
 
   return [
     for (final player in baseGamePlayers)
-      player.index == config.humanPlayerIndex
-          ? PlayerInfo(
-              index: player.index,
-              name: config.humanPlayerName,
-              color: config.chipColor,
-              avatarAsset: config.humanPlayerAvatarAsset,
-              avatarOnRight: player.avatarOnRight,
-            )
-          : player,
+      if (player.index == config.humanPlayerIndex)
+        PlayerInfo(
+          index: player.index,
+          name: config.humanPlayerName,
+          color: config.chipColor,
+          avatarAsset: config.humanPlayerAvatarAsset,
+          avatarOnRight: player.avatarOnRight,
+        )
+      else if (config.isVsComputer)
+        PlayerInfo(
+          index: player.index,
+          name: 'Computer',
+          color: player.color,
+          avatarAsset: player.avatarAsset,
+          avatarOnRight: player.avatarOnRight,
+        )
+      else
+        player,
   ];
 }
 

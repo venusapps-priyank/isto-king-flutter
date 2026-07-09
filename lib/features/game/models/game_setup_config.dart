@@ -19,6 +19,12 @@ class GameSetupConfig {
   final GameRulesSettings rulesSettings;
   final bool isPassAndPlay;
 
+  bool get isVsComputer => !isPassAndPlay;
+
+  Set<int> get computerPlayerIndexes => isVsComputer
+      ? activePlayerIndexSet.difference({humanPlayerIndex})
+      : const {};
+
   static const defaultConfig = GameSetupConfig(
     playerCount: 4,
     chipColor: RoyalColors.yellow,

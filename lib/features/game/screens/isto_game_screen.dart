@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
+import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/game_setup_config.dart';
@@ -31,9 +32,12 @@ class IstoGameScreen extends StatefulWidget {
 class _IstoGameScreenState extends State<IstoGameScreen> {
   late final List<PlayerInfo> _players = buildGamePlayers(widget.setup);
   late GameTurnController _turnController = _createTurnController();
+  late final ComputerTurnOrchestrator _computerTurns = ComputerTurnOrchestrator();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
+  final List<int> _autoRollSerials = List<int>.filled(4, 0);
+  int? _cowrieRollingPlayerIndex;
   Map<int, List<BoardCell>> _activeMovePaths = {};
   Map<int, Duration> _activeMoveDelays = {};
   TokenPairCandidate? _visiblePairCandidate;
@@ -55,6 +59,70 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     return widget.setup.activePlayerIndexSet.contains(playerIndex);
   }
 
+  bool _isComputerPlayer(int playerIndex) {
+    return widget.setup.computerPlayerIndexes.contains(playerIndex);
+  }
+
+  bool _isHumanTurn() {
+    return !_isComputerPlayer(_turnController.currentPlayerIndex);
+  }
+
+  void _triggerComputerRoll(int playerIndex) {
+    setState(() => _autoRollSerials[playerIndex]++);
+  }
+
+  void _scheduleComputerTurn() {
+    if (!widget.setup.isVsComputer) return;
+    _computerTurns.scheduleTurn(
+      isMounted: () => mounted,
+      isComputerPlayer: _isComputerPlayer,
+      isMoveAnimating: () => _isMoveAnimating,
+      isCowrieRolling: () => _cowrieRollingPlayerIndex != null,
+      hasVisiblePairPrompt: () => _visiblePairCandidate != null,
+      controller: () => _turnController,
+      onTriggerRoll: _triggerComputerRoll,
+      onPairAfterRoll: _handleComputerPairAfterRoll,
+      onMoveChoice: _handleComputerMoveChoice,
+    );
+  }
+
+  void _handleComputerPairAfterRoll(TokenPairCandidate candidate) {
+    _computerTurns.handlePairAfterRoll(
+      controller: _turnController,
+      candidate: candidate,
+      onJoinPair: (pairCandidate) {
+        final tokenId = pairCandidate.tokenIds.first;
+        var locked = false;
+        setState(() {
+          locked = _turnController.lockTokenPairForPendingMove(
+            pairCandidate.tokenIds,
+          );
+        });
+        if (locked) {
+          _moveToken(tokenId);
+        } else {
+          _handleComputerMoveChoice();
+        }
+      },
+      onMoveChoice: _handleComputerMoveChoice,
+    );
+  }
+
+  void _handleComputerMoveChoice() {
+    final tokenId = _computerTurns.chooseTokenId(_turnController);
+    if (tokenId == null) {
+      _scheduleComputerTurn();
+      return;
+    }
+    _handleTokenTap(tokenId);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleComputerTurn());
+  }
+
   Widget _buildPlayerSlot(int playerIndex) {
     if (!_isPlayerActive(playerIndex)) {
       return const SizedBox.shrink();
@@ -68,6 +136,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     int? autoMoveTokenId;
     TokenPairCandidate? pairCandidate;
     setState(() {
+      _cowrieRollingPlayerIndex = null;
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
       final resolution = _turnController.handleRollComplete(playerIndex, value);
@@ -77,18 +146,37 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
         _rollResetSerials[playerIndex]++;
       }
       pairCandidate = _turnController.pairCandidateForPendingMove;
-      if (pairCandidate == null) {
+      if (pairCandidate == null && !_isComputerPlayer(playerIndex)) {
         autoMoveTokenId = _turnController.autoMoveTokenId;
       }
     });
 
     if (pairCandidate != null) {
+      if (_isComputerPlayer(playerIndex)) {
+        _handleComputerPairAfterRoll(pairCandidate!);
+      }
+      return;
+    }
+
+    if (_isComputerPlayer(playerIndex)) {
+      if (_turnController.hasPendingMove) {
+        Future<void>.delayed(const Duration(milliseconds: 400), () {
+          if (!mounted) return;
+          if (_turnController.currentPlayerIndex != playerIndex) return;
+          _handleComputerMoveChoice();
+        });
+      } else {
+        _scheduleComputerTurn();
+      }
       return;
     }
 
     if (autoMoveTokenId != null) {
       _handleTokenTap(autoMoveTokenId!);
+      return;
     }
+
+    _scheduleComputerTurn();
   }
 
   void _handleTokenTap(int tokenId) {
@@ -96,6 +184,36 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
     final pairCandidate = _turnController.pairCandidateForToken(tokenId);
     if (pairCandidate != null) {
+      if (_isComputerPlayer(_turnController.currentPlayerIndex)) {
+        _computerTurns.handlePairPrompt(
+          controller: _turnController,
+          candidate: pairCandidate,
+          tokenId: tokenId,
+          onJoinPair: (candidate, selectedTokenId) {
+            var locked = false;
+            setState(() {
+              locked = _turnController.lockTokenPairForPendingMove(
+                candidate.tokenIds,
+              );
+              _visiblePairCandidate = null;
+              _pairPromptTokenId = null;
+            });
+            if (locked) {
+              _moveToken(selectedTokenId);
+            } else {
+              _moveToken(selectedTokenId);
+            }
+          },
+          onPlaySingle: (selectedTokenId) {
+            setState(() {
+              _visiblePairCandidate = null;
+              _pairPromptTokenId = null;
+            });
+            _moveToken(selectedTokenId);
+          },
+        );
+        return;
+      }
       setState(() {
         _visiblePairCandidate = pairCandidate;
         _pairPromptTokenId = tokenId;
@@ -139,6 +257,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
         _activeMovePaths = {};
         _activeMoveDelays = {};
       });
+      _scheduleComputerTurn();
     });
   }
 
@@ -170,6 +289,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   }
 
   void _resetGame() {
+    _computerTurns.cancelPendingTurns();
     setState(() {
       _turnController = _createTurnController();
       _isMoveAnimating = false;
@@ -181,8 +301,10 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       _activeMoveDelays = {};
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
+      _cowrieRollingPlayerIndex = null;
       _showWinRankingPreview = false;
     });
+    _scheduleComputerTurn();
   }
 
   void _showWinPanelPreview() {
@@ -223,9 +345,15 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
 
   PlayerCard _buildPlayerCard(PlayerInfo player) {
     final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
-    final canRoll = !_isMoveAnimating && _turnController.canRoll(player.index);
-    final showShells =
-        isCurrentPlayer && (canRoll || _turnController.pendingRoll != null);
+    final isComputer = _isComputerPlayer(player.index);
+    final isRollingCowries = _cowrieRollingPlayerIndex == player.index;
+    final canRoll = !_isMoveAnimating &&
+        !isRollingCowries &&
+        _turnController.canRoll(player.index);
+    final showShells = isCurrentPlayer &&
+        (canRoll ||
+            _turnController.pendingRoll != null ||
+            isRollingCowries);
 
     return PlayerCard(
       name: player.name,
@@ -235,8 +363,13 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       isActive: isCurrentPlayer,
       showShells: showShells,
       canRoll: canRoll,
+      enableTap: !isComputer,
+      autoRollSerial: _autoRollSerials[player.index],
       rollResetSerial: _rollResetSerials[player.index],
       finishRank: _turnController.rankForPlayer(player.index),
+      onRollStarted: isComputer && isCurrentPlayer
+          ? () => setState(() => _cowrieRollingPlayerIndex = player.index)
+          : null,
       onRollComplete: (value) => _handleRollComplete(player.index, value),
     );
   }
@@ -330,7 +463,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                                         child: GameBoard(
                                           players: _players,
                                           tokens: _turnController.tokens,
-                                          movableTokenIds: _isMoveAnimating
+                                          movableTokenIds: _isMoveAnimating ||
+                                                  !_isHumanTurn()
                                               ? const {}
                                               : _turnController.legalTokenIds,
                                           innerPathAccess:

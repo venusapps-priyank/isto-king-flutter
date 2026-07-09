@@ -18,8 +18,11 @@ class PlayerCard extends StatefulWidget {
     this.isActive = false,
     this.showShells = false,
     this.canRoll = true,
+    this.enableTap = true,
+    this.autoRollSerial = 0,
     this.rollResetSerial = 0,
     this.finishRank,
+    this.onRollStarted,
     this.onRollComplete,
     super.key,
   });
@@ -32,8 +35,11 @@ class PlayerCard extends StatefulWidget {
   final bool isActive;
   final bool showShells;
   final bool canRoll;
+  final bool enableTap;
+  final int autoRollSerial;
   final int rollResetSerial;
   final int? finishRank;
+  final VoidCallback? onRollStarted;
   final ValueChanged<int>? onRollComplete;
 
   @override
@@ -44,6 +50,7 @@ class _PlayerCardState extends State<PlayerCard> {
   int? _rollOverlayCount;
 
   void _handleRollStarted() {
+    widget.onRollStarted?.call();
     if (_rollOverlayCount == null) return;
     setState(() => _rollOverlayCount = null);
   }
@@ -69,6 +76,7 @@ class _PlayerCardState extends State<PlayerCard> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final rollCallbacksEnabled = widget.isActive && widget.showShells;
         final height = constraints.maxHeight;
         final avatarSize = height * 0.68;
         final cardLeft = avatarSize * 0.36;
@@ -175,16 +183,19 @@ class _PlayerCardState extends State<PlayerCard> {
                                     playerColor: widget.color,
                                     showShells: widget.showShells,
                                     canRoll: widget.isActive && widget.canRoll,
+                                    enableTap:
+                                        widget.isActive && widget.enableTap,
+                                    autoRollSerial: widget.autoRollSerial,
                                     resetSerial: widget.rollResetSerial,
                                     shellCount: widget.shellCount,
                                     shellSize: shellSize,
                                     alignRight: widget.avatarOnRight,
                                     onRollStarted:
-                                        widget.isActive && widget.canRoll
+                                        rollCallbacksEnabled
                                             ? _handleRollStarted
                                             : null,
                                     onRollComplete:
-                                        widget.isActive && widget.canRoll
+                                        rollCallbacksEnabled
                                             ? _handleRollComplete
                                             : null,
                                   )
