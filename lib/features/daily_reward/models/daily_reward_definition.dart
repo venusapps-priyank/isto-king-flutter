@@ -17,7 +17,7 @@ class DailyRewardDefinition {
 
   int get rewardCoins {
     if (coinAmount != null) return coinAmount!;
-    if (kind == DailyRewardKind.festivalChest) return 500;
+    if (kind == DailyRewardKind.festivalChest) return 1000;
     return 0;
   }
 }

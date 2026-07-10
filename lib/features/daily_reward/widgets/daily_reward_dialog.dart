@@ -125,7 +125,7 @@ class _DailyRewardDialogState extends State<DailyRewardDialog> {
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 380,
+          maxWidth: 420,
           maxHeight: maxDialogHeight,
         ),
         child: Stack(
@@ -203,24 +203,6 @@ class _DailyRewardDialogState extends State<DailyRewardDialog> {
                             color: RoyalColors.brown.withValues(alpha: 0.85),
                             fontWeight: FontWeight.w700,
                             fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: TextButton.styleFrom(
-                            foregroundColor: RoyalColors.brown,
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'Come back tomorrow',
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                            ),
                           ),
                         ),
                       ],

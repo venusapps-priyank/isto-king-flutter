@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:url_launcher/link.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const _kPrivacyPolicyUrl =
     'https://venusapps.com/apps/chaka/privacy-policy.html';
@@ -224,45 +224,52 @@ class _SettingsLinkRow extends StatelessWidget {
   final String label;
   final String url;
 
+  Future<void> _openLink(BuildContext context) async {
+    final uri = Uri.parse(url);
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open $label')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Link(
-      uri: Uri.parse(url),
-      target: LinkTarget.blank,
-      builder: (context, followLink) {
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: followLink,
-            borderRadius: BorderRadius.circular(10),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Icon(icon, size: 20, color: RoyalColors.brown),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: RoyalColors.darkBrown,
-                        height: 1.2,
-                      ),
-                    ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openLink(context),
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: RoyalColors.brown),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: RoyalColors.darkBrown,
+                    height: 1.2,
                   ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 22,
-                    color: RoyalColors.brown.withValues(alpha: 0.65),
-                  ),
-                ],
+                ),
               ),
-            ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22,
+                color: RoyalColors.brown.withValues(alpha: 0.65),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

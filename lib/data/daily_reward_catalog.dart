@@ -6,39 +6,38 @@ const dailyRewardDefinitions = [
   DailyRewardDefinition(
     day: 1,
     kind: DailyRewardKind.coins,
-    coinAmount: 50,
+    coinAmount: 100,
   ),
   DailyRewardDefinition(
     day: 2,
     kind: DailyRewardKind.coins,
-    coinAmount: 75,
+    coinAmount: 150,
   ),
   DailyRewardDefinition(
     day: 3,
     kind: DailyRewardKind.coins,
-    coinAmount: 100,
+    coinAmount: 200,
   ),
   DailyRewardDefinition(
     day: 4,
-    kind: DailyRewardKind.tokenSkin,
-    label: 'Token Skin',
-    imageAsset: storeMoneyAsset,
+    kind: DailyRewardKind.coins,
+    coinAmount: 250,
   ),
   DailyRewardDefinition(
     day: 5,
     kind: DailyRewardKind.coins,
-    coinAmount: 150,
+    coinAmount: 300,
   ),
   DailyRewardDefinition(
     day: 6,
     kind: DailyRewardKind.coins,
-    coinAmount: 200,
+    coinAmount: 400,
   ),
   DailyRewardDefinition(
     day: 7,
     kind: DailyRewardKind.festivalChest,
     label: 'Festival Chest',
     imageAsset: storeMoneyAsset,
-    coinAmount: 500,
+    coinAmount: 1000,
   ),
 ];
