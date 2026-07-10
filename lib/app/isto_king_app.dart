@@ -13,6 +13,8 @@ class IstoKingApp extends StatelessWidget {
         statusBarColor: RoyalColors.outerRed,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: RoyalColors.parchment,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: MaterialApp(
         title: 'Chaka',

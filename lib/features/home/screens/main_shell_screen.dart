@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/game/data/saved_game_repository.dart';
 import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
@@ -83,46 +84,59 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     final navPadding = _bottomNavPadding(context);
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      body: Stack(
+      backgroundColor: RoyalColors.parchment,
+      body: Column(
         children: [
-          Positioned.fill(
-            child: IndexedStack(
-              index: _tabIndex,
+          Expanded(
+            child: Stack(
               children: [
-                RulesScreen(
-                  profile: _profile,
-                  onProfileChanged: _onProfileChanged,
-                  rulesSettings: _rulesSettings,
-                  onRulesSettingsChanged: _onRulesSettingsChanged,
-                  embedded: true,
+                Positioned.fill(
+                  child: IndexedStack(
+                    index: _tabIndex,
+                    children: [
+                      RulesScreen(
+                        profile: _profile,
+                        onProfileChanged: _onProfileChanged,
+                        rulesSettings: _rulesSettings,
+                        onRulesSettingsChanged: _onRulesSettingsChanged,
+                        embedded: true,
+                      ),
+                      HomeScreen(
+                        profile: _profile,
+                        onProfileChanged: _onProfileChanged,
+                        rulesSettings: _rulesSettings,
+                        onShowGameSetup: (isPassAndPlay) =>
+                            _showGameSetupDialog(isPassAndPlay: isPassAndPlay),
+                        embedded: true,
+                      ),
+                      StoreComingSoonScreen(
+                        profile: _profile,
+                        onProfileChanged: _onProfileChanged,
+                        embedded: true,
+                      ),
+                    ],
+                  ),
                 ),
-                HomeScreen(
-                  profile: _profile,
-                  onProfileChanged: _onProfileChanged,
-                  rulesSettings: _rulesSettings,
-                  onShowGameSetup: (isPassAndPlay) =>
-                      _showGameSetupDialog(isPassAndPlay: isPassAndPlay),
-                  embedded: true,
-                ),
-                StoreComingSoonScreen(
-                  profile: _profile,
-                  onProfileChanged: _onProfileChanged,
-                  embedded: true,
+                Positioned(
+                  left: navPadding.left,
+                  right: navPadding.right,
+                  bottom: navPadding.bottom,
+                  child: HomeBottomNavBar(
+                    selectedTab: _selectedTab,
+                    onTabSelected: _onTabSelected,
+                  ),
                 ),
               ],
             ),
           ),
-          Positioned(
-            left: navPadding.left,
-            right: navPadding.right,
-            bottom: navPadding.bottom,
-            child: HomeBottomNavBar(
-              selectedTab: _selectedTab,
-              onTabSelected: _onTabSelected,
+          if (bottomInset > 0)
+            ColoredBox(
+              color: RoyalColors.parchment,
+              child: SizedBox(height: bottomInset, width: double.infinity),
             ),
-          ),
         ],
       ),
     );
@@ -137,13 +151,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         : narrowWidth
         ? (width * 0.13).clamp(42.0, 56.0).toDouble()
         : (width * 0.095).clamp(32.0, 42.0).toDouble();
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return EdgeInsets.fromLTRB(
-      horizontalPadding,
-      0,
-      horizontalPadding,
-      bottomInset > 0 ? bottomInset : 8,
-    );
+    return EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8);
   }
 }
