@@ -54,6 +54,12 @@ const gameRuleSections = [
         iconType: GameRuleIconType.yellowToken,
       ),
       GameRuleInfo(
+        title: 'Center Choice',
+        description:
+            'When an inner-path token can enter the center, choose Center or keep moving around the inner circle.',
+        iconType: GameRuleIconType.greenToken,
+      ),
+      GameRuleInfo(
         title: 'Extra Turn for Home',
         description:
             'Reaching the center with a token grants an extra turn.',
