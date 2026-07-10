@@ -5,6 +5,7 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
+import 'package:isto_king/features/game/data/saved_pass_and_play_game_repository.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
@@ -20,19 +21,27 @@ import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({
     this.setup = GameSetupConfig.defaultConfig,
+    this.initialTurnController,
     super.key,
   });
 
   final GameSetupConfig setup;
+  final GameTurnController? initialTurnController;
 
   @override
   State<IstoGameScreen> createState() => _IstoGameScreenState();
 }
 
-class _IstoGameScreenState extends State<IstoGameScreen> {
+class _IstoGameScreenState extends State<IstoGameScreen>
+    with WidgetsBindingObserver {
   late final List<PlayerInfo> _players = buildGamePlayers(widget.setup);
-  late GameTurnController _turnController = _createTurnController();
-  late final ComputerTurnOrchestrator _computerTurns = ComputerTurnOrchestrator();
+  late GameTurnController _turnController = _createTurnController(
+    useInitialController: true,
+  );
+  late final ComputerTurnOrchestrator _computerTurns =
+      ComputerTurnOrchestrator();
+  final SavedPassAndPlayGameRepository _savedGameRepository =
+      SavedPassAndPlayGameRepository();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
@@ -44,16 +53,24 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   int? _pairPromptTokenId;
   bool _showWinRankingPreview = false;
 
-  GameTurnController _createTurnController() {
+  GameTurnController _createTurnController({
+    bool useInitialController = false,
+  }) {
+    final initialTurnController = widget.initialTurnController;
+    if (useInitialController && initialTurnController != null) {
+      return initialTurnController;
+    }
+
     return GameTurnController(
       activePlayers: widget.setup.activePlayerIndexSet,
       mustKillForInner: widget.setup.rulesSettings.mustKillForInner,
-      killPermissionReset:
-          widget.setup.rulesSettings.isSettingActive(
-            GameRuleSettingKey.killPermissionReset,
-          ),
+      killPermissionReset: widget.setup.rulesSettings.isSettingActive(
+        GameRuleSettingKey.killPermissionReset,
+      ),
     );
   }
+
+  bool get _shouldPersistMatch => widget.setup.isPassAndPlay;
 
   bool _isPlayerActive(int playerIndex) {
     return widget.setup.activePlayerIndexSet.contains(playerIndex);
@@ -120,7 +137,42 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleComputerTurn());
+    WidgetsBinding.instance.addObserver(this);
+    _saveGameIfNeeded();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scheduleComputerTurn(),
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _computerTurns.cancelPendingTurns();
+    _saveGameIfNeeded();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _saveGameIfNeeded();
+    }
+  }
+
+  Future<void> _saveGameIfNeeded() async {
+    if (!_shouldPersistMatch) return;
+    if (_turnController.isGameOver) {
+      await _savedGameRepository.clear();
+      return;
+    }
+    await _savedGameRepository.save(
+      SavedPassAndPlayGame(
+        setup: widget.setup,
+        turnController: _turnController,
+      ),
+    );
   }
 
   Widget _buildPlayerSlot(int playerIndex) {
@@ -150,6 +202,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
         autoMoveTokenId = _turnController.autoMoveTokenId;
       }
     });
+    _saveGameIfNeeded();
 
     if (pairCandidate != null) {
       if (_isComputerPlayer(playerIndex)) {
@@ -244,6 +297,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     });
 
     if (!didMove) return;
+    _saveGameIfNeeded();
 
     final animationCycle = _moveAnimationCycle;
     final animationDuration = GameBoard.moveAnimationDurationFor(
@@ -257,6 +311,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
         _activeMovePaths = {};
         _activeMoveDelays = {};
       });
+      _saveGameIfNeeded();
       _scheduleComputerTurn();
     });
   }
@@ -304,6 +359,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       _cowrieRollingPlayerIndex = null;
       _showWinRankingPreview = false;
     });
+    _saveGameIfNeeded();
     _scheduleComputerTurn();
   }
 
@@ -321,6 +377,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
   }
 
   void _handleHomeTap() {
+    _saveGameIfNeeded();
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
       return;
@@ -338,6 +395,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
       },
       onQuitMatch: () {
         Navigator.of(context).pop();
+        _saveGameIfNeeded();
         _handleHomeTap();
       },
     );
@@ -347,13 +405,13 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
     final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
     final isComputer = _isComputerPlayer(player.index);
     final isRollingCowries = _cowrieRollingPlayerIndex == player.index;
-    final canRoll = !_isMoveAnimating &&
+    final canRoll =
+        !_isMoveAnimating &&
         !isRollingCowries &&
         _turnController.canRoll(player.index);
-    final showShells = isCurrentPlayer &&
-        (canRoll ||
-            _turnController.pendingRoll != null ||
-            isRollingCowries);
+    final showShells =
+        isCurrentPlayer &&
+        (canRoll || _turnController.pendingRoll != null || isRollingCowries);
 
     return PlayerCard(
       name: player.name,
@@ -381,8 +439,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
           _isPlayerActive(player.index) && !ranked.contains(player.index),
     );
     return [
-      for (final index in ranked)
-        playerInfoForIndex(_players, index),
+      for (final index in ranked) playerInfoForIndex(_players, index),
       ...unranked,
     ];
   }
@@ -398,9 +455,7 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: ScreenOrnamentPainter(
-                  topInset: topInset,
-                ),
+                painter: ScreenOrnamentPainter(topInset: topInset),
               ),
             ),
             Positioned(
@@ -463,7 +518,8 @@ class _IstoGameScreenState extends State<IstoGameScreen> {
                                         child: GameBoard(
                                           players: _players,
                                           tokens: _turnController.tokens,
-                                          movableTokenIds: _isMoveAnimating ||
+                                          movableTokenIds:
+                                              _isMoveAnimating ||
                                                   !_isHumanTurn()
                                               ? const {}
                                               : _turnController.legalTokenIds,

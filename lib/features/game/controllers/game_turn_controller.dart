@@ -57,6 +57,69 @@ class GameTurnController {
     );
   }
 
+  factory GameTurnController.fromJson(
+    Map<String, dynamic> json, {
+    Set<int>? activePlayers,
+    bool mustKillForInner = true,
+    bool killPermissionReset = true,
+  }) {
+    final controller = GameTurnController(
+      activePlayers:
+          activePlayers ??
+          ((json['activePlayerIndexes'] as List?)?.cast<int>().toSet() ??
+              const {0, 1, 2, 3}),
+      mustKillForInner: mustKillForInner,
+      killPermissionReset: killPermissionReset,
+    );
+
+    controller.currentPlayerIndex =
+        json['currentPlayerIndex'] as int? ?? controller.currentPlayerIndex;
+    controller.pendingRoll = json['pendingRoll'] as int?;
+    controller.legalTokenIds =
+        ((json['legalTokenIds'] as List?)?.cast<int>() ?? const <int>[])
+            .toSet();
+
+    final lastRolls = (json['lastRolls'] as List?) ?? const [];
+    for (
+      var i = 0;
+      i < controller.lastRolls.length && i < lastRolls.length;
+      i++
+    ) {
+      controller.lastRolls[i] = lastRolls[i] as int?;
+    }
+
+    final playerStates = (json['playerStates'] as List?) ?? const [];
+    for (
+      var i = 0;
+      i < controller.playerStates.length && i < playerStates.length;
+      i++
+    ) {
+      final stateJson = (playerStates[i] as Map?)?.cast<String, dynamic>();
+      if (stateJson == null) continue;
+      controller.playerStates[i].restoreFrom(
+        PlayerGameState.fromJson(stateJson),
+      );
+    }
+
+    final tokens = (json['tokens'] as List?) ?? const [];
+    for (final tokenJson in tokens) {
+      final restoredJson = (tokenJson as Map?)?.cast<String, dynamic>();
+      if (restoredJson == null) continue;
+      final restored = TokenState.fromJson(restoredJson);
+      final token = controller._tokenById(restored.id);
+      token?.restoreFrom(restored);
+    }
+
+    controller._rankedPlayerIndexes
+      ..clear()
+      ..addAll(
+        (json['rankedPlayerIndexes'] as List?)?.cast<int>() ?? const <int>[],
+      );
+
+    controller._deactivateInactivePlayers();
+    return controller;
+  }
+
   final Set<int> activePlayerIndexes;
   final bool mustKillForInner;
   final bool killPermissionReset;
@@ -89,9 +152,7 @@ class GameTurnController {
       _rankedPlayerIndexes.length >= activePlayerIndexes.length - 1;
 
   List<bool> get innerPathAccess => List<bool>.unmodifiable(
-    playerStates.map(
-      (state) => !mustKillForInner || state.hasKilledOpponent,
-    ),
+    playerStates.map((state) => !mustKillForInner || state.hasKilledOpponent),
   );
 
   int? rankForPlayer(int playerIndex) {
@@ -115,6 +176,19 @@ class GameTurnController {
   }
 
   bool get hasPendingMove => pendingRoll != null && legalTokenIds.isNotEmpty;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'activePlayerIndexes': activePlayerIndexes.toList()..sort(),
+      'currentPlayerIndex': currentPlayerIndex,
+      'lastRolls': lastRolls,
+      'pendingRoll': pendingRoll,
+      'legalTokenIds': legalTokenIds.toList()..sort(),
+      'playerStates': [for (final state in playerStates) state.toJson()],
+      'tokens': [for (final token in _tokens) token.toJson()],
+      'rankedPlayerIndexes': _rankedPlayerIndexes,
+    };
+  }
 
   TokenPairCandidate? get pairCandidateForPendingMove {
     final roll = pendingRoll;
@@ -531,8 +605,9 @@ class GameTurnController {
   }
 
   void _advanceTurn() {
-    final activeTurnOrder =
-        turnOrder.where(activePlayerIndexes.contains).toList();
+    final activeTurnOrder = turnOrder
+        .where(activePlayerIndexes.contains)
+        .toList();
     if (activeTurnOrder.isEmpty) return;
 
     final turnIndex = activeTurnOrder.indexOf(currentPlayerIndex);

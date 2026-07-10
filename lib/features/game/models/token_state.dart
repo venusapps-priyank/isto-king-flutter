@@ -19,6 +19,35 @@ class TokenState {
 
   bool get isPaired => pairedTokenId != null;
 
+  factory TokenState.fromJson(Map<String, dynamic> json) {
+    return TokenState(
+      playerIndex: json['playerIndex'] as int? ?? 0,
+      tokenIndex: json['tokenIndex'] as int? ?? 0,
+      pathIndex: json['pathIndex'] as int? ?? -1,
+      isAtStart: json['isAtStart'] as bool? ?? true,
+      isFinished: json['isFinished'] as bool? ?? false,
+      pairedTokenId: json['pairedTokenId'] as int?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'playerIndex': playerIndex,
+      'tokenIndex': tokenIndex,
+      'pathIndex': pathIndex,
+      'isAtStart': isAtStart,
+      'isFinished': isFinished,
+      'pairedTokenId': pairedTokenId,
+    };
+  }
+
+  void restoreFrom(TokenState other) {
+    pathIndex = other.pathIndex;
+    isAtStart = other.isAtStart;
+    isFinished = other.isFinished;
+    pairedTokenId = other.pairedTokenId;
+  }
+
   void pairWith(TokenState other) {
     pairedTokenId = other.id;
     other.pairedTokenId = id;

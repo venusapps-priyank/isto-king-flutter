@@ -11,6 +11,23 @@ class GameRulesSettings {
 
   static const defaults = GameRulesSettings();
 
+  factory GameRulesSettings.fromJson(Map<String, dynamic> json) {
+    return GameRulesSettings(
+      mustKillForInner: json['mustKillForInner'] as bool? ?? true,
+      killPermissionReset: json['killPermissionReset'] as bool? ?? true,
+      stashedKillPermissionReset:
+          json['stashedKillPermissionReset'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'mustKillForInner': mustKillForInner,
+      'killPermissionReset': killPermissionReset,
+      'stashedKillPermissionReset': stashedKillPermissionReset,
+    };
+  }
+
   GameRulesSettings copyWith({
     bool? mustKillForInner,
     bool? killPermissionReset,
@@ -49,16 +66,17 @@ class GameRulesSettings {
 
   GameRulesSettings withValue(String settingKey, bool value) {
     return switch (settingKey) {
-      GameRuleSettingKey.mustKillForInner => value
-          ? copyWith(
-              mustKillForInner: true,
-              killPermissionReset: stashedKillPermissionReset,
-            )
-          : copyWith(
-              mustKillForInner: false,
-              stashedKillPermissionReset: killPermissionReset,
-              killPermissionReset: false,
-            ),
+      GameRuleSettingKey.mustKillForInner =>
+        value
+            ? copyWith(
+                mustKillForInner: true,
+                killPermissionReset: stashedKillPermissionReset,
+              )
+            : copyWith(
+                mustKillForInner: false,
+                stashedKillPermissionReset: killPermissionReset,
+                killPermissionReset: false,
+              ),
       GameRuleSettingKey.killPermissionReset => copyWith(
         killPermissionReset: value,
         stashedKillPermissionReset: value,

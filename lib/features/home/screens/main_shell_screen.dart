@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:isto_king/features/game/data/saved_pass_and_play_game_repository.dart';
+import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/screens/home_screen.dart';
+import 'package:isto_king/features/home/widgets/continue_game_dialog.dart';
 import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
 import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
@@ -18,12 +21,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
   HomeNavTab _selectedTab = HomeNavTab.home;
   UserProfile _profile = UserProfile.defaultProfile;
   GameRulesSettings _rulesSettings = GameRulesSettings.defaults;
+  final SavedPassAndPlayGameRepository _savedGameRepository =
+      SavedPassAndPlayGameRepository();
 
   int get _tabIndex => switch (_selectedTab) {
-        HomeNavTab.rules => 0,
-        HomeNavTab.home => 1,
-        HomeNavTab.store => 2,
-      };
+    HomeNavTab.rules => 0,
+    HomeNavTab.home => 1,
+    HomeNavTab.store => 2,
+  };
 
   void _onTabSelected(HomeNavTab tab) {
     setState(() => _selectedTab = tab);
@@ -33,7 +38,32 @@ class _MainShellScreenState extends State<MainShellScreen> {
     setState(() => _selectedTab = HomeNavTab.rules);
   }
 
-  Future<void> _showGameSetupDialog({bool isPassAndPlay = false}) {
+  Future<void> _showGameSetupDialog({bool isPassAndPlay = false}) async {
+    if (isPassAndPlay) {
+      final savedGame = await _savedGameRepository.load();
+      if (!mounted) return;
+
+      if (savedGame != null) {
+        final choice = await ContinueGameDialog.show(context);
+        if (!mounted || choice == null) return;
+
+        if (choice == ContinueGameChoice.continueGame) {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => IstoGameScreen(
+                setup: savedGame.setup,
+                initialTurnController: savedGame.turnController,
+              ),
+            ),
+          );
+          return;
+        }
+
+        await _savedGameRepository.clear();
+        if (!mounted) return;
+      }
+    }
+
     return GameSetupDialog.show(
       context,
       profile: _profile,
@@ -73,9 +103,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   profile: _profile,
                   onProfileChanged: _onProfileChanged,
                   rulesSettings: _rulesSettings,
-                  onShowGameSetup: (isPassAndPlay) => _showGameSetupDialog(
-                    isPassAndPlay: isPassAndPlay,
-                  ),
+                  onShowGameSetup: (isPassAndPlay) =>
+                      _showGameSetupDialog(isPassAndPlay: isPassAndPlay),
                   embedded: true,
                 ),
                 StoreComingSoonScreen(
@@ -107,8 +136,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final horizontalPadding = compactWidth
         ? (width * 0.16).clamp(42.0, 60.0).toDouble()
         : narrowWidth
-            ? (width * 0.13).clamp(42.0, 56.0).toDouble()
-            : (width * 0.095).clamp(32.0, 42.0).toDouble();
+        ? (width * 0.13).clamp(42.0, 56.0).toDouble()
+        : (width * 0.095).clamp(32.0, 42.0).toDouble();
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return EdgeInsets.fromLTRB(
