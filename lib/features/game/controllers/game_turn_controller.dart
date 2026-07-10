@@ -30,6 +30,8 @@ class TokenPairCandidate {
   final List<int> tokenIds;
 }
 
+enum CenterMoveChoice { enterCenter, stayOnInnerCircle }
+
 class RollResolution {
   const RollResolution({
     required this.value,
@@ -247,6 +249,19 @@ class GameTurnController {
     );
   }
 
+  bool centerChoiceAvailableForToken(int tokenId) {
+    final roll = pendingRoll;
+    if (roll == null || !legalTokenIds.contains(tokenId)) return false;
+
+    final token = _tokenById(tokenId);
+    if (token == null || token.playerIndex != currentPlayerIndex) return false;
+
+    final moveSteps = _moveStepsForRoll(token, roll);
+    if (moveSteps == null) return false;
+
+    return _canChooseCenterOrInnerCircle(token, moveSteps);
+  }
+
   static int? pairMoveStepsForRoll(int roll) {
     return switch (roll) {
       2 => 1,
@@ -301,14 +316,21 @@ class GameTurnController {
     );
   }
 
-  MoveResolution? moveToken(int tokenId) {
+  MoveResolution? moveToken(
+    int tokenId, {
+    CenterMoveChoice centerChoice = CenterMoveChoice.enterCenter,
+  }) {
     final roll = pendingRoll;
     if (roll == null || !legalTokenIds.contains(tokenId)) return null;
 
     final token = _tokenById(tokenId);
     if (token == null || token.playerIndex != currentPlayerIndex) return null;
 
-    final targetPathIndex = _targetPathIndex(token, roll);
+    final targetPathIndex = _targetPathIndex(
+      token,
+      roll,
+      centerChoice: centerChoice,
+    );
     if (targetPathIndex == null) return null;
 
     final movingTokens = _moveGroupForToken(token);
@@ -429,7 +451,20 @@ class GameTurnController {
       waypoints.add(path[fromIndex]);
     }
 
-    if (targetPathIndex < fromIndex) {
+    if (targetPathIndex < fromIndex &&
+        fromIndex >= IstoBoardPaths.outerPathLength &&
+        targetPathIndex >= IstoBoardPaths.outerPathLength) {
+      for (var index = fromIndex + 1; index < path.length - 1; index++) {
+        waypoints.add(path[index]);
+      }
+      for (
+        var index = IstoBoardPaths.outerPathLength;
+        index <= targetPathIndex;
+        index++
+      ) {
+        waypoints.add(path[index]);
+      }
+    } else if (targetPathIndex < fromIndex) {
       for (
         var index = fromIndex + 1;
         index < IstoBoardPaths.outerPathLength;
@@ -505,15 +540,27 @@ class GameTurnController {
     );
   }
 
-  int? _targetPathIndex(TokenState token, int steps) {
+  int? _targetPathIndex(
+    TokenState token,
+    int steps, {
+    CenterMoveChoice centerChoice = CenterMoveChoice.enterCenter,
+  }) {
     if (token.isFinished) return null;
     final moveSteps = _moveStepsForRoll(token, steps);
     if (moveSteps == null) return null;
 
-    return _targetPathIndexForMoveSteps(token, moveSteps);
+    return _targetPathIndexForMoveSteps(
+      token,
+      moveSteps,
+      centerChoice: centerChoice,
+    );
   }
 
-  int? _targetPathIndexForMoveSteps(TokenState token, int moveSteps) {
+  int? _targetPathIndexForMoveSteps(
+    TokenState token,
+    int moveSteps, {
+    CenterMoveChoice centerChoice = CenterMoveChoice.enterCenter,
+  }) {
     if (token.isFinished) return null;
 
     final currentIndex = token.isAtStart ? -1 : token.pathIndex;
@@ -528,8 +575,28 @@ class GameTurnController {
     if (!canEnterInner && proposedIndex >= IstoBoardPaths.outerPathLength) {
       return proposedIndex % IstoBoardPaths.outerPathLength;
     }
+    if (centerChoice == CenterMoveChoice.stayOnInnerCircle &&
+        _canChooseCenterOrInnerCircle(token, moveSteps)) {
+      final innerRingLength =
+          path.length - IstoBoardPaths.outerPathLength - 1;
+      final innerOffset =
+          (currentIndex - IstoBoardPaths.outerPathLength + moveSteps) %
+          innerRingLength;
+      return IstoBoardPaths.outerPathLength + innerOffset;
+    }
     if (proposedIndex >= path.length) return null;
     return proposedIndex;
+  }
+
+  bool _canChooseCenterOrInnerCircle(TokenState token, int moveSteps) {
+    if (token.isAtStart || token.isFinished) return false;
+
+    final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
+    final currentIndex = token.pathIndex;
+    final centerIndex = path.length - 1;
+    return currentIndex >= IstoBoardPaths.outerPathLength &&
+        currentIndex < centerIndex &&
+        currentIndex + moveSteps == centerIndex;
   }
 
   bool _canLandOn(TokenState movingToken, BoardCell destination) {

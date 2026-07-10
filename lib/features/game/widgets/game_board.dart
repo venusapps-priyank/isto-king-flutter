@@ -22,8 +22,11 @@ class GameBoard extends StatelessWidget {
     this.movePaths = const {},
     this.moveDelays = const {},
     this.pairPromptTokenIds,
+    this.centerChoiceTokenId,
     this.onJoinPairPrompt,
     this.onDismissPairPrompt,
+    this.onGoCenterPrompt,
+    this.onCircleAheadPrompt,
     this.onTokenTap,
     super.key,
   });
@@ -37,8 +40,11 @@ class GameBoard extends StatelessWidget {
   final Map<int, List<BoardCell>> movePaths;
   final Map<int, Duration> moveDelays;
   final List<int>? pairPromptTokenIds;
+  final int? centerChoiceTokenId;
   final VoidCallback? onJoinPairPrompt;
   final VoidCallback? onDismissPairPrompt;
+  final VoidCallback? onGoCenterPrompt;
+  final VoidCallback? onCircleAheadPrompt;
   final ValueChanged<int>? onTokenTap;
 
   static Duration moveAnimationDurationFor(
@@ -82,6 +88,8 @@ class GameBoard extends StatelessWidget {
               ..._buildTokenWidgets(inner, cellSize),
               if (pairPromptTokenIds != null)
                 _buildPairPrompt(inner, cellSize, pairPromptTokenIds!),
+              if (centerChoiceTokenId != null)
+                _buildCenterChoicePrompt(inner, cellSize, centerChoiceTokenId!),
             ],
           );
         },
@@ -248,6 +256,60 @@ class GameBoard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    return _buildBoardChoicePrompt(
+      board: board,
+      cellSize: cellSize,
+      cell: cell,
+      icon: Icons.link_rounded,
+      title: 'Pair?',
+      primaryLabel: 'Join',
+      onPrimaryTap: onJoinPairPrompt,
+      secondaryIcon: Icons.close,
+      secondaryTooltip: 'Play single',
+      onSecondaryTap: onDismissPairPrompt,
+    );
+  }
+
+  Widget _buildCenterChoicePrompt(
+    Rect board,
+    double cellSize,
+    int tokenId,
+  ) {
+    TokenState? promptToken;
+    for (final token in tokens) {
+      if (token.id == tokenId) {
+        promptToken = token;
+        break;
+      }
+    }
+    if (promptToken == null) return const SizedBox.shrink();
+
+    return _buildBoardChoicePrompt(
+      board: board,
+      cellSize: cellSize,
+      cell: _cellForToken(promptToken),
+      icon: Icons.adjust_rounded,
+      title: 'Go center?',
+      primaryLabel: 'Center',
+      onPrimaryTap: onGoCenterPrompt,
+      secondaryIcon: Icons.sync_rounded,
+      secondaryTooltip: 'Circle ahead',
+      onSecondaryTap: onCircleAheadPrompt,
+    );
+  }
+
+  Widget _buildBoardChoicePrompt({
+    required Rect board,
+    required double cellSize,
+    required BoardCell cell,
+    required IconData icon,
+    required String title,
+    required String primaryLabel,
+    required VoidCallback? onPrimaryTap,
+    required IconData secondaryIcon,
+    required String secondaryTooltip,
+    required VoidCallback? onSecondaryTap,
+  }) {
     const promptWidth = 142.0;
     const promptHeight = 72.0;
     const pointerWidth = 14.0;
@@ -308,19 +370,23 @@ class GameBoard extends StatelessWidget {
                             color: Color(0xFFE9D49F),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.link_rounded,
+                          child: Icon(
+                            icon,
                             size: 13,
-                            color: Color(0xFF6A3F1D),
+                            color: const Color(0xFF6A3F1D),
                           ),
                         ),
                         const SizedBox(width: 5),
-                        const Text(
-                          'Make a pair?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF5B3517),
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF5B3517),
+                            ),
                           ),
                         ),
                       ],
@@ -331,7 +397,7 @@ class GameBoard extends StatelessWidget {
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: onJoinPairPrompt,
+                          onTap: onPrimaryTap,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
@@ -351,13 +417,13 @@ class GameBoard extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: const SizedBox(
+                            child: SizedBox(
                               width: 80,
                               height: 30,
                               child: Center(
                                 child: Text(
-                                  'Join',
-                                  style: TextStyle(
+                                  primaryLabel,
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white,
@@ -372,10 +438,10 @@ class GameBoard extends StatelessWidget {
                           width: 30,
                           height: 30,
                           child: Tooltip(
-                            message: 'Play single',
+                            message: secondaryTooltip,
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              onTap: onDismissPairPrompt,
+                              onTap: onSecondaryTap,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF3E5BC),
@@ -387,7 +453,7 @@ class GameBoard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(9),
                                 ),
                                 child: Icon(
-                                  Icons.close_rounded,
+                                  secondaryIcon,
                                   size: 16,
                                   color: const Color(
                                     0xFF6A3F1D,

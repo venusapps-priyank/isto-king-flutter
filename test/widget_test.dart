@@ -358,6 +358,45 @@ void main() {
     expect(dismissed, isTrue);
   });
 
+  testWidgets('center choice prompt appears on the board near token cell', (
+    tester,
+  ) async {
+    final token = TokenState(
+      playerIndex: 0,
+      tokenIndex: 0,
+      isAtStart: false,
+      pathIndex: 22,
+    );
+    var wentCenter = false;
+    var circledAhead = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox.square(
+          dimension: 500,
+          child: GameBoard(
+            players: gamePlayers,
+            tokens: [token],
+            movableTokenIds: {token.id},
+            centerChoiceTokenId: token.id,
+            onGoCenterPrompt: () => wentCenter = true,
+            onCircleAheadPrompt: () => circledAhead = true,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Go center?'), findsOneWidget);
+    expect(find.text('Center'), findsOneWidget);
+    expect(find.byTooltip('Circle ahead'), findsOneWidget);
+
+    await tester.tap(find.text('Center'));
+    expect(wentCenter, isTrue);
+
+    await tester.tap(find.byTooltip('Circle ahead'));
+    expect(circledAhead, isTrue);
+  });
+
   testWidgets('locked pair stays attached with another token in same cell', (
     tester,
   ) async {

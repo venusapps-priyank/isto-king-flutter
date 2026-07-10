@@ -148,6 +148,8 @@ void main() {
       placeToken(blueToken, bluePath.length - 2);
 
       controller.handleRollComplete(3, 1);
+      expect(controller.centerChoiceAvailableForToken(blueToken.id), isTrue);
+
       final result = controller.moveToken(blueToken.id);
 
       expect(result?.animationPaths[blueToken.id], [
@@ -155,6 +157,29 @@ void main() {
         IstoBoardPaths.centerCell,
       ]);
       expect(blueToken.isFinished, isTrue);
+    });
+
+    test('can circle ahead instead of entering the center', () {
+      final controller = GameTurnController()..currentPlayerIndex = 0;
+      final redToken = tokenFor(controller, 0, 0);
+      final redPath = IstoBoardPaths.pathForPlayer(0);
+      placeToken(redToken, redPath.length - 2);
+
+      controller.handleRollComplete(0, 1);
+      expect(controller.centerChoiceAvailableForToken(redToken.id), isTrue);
+
+      final result = controller.moveToken(
+        redToken.id,
+        centerChoice: CenterMoveChoice.stayOnInnerCircle,
+      );
+
+      expect(redToken.isFinished, isFalse);
+      expect(redToken.pathIndex, IstoBoardPaths.outerPathLength);
+      expect(result?.reachedCenter, isFalse);
+      expect(result?.animationPaths[redToken.id], [
+        redPath[redPath.length - 2],
+        redPath[IstoBoardPaths.outerPathLength],
+      ]);
     });
 
     test('keeps looping on the outer path before kill permission', () {

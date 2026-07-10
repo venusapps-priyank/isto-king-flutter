@@ -50,6 +50,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
   Map<int, Duration> _activeMoveDelays = {};
   TokenPairCandidate? _visiblePairCandidate;
   int? _pairPromptTokenId;
+  int? _centerChoiceTokenId;
   bool _showWinRankingPreview = false;
 
   GameTurnController _createTurnController({
@@ -94,7 +95,8 @@ class _IstoGameScreenState extends State<IstoGameScreen>
       isComputerPlayer: _isComputerPlayer,
       isMoveAnimating: () => _isMoveAnimating,
       isCowrieRolling: () => _cowrieRollingPlayerIndex != null,
-      hasVisiblePairPrompt: () => _visiblePairCandidate != null,
+      hasVisiblePairPrompt: () =>
+          _visiblePairCandidate != null || _centerChoiceTokenId != null,
       controller: () => _turnController,
       onTriggerRoll: _triggerComputerRoll,
       onPairAfterRoll: _handleComputerPairAfterRoll,
@@ -189,6 +191,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
       _cowrieRollingPlayerIndex = null;
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
+      _centerChoiceTokenId = null;
       final resolution = _turnController.handleRollComplete(playerIndex, value);
       if (resolution != null &&
           resolution.discarded &&
@@ -268,6 +271,20 @@ class _IstoGameScreenState extends State<IstoGameScreen>
       setState(() {
         _visiblePairCandidate = pairCandidate;
         _pairPromptTokenId = tokenId;
+        _centerChoiceTokenId = null;
+      });
+      return;
+    }
+
+    if (_turnController.centerChoiceAvailableForToken(tokenId)) {
+      if (_isComputerPlayer(_turnController.currentPlayerIndex)) {
+        _moveToken(tokenId);
+        return;
+      }
+      setState(() {
+        _visiblePairCandidate = null;
+        _pairPromptTokenId = null;
+        _centerChoiceTokenId = tokenId;
       });
       return;
     }
@@ -275,14 +292,21 @@ class _IstoGameScreenState extends State<IstoGameScreen>
     _moveToken(tokenId);
   }
 
-  void _moveToken(int tokenId) {
+  void _moveToken(
+    int tokenId, {
+    CenterMoveChoice centerChoice = CenterMoveChoice.enterCenter,
+  }) {
     var didMove = false;
     Map<int, List<BoardCell>> movePaths = {};
     Map<int, Duration> moveDelays = {};
     setState(() {
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
-      final resolution = _turnController.moveToken(tokenId);
+      _centerChoiceTokenId = null;
+      final resolution = _turnController.moveToken(
+        tokenId,
+        centerChoice: centerChoice,
+      );
       didMove = resolution != null;
       if (didMove) {
         movePaths = resolution!.animationPaths;
@@ -326,6 +350,12 @@ class _IstoGameScreenState extends State<IstoGameScreen>
       _pairPromptTokenId = null;
     });
     if (locked) {
+      if (_turnController.centerChoiceAvailableForToken(tokenId)) {
+        setState(() {
+          _centerChoiceTokenId = tokenId;
+        });
+        return;
+      }
       _moveToken(tokenId);
     }
   }
@@ -338,7 +368,30 @@ class _IstoGameScreenState extends State<IstoGameScreen>
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
     });
+    if (_turnController.centerChoiceAvailableForToken(tokenId)) {
+      setState(() {
+        _centerChoiceTokenId = tokenId;
+      });
+      return;
+    }
     _moveToken(tokenId);
+  }
+
+  void _handleGoCenterPrompt() {
+    final tokenId = _centerChoiceTokenId;
+    if (tokenId == null) return;
+
+    _moveToken(tokenId);
+  }
+
+  void _handleCircleAheadPrompt() {
+    final tokenId = _centerChoiceTokenId;
+    if (tokenId == null) return;
+
+    _moveToken(
+      tokenId,
+      centerChoice: CenterMoveChoice.stayOnInnerCircle,
+    );
   }
 
   void _resetGame() {
@@ -354,6 +407,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
       _activeMoveDelays = {};
       _visiblePairCandidate = null;
       _pairPromptTokenId = null;
+      _centerChoiceTokenId = null;
       _cowrieRollingPlayerIndex = null;
       _showWinRankingPreview = false;
     });
@@ -527,10 +581,16 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                                           moveDelays: _activeMoveDelays,
                                           pairPromptTokenIds:
                                               _visiblePairCandidate?.tokenIds,
+                                          centerChoiceTokenId:
+                                              _centerChoiceTokenId,
                                           onJoinPairPrompt:
                                               _handleJoinPairPrompt,
                                           onDismissPairPrompt:
                                               _handlePlaySinglePairPrompt,
+                                          onGoCenterPrompt:
+                                              _handleGoCenterPrompt,
+                                          onCircleAheadPrompt:
+                                              _handleCircleAheadPrompt,
                                           onTokenTap: _handleTokenTap,
                                         ),
                                       ),
