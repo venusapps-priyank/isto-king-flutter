@@ -2,9 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/features/home/screens/main_shell_screen.dart';
+import 'package:isto_king/features/wallet/coin_wallet.dart';
 
-class IstoKingApp extends StatelessWidget {
+class IstoKingApp extends StatefulWidget {
   const IstoKingApp({super.key});
+
+  @override
+  State<IstoKingApp> createState() => _IstoKingAppState();
+}
+
+class _IstoKingAppState extends State<IstoKingApp> {
+  @override
+  void initState() {
+    super.initState();
+    CoinWallet.instance.ensureLoaded();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -4,9 +4,9 @@ import 'package:isto_king/core/widgets/royal_dialog.dart';
 import 'package:url_launcher/link.dart';
 
 const _kPrivacyPolicyUrl =
-    'https://venusapps.com/apps/chaka/f-privacy-policy.html';
+    'https://venusapps.com/apps/chaka/privacy-policy.html';
 const _kTermsAndConditionsUrl =
-    'https://venusapps.com/apps/chaka/f-terms-and-conditions.html';
+    'https://venusapps.com/apps/chaka/terms-and-conditions.html';
 
 class SettingsDialog extends StatefulWidget {
   const SettingsDialog({super.key});

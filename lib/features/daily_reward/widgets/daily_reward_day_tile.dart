@@ -70,7 +70,9 @@ class DailyRewardDayTile extends StatelessWidget {
               child: Center(
                 child: _FooterStatus(
                   isClaimed: isClaimed,
+                  isAvailable: isAvailable,
                   isLocked: isLocked,
+                  isGrandPrize: isGrandPrize,
                   scale: scale,
                 ),
               ),
@@ -85,12 +87,16 @@ class DailyRewardDayTile extends StatelessWidget {
 class _FooterStatus extends StatelessWidget {
   const _FooterStatus({
     required this.isClaimed,
+    required this.isAvailable,
     required this.isLocked,
+    required this.isGrandPrize,
     required this.scale,
   });
 
   final bool isClaimed;
+  final bool isAvailable;
   final bool isLocked;
+  final bool isGrandPrize;
   final double scale;
 
   @override
@@ -103,11 +109,22 @@ class _FooterStatus extends StatelessWidget {
         scale: scale,
       );
     }
+    if (isAvailable) {
+      return _StatusChip(
+        label: 'PENDING',
+        color: RoyalColors.yellow,
+        icon: Icons.schedule_rounded,
+        textColor: RoyalColors.darkBrown,
+        scale: scale,
+      );
+    }
     if (isLocked) {
       return Icon(
         Icons.lock_rounded,
         size: 12 * scale,
-        color: RoyalColors.brown.withValues(alpha: 0.45),
+        color: isGrandPrize
+            ? const Color(0xFFFFE39D)
+            : RoyalColors.brown.withValues(alpha: 0.45),
       );
     }
     return const SizedBox.shrink();
@@ -207,12 +224,14 @@ class _StatusChip extends StatelessWidget {
     required this.color,
     required this.icon,
     required this.scale,
+    this.textColor = Colors.white,
   });
 
   final String label;
   final Color color;
   final IconData icon;
   final double scale;
+  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -228,12 +247,12 @@ class _StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 9 * scale),
+          Icon(icon, color: textColor, size: 9 * scale),
           SizedBox(width: 2 * scale),
           Text(
             label,
             style: TextStyle(
-              color: Colors.white,
+              color: textColor,
               fontWeight: FontWeight.w900,
               fontSize: 7.5 * scale,
             ),

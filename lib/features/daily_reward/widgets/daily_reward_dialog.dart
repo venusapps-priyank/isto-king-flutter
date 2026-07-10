@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:isto_king/data/daily_reward_catalog.dart';
 import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
+import 'package:isto_king/features/daily_reward/services/daily_reward_service.dart';
 import 'package:isto_king/features/daily_reward/widgets/daily_reward_reward_grid.dart';
 
 class DailyRewardDialog extends StatefulWidget {
@@ -23,13 +23,16 @@ class DailyRewardDialog extends StatefulWidget {
 }
 
 class _DailyRewardDialogState extends State<DailyRewardDialog> {
-  late DailyRewardState _state = buildDailyRewardState();
+  final DailyRewardService _service = DailyRewardService();
+  DailyRewardState? _state;
+  bool _isLoading = true;
+  bool _isClaiming = false;
   Timer? _countdownTimer;
 
   @override
   void initState() {
     super.initState();
-    _startCountdown();
+    _loadState();
   }
 
   @override
@@ -38,62 +41,58 @@ class _DailyRewardDialogState extends State<DailyRewardDialog> {
     super.dispose();
   }
 
+  Future<void> _loadState() async {
+    final state = await _service.loadState();
+    if (!mounted) return;
+
+    setState(() {
+      _state = state;
+      _isLoading = false;
+    });
+    _startCountdown();
+  }
+
   void _startCountdown() {
     _countdownTimer?.cancel();
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      final remaining = _state.nextRewardIn - const Duration(seconds: 1);
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      if (!mounted || _state == null) return;
+
+      if (_state!.canClaimToday) {
+        final refreshed = await _service.loadState();
+        if (!mounted) return;
+        setState(() => _state = refreshed);
+        return;
+      }
+
+      final remaining = _state!.nextRewardIn - const Duration(seconds: 1);
       setState(() {
         _state = DailyRewardState(
-          days: _state.days,
-          currentStreak: _state.currentStreak,
+          days: _state!.days,
+          currentStreak: _state!.currentStreak,
           nextRewardIn: remaining.isNegative ? Duration.zero : remaining,
-          canClaimToday: _state.canClaimToday,
+          canClaimToday: _state!.canClaimToday,
         );
       });
+
+      if (remaining.isNegative || remaining == Duration.zero) {
+        final refreshed = await _service.loadState();
+        if (!mounted) return;
+        setState(() => _state = refreshed);
+      }
     });
   }
 
-  void _handleClaim() {
-    if (!_state.canClaimToday) return;
+  Future<void> _handleClaim() async {
+    final state = _state;
+    if (state == null || _isClaiming || !state.canClaimToday) return;
 
-    final availableIndex = _state.days.indexWhere(
-      (day) => day.status == DailyRewardStatus.available,
-    );
-    if (availableIndex < 0) return;
-
-    final claimedDay = _state.days[availableIndex];
-    final updatedDays = [
-      for (var i = 0; i < _state.days.length; i++)
-        if (i == availableIndex)
-          DailyRewardDay(
-            day: claimedDay.day,
-            kind: claimedDay.kind,
-            status: DailyRewardStatus.claimed,
-            coinAmount: claimedDay.coinAmount,
-            label: claimedDay.label,
-            imageAsset: claimedDay.imageAsset,
-          )
-        else if (i == availableIndex + 1 && i < _state.days.length)
-          DailyRewardDay(
-            day: _state.days[i].day,
-            kind: _state.days[i].kind,
-            status: DailyRewardStatus.available,
-            coinAmount: _state.days[i].coinAmount,
-            label: _state.days[i].label,
-            imageAsset: _state.days[i].imageAsset,
-          )
-        else
-          _state.days[i],
-    ];
+    setState(() => _isClaiming = true);
+    final updatedState = await _service.claim();
+    if (!mounted) return;
 
     setState(() {
-      _state = DailyRewardState(
-        days: updatedDays,
-        currentStreak: _state.currentStreak + 1,
-        nextRewardIn: _state.nextRewardIn,
-        canClaimToday: false,
-      );
+      _state = updatedState;
+      _isClaiming = false;
     });
   }
 
@@ -116,6 +115,7 @@ class _DailyRewardDialogState extends State<DailyRewardDialog> {
     final maxDialogHeight = screenSize.height -
         viewInsets.vertical -
         (compact ? 24.0 : 32.0);
+    final state = _state;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -178,50 +178,52 @@ class _DailyRewardDialogState extends State<DailyRewardDialog> {
                       SizedBox(height: compact ? 6 : 8),
                       const _SubtitleRow(),
                       SizedBox(height: compact ? 10 : 14),
-                      DailyRewardRewardGrid(days: _state.days),
-                      const SizedBox(height: 14),
-                      _ClaimButton(
-                        enabled: _state.canClaimToday,
-                        onTap: _handleClaim,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.schedule_rounded,
-                            size: 14,
-                            color: RoyalColors.brown.withValues(alpha: 0.75),
+                      if (_isLoading || state == null)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 48),
+                          child: CircularProgressIndicator(
+                            color: RoyalColors.brown,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Next reward in ${_formatDuration(_state.nextRewardIn)}',
+                        )
+                      else ...[
+                        DailyRewardRewardGrid(days: state.days),
+                        const SizedBox(height: 14),
+                        _ClaimButton(
+                          enabled: state.canClaimToday && !_isClaiming,
+                          isLoading: _isClaiming,
+                          onTap: _handleClaim,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.canClaimToday
+                              ? 'Your reward is ready to claim!'
+                              : 'Next reward in ${_formatDuration(state.nextRewardIn)}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: RoyalColors.brown.withValues(alpha: 0.85),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: TextButton.styleFrom(
+                            foregroundColor: RoyalColors.brown,
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Come back tomorrow',
                             style: TextStyle(
-                              color: RoyalColors.brown.withValues(alpha: 0.85),
+                              decoration: TextDecoration.underline,
                               fontWeight: FontWeight.w700,
-                              fontSize: 11,
+                              fontSize: 12,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          foregroundColor: RoyalColors.brown,
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          'Come back tomorrow',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -276,9 +278,14 @@ class _SubtitleRow extends StatelessWidget {
 }
 
 class _ClaimButton extends StatelessWidget {
-  const _ClaimButton({required this.enabled, required this.onTap});
+  const _ClaimButton({
+    required this.enabled,
+    required this.onTap,
+    this.isLoading = false,
+  });
 
   final bool enabled;
+  final bool isLoading;
   final VoidCallback onTap;
 
   @override
@@ -308,39 +315,50 @@ class _ClaimButton extends StatelessWidget {
                 ),
               ],
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final compact = constraints.maxWidth < 260;
-                final fontSize = compact ? 18.0 : 22.0;
-                final iconSize = compact ? 14.0 : 16.0;
-
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.local_florist_rounded,
-                      color: RoyalColors.gold,
-                      size: iconSize,
-                    ),
-                    SizedBox(width: compact ? 6 : 8),
-                    Text(
-                      'CLAIM',
-                      style: TextStyle(
+            child: Center(
+              child: isLoading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
                         color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: fontSize,
-                        letterSpacing: 1,
                       ),
+                    )
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final compact = constraints.maxWidth < 260;
+                        final fontSize = compact ? 18.0 : 22.0;
+                        final iconSize = compact ? 14.0 : 16.0;
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.local_florist_rounded,
+                              color: RoyalColors.gold,
+                              size: iconSize,
+                            ),
+                            SizedBox(width: compact ? 6 : 8),
+                            Text(
+                              'CLAIM',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: fontSize,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            SizedBox(width: compact ? 6 : 8),
+                            Icon(
+                              Icons.local_florist_rounded,
+                              color: RoyalColors.gold,
+                              size: iconSize,
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    SizedBox(width: compact ? 6 : 8),
-                    Icon(
-                      Icons.local_florist_rounded,
-                      color: RoyalColors.gold,
-                      size: iconSize,
-                    ),
-                  ],
-                );
-              },
             ),
           ),
         ),
