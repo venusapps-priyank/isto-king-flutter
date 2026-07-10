@@ -104,7 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SizedBox(height: layout.profileTitleGap),
-                              const _TitleBadge(),
+                              _TitleBadge(
+                                widthFactor: layout.titleWidthFactor,
+                                maxWidth: layout.titleMaxWidth,
+                              ),
                               SizedBox(height: layout.titleBoardGap),
                               ConstrainedBox(
                                 constraints: BoxConstraints(
@@ -119,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizedBox(height: layout.boardActionGap),
                               _HomeActionButtons(
                                 buttonGap: layout.actionButtonGap,
+                                primaryButtonScale: layout.primaryButtonScale,
                                 onPlayNow: () =>
                                     widget.onShowGameSetup?.call(true),
                                 onPassAndPlay: () =>
@@ -157,6 +161,9 @@ class _HomeLayout {
     required this.actionButtonGap,
     required this.boardMaxWidth,
     required this.boardMaxHeight,
+    required this.titleWidthFactor,
+    required this.titleMaxWidth,
+    required this.primaryButtonScale,
     required this.bottomGap,
   });
 
@@ -168,6 +175,9 @@ class _HomeLayout {
   final double actionButtonGap;
   final double boardMaxWidth;
   final double boardMaxHeight;
+  final double titleWidthFactor;
+  final double titleMaxWidth;
+  final double primaryButtonScale;
   final double bottomGap;
 
   static double _sectionGap(
@@ -185,10 +195,30 @@ class _HomeLayout {
   }) {
     final width = constraints.maxWidth;
     final height = constraints.maxHeight;
-    final shortHeight = height < 720;
+    final shortHeight = height <= 720;
     final veryShortHeight = height < 620;
     final compactWidth = width < 360;
+    final mediumCompact =
+        width >= 480 && width <= 600 && height <= 760 && embedded;
     final horizontalPadding = (width * 0.036).clamp(10.0, 16.0).toDouble();
+
+    final boardHeightRatio = veryShortHeight
+        ? 0.24
+        : mediumCompact
+        ? 0.23
+        : shortHeight
+        ? 0.26
+        : 0.34;
+    final boardMinHeight = compactWidth
+        ? 170.0
+        : mediumCompact
+        ? 155.0
+        : 200.0;
+    final boardMaxHeightCap = mediumCompact
+        ? 210.0
+        : shortHeight
+        ? 250.0
+        : 330.0;
 
     return _HomeLayout(
       headerPadding: EdgeInsets.fromLTRB(
@@ -205,32 +235,71 @@ class _HomeLayout {
       ),
       profileTitleGap: _sectionGap(
         height,
-        ratio: veryShortHeight ? 0.018 : shortHeight ? 0.024 : 0.032,
-        min: veryShortHeight ? 8 : shortHeight ? 12 : 18,
-        max: veryShortHeight ? 14 : shortHeight ? 22 : 36,
+        ratio: veryShortHeight
+            ? 0.018
+            : mediumCompact
+            ? 0.014
+            : shortHeight
+            ? 0.02
+            : 0.032,
+        min: veryShortHeight ? 8 : mediumCompact ? 6 : shortHeight ? 10 : 18,
+        max: veryShortHeight ? 14 : mediumCompact ? 10 : shortHeight ? 18 : 36,
       ),
       titleBoardGap: _sectionGap(
         height,
-        ratio: veryShortHeight ? 0.008 : shortHeight ? 0.012 : 0.016,
-        min: veryShortHeight ? 4 : shortHeight ? 6 : 8,
-        max: veryShortHeight ? 8 : shortHeight ? 12 : 16,
+        ratio: veryShortHeight
+            ? 0.008
+            : mediumCompact
+            ? 0.006
+            : shortHeight
+            ? 0.01
+            : 0.016,
+        min: veryShortHeight ? 4 : mediumCompact ? 3 : shortHeight ? 5 : 8,
+        max: veryShortHeight ? 8 : mediumCompact ? 6 : shortHeight ? 10 : 16,
       ),
       boardActionGap: _sectionGap(
         height,
-        ratio: veryShortHeight ? 0.022 : shortHeight ? 0.03 : 0.042,
-        min: veryShortHeight ? 10 : shortHeight ? 14 : 20,
-        max: veryShortHeight ? 18 : shortHeight ? 28 : 44,
+        ratio: veryShortHeight
+            ? 0.022
+            : mediumCompact
+            ? 0.018
+            : shortHeight
+            ? 0.024
+            : 0.042,
+        min: veryShortHeight ? 10 : mediumCompact ? 8 : shortHeight ? 12 : 20,
+        max: veryShortHeight ? 18 : mediumCompact ? 14 : shortHeight ? 22 : 44,
       ),
       actionButtonGap: _sectionGap(
         height,
-        ratio: veryShortHeight ? 0.018 : shortHeight ? 0.022 : 0.028,
-        min: veryShortHeight ? 8 : shortHeight ? 10 : 14,
-        max: veryShortHeight ? 14 : shortHeight ? 18 : 28,
+        ratio: veryShortHeight
+            ? 0.018
+            : mediumCompact
+            ? 0.014
+            : shortHeight
+            ? 0.018
+            : 0.028,
+        min: veryShortHeight ? 8 : mediumCompact ? 6 : shortHeight ? 8 : 14,
+        max: veryShortHeight ? 14 : mediumCompact ? 12 : shortHeight ? 16 : 28,
       ),
       boardMaxWidth: width - horizontalPadding * 2,
-      boardMaxHeight: (height * (veryShortHeight ? 0.24 : shortHeight ? 0.28 : 0.34))
-          .clamp(compactWidth ? 170.0 : 200.0, 330.0)
+      boardMaxHeight: (height * boardHeightRatio)
+          .clamp(boardMinHeight, boardMaxHeightCap)
           .toDouble(),
+      titleWidthFactor: mediumCompact
+          ? 0.68
+          : shortHeight
+          ? 0.74
+          : 0.82,
+      titleMaxWidth: mediumCompact
+          ? 290.0
+          : shortHeight
+          ? 320.0
+          : 360.0,
+      primaryButtonScale: mediumCompact
+          ? 0.84
+          : shortHeight
+          ? 0.9
+          : 1.0,
       bottomGap: embedded ? (shortHeight ? 96.0 : 108.0) : 0,
     );
   }
@@ -239,12 +308,14 @@ class _HomeLayout {
 class _HomeActionButtons extends StatelessWidget {
   const _HomeActionButtons({
     required this.buttonGap,
+    required this.primaryButtonScale,
     required this.onPlayNow,
     required this.onPassAndPlay,
     required this.onOnlinePlay,
   });
 
   final double buttonGap;
+  final double primaryButtonScale;
   final VoidCallback onPlayNow;
   final VoidCallback onPassAndPlay;
   final VoidCallback onOnlinePlay;
@@ -269,6 +340,7 @@ class _HomeActionButtons extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: primaryInset),
               child: HomeCtaButton(
                 label: 'PLAY NOW',
+                compactScale: primaryButtonScale,
                 onPressed: onPlayNow,
               ),
             ),
@@ -305,14 +377,21 @@ class _HomeActionButtons extends StatelessWidget {
 }
 
 class _TitleBadge extends StatelessWidget {
-  const _TitleBadge();
+  const _TitleBadge({
+    required this.widthFactor,
+    required this.maxWidth,
+  });
+
+  final double widthFactor;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final nameWidth =
-            (constraints.maxWidth * 0.82).clamp(220.0, 360.0).toDouble();
+        final nameWidth = (constraints.maxWidth * widthFactor)
+            .clamp(200.0, maxWidth)
+            .toDouble();
 
         return Image.asset(
           gameNameAsset,

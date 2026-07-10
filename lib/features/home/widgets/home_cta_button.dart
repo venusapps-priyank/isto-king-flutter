@@ -11,6 +11,7 @@ class HomeCtaButton extends StatelessWidget {
     this.backgroundColor = RoyalColors.red,
     this.textColor = Colors.white,
     this.expanded = false,
+    this.compactScale = 1.0,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class HomeCtaButton extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final bool expanded;
+  final double compactScale;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class HomeCtaButton extends StatelessWidget {
             label: label,
             onPressed: onPressed,
             textColor: textColor,
+            compactScale: compactScale,
           )
         : isSecondaryCta
         ? _SecondaryHomeButton(
@@ -193,11 +196,13 @@ class _PrimaryHomeButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     required this.textColor,
+    this.compactScale = 1.0,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final Color textColor;
+  final double compactScale;
 
   static TextStyle get _labelStyle => GoogleFonts.robotoSlab(
         fontSize: 40,
@@ -214,12 +219,17 @@ class _PrimaryHomeButton extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
+        final scale = compactScale.clamp(0.75, 1.0);
         final labelStyle = _labelStyle.copyWith(
-          fontSize: (maxWidth * 0.13).clamp(30.0, 40.0),
+          fontSize: ((maxWidth * 0.13).clamp(30.0, 40.0) * scale)
+              .clamp(24.0, 40.0),
         );
-        final iconSize = (maxWidth * 0.06).clamp(14.0, 18.0);
-        final horizontalPadding = (maxWidth * 0.06).clamp(14.0, 20.0);
-        final verticalPadding = (maxWidth * 0.055).clamp(14.0, 18.0);
+        final iconSize = ((maxWidth * 0.06).clamp(14.0, 18.0) * scale)
+            .clamp(12.0, 18.0);
+        final horizontalPadding =
+            ((maxWidth * 0.06).clamp(14.0, 20.0) * scale).clamp(12.0, 20.0);
+        final verticalPadding =
+            ((maxWidth * 0.055).clamp(14.0, 18.0) * scale).clamp(10.0, 18.0);
         final iconInset = (maxWidth * 0.02).clamp(2.0, 6.0);
 
         return DecoratedBox(
