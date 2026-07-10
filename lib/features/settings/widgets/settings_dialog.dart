@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/link.dart';
 
 const _kPrivacyPolicyUrl =
     'https://venusapps.com/apps/isto-king/f-privacy-policy.html';
@@ -39,11 +39,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
       // _boardTheme = 'Classic';
       // _language = 'English';
     });
-  }
-
-  Future<void> _openLink(String url) async {
-    final uri = Uri.parse(url);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   // Future<void> _pickOption({
@@ -125,12 +120,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
           _SettingsLinkRow(
             icon: Icons.privacy_tip_outlined,
             label: 'Privacy Policy',
-            onTap: () => _openLink(_kPrivacyPolicyUrl),
+            url: _kPrivacyPolicyUrl,
           ),
           _SettingsLinkRow(
             icon: Icons.description_outlined,
             label: 'Terms and Conditions',
-            onTap: () => _openLink(_kTermsAndConditionsUrl),
+            url: _kTermsAndConditionsUrl,
           ),
           const SizedBox(height: 18),
           _SettingsResetButton(onTap: _resetToDefaults),
@@ -222,46 +217,52 @@ class _SettingsLinkRow extends StatelessWidget {
   const _SettingsLinkRow({
     required this.icon,
     required this.label,
-    required this.onTap,
+    required this.url,
   });
 
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final String url;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: RoyalColors.brown),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w700,
-                    color: RoyalColors.darkBrown,
-                    height: 1.2,
+    return Link(
+      uri: Uri.parse(url),
+      target: LinkTarget.blank,
+      builder: (context, followLink) {
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: followLink,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: RoyalColors.brown),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: RoyalColors.darkBrown,
+                        height: 1.2,
+                      ),
+                    ),
                   ),
-                ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 22,
+                    color: RoyalColors.brown.withValues(alpha: 0.65),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 22,
-                color: RoyalColors.brown.withValues(alpha: 0.65),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
