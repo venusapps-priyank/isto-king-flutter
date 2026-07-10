@@ -33,7 +33,10 @@ const baseGamePlayers = [
 
 const gamePlayers = baseGamePlayers;
 
-List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
+List<PlayerInfo> buildGamePlayers(
+  GameSetupConfig config, {
+  Map<int, String>? computerNamesByIndex,
+}) {
   if (config.isPassAndPlay) {
     return [
       for (final player in baseGamePlayers)
@@ -67,7 +70,8 @@ List<PlayerInfo> buildGamePlayers(GameSetupConfig config) {
           computerNumberByIndex.containsKey(player.index))
         PlayerInfo(
           index: player.index,
-          name: 'Computer ${computerNumberByIndex[player.index]}',
+          name: computerNamesByIndex?[player.index] ??
+              'Computer ${computerNumberByIndex[player.index]}',
           color: player.color,
           avatarAsset: player.avatarAsset,
           avatarOnRight: player.avatarOnRight,

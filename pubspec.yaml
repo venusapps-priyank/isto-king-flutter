@@ -81,6 +81,7 @@ flutter:
   assets:
     - assets/avatar/
     - assets/app_icons/
+    - assets/data/computer_names.json
     - assets/images/
     - assets/store/
   #   - images/a_dot_burr.jpeg

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/data/computer_names_repository.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
@@ -36,7 +37,7 @@ class IstoGameScreen extends StatefulWidget {
 
 class _IstoGameScreenState extends State<IstoGameScreen>
     with WidgetsBindingObserver {
-  late final List<PlayerInfo> _players = buildGamePlayers(widget.setup);
+  late List<PlayerInfo> _players = buildGamePlayers(widget.setup);
   late GameTurnController _turnController = _createTurnController(
     useInitialController: true,
   );
@@ -141,10 +142,39 @@ class _IstoGameScreenState extends State<IstoGameScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _assignRandomComputerNames();
     _saveGameIfNeeded();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _scheduleComputerTurn(),
     );
+  }
+
+  Future<void> _assignRandomComputerNames() async {
+    if (!widget.setup.isVsComputer) return;
+
+    try {
+      final computerIndexes = widget.setup.computerPlayerIndexes.toList()
+        ..sort();
+      final allNames = await ComputerNamesRepository.loadNames();
+      final pickedNames = ComputerNamesRepository.pickRandomNames(
+        allNames,
+        computerIndexes.length,
+      );
+      final computerNamesByIndex = {
+        for (var i = 0; i < computerIndexes.length; i++)
+          computerIndexes[i]: pickedNames[i],
+      };
+
+      if (!mounted) return;
+      setState(() {
+        _players = buildGamePlayers(
+          widget.setup,
+          computerNamesByIndex: computerNamesByIndex,
+        );
+      });
+    } on Object {
+      // Keep fallback "Computer 1/2/3" names if the asset cannot be loaded.
+    }
   }
 
   @override
