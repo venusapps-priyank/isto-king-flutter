@@ -7,6 +7,7 @@ import 'package:isto_king/data/computer_names_repository.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
+import 'package:isto_king/features/game/logic/board_view_layout.dart';
 import 'package:isto_king/features/game/data/saved_game_repository.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/game_setup_config.dart';
@@ -207,11 +208,27 @@ class _IstoGameScreenState extends State<IstoGameScreen>
     );
   }
 
-  Widget _buildPlayerSlot(int playerIndex) {
+  bool get _usesBoardViewRotation =>
+      BoardViewLayout.shouldRotateForSetup(isVsComputer: widget.setup.isVsComputer);
+
+  Widget _buildPlayerSlot(int playerIndex, {int? screenSeat}) {
     if (!_isPlayerActive(playerIndex)) {
       return const SizedBox.shrink();
     }
-    return _buildPlayerCard(playerInfoForIndex(_players, playerIndex));
+    return _buildPlayerCard(
+      playerInfoForIndex(_players, playerIndex),
+      screenSeat: screenSeat,
+    );
+  }
+
+  Widget _buildSeatSlot(int seat) {
+    final playerIndex = _usesBoardViewRotation
+        ? BoardViewLayout.playerForSeat(seat, widget.setup.humanPlayerIndex)
+        : seat;
+    return _buildPlayerSlot(
+      playerIndex,
+      screenSeat: _usesBoardViewRotation ? seat : null,
+    );
   }
 
   void _handleRollComplete(int playerIndex, int value) {
@@ -478,7 +495,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
     );
   }
 
-  PlayerCard _buildPlayerCard(PlayerInfo player) {
+  PlayerCard _buildPlayerCard(PlayerInfo player, {int? screenSeat}) {
     final isCurrentPlayer = _turnController.currentPlayerIndex == player.index;
     final isComputer = _isComputerPlayer(player.index);
     final isRollingCowries = _cowrieRollingPlayerIndex == player.index;
@@ -489,12 +506,15 @@ class _IstoGameScreenState extends State<IstoGameScreen>
     final showShells =
         isCurrentPlayer &&
         (canRoll || _turnController.pendingRoll != null || isRollingCowries);
+    final avatarOnRight = screenSeat != null
+        ? BoardViewLayout.avatarOnRightForSeat(screenSeat)
+        : player.avatarOnRight;
 
     return PlayerCard(
       name: player.name,
       color: player.color,
       avatarAsset: player.avatarAsset,
-      avatarOnRight: player.avatarOnRight,
+      avatarOnRight: avatarOnRight,
       isActive: isCurrentPlayer,
       showShells: showShells,
       canRoll: canRoll,
@@ -506,6 +526,27 @@ class _IstoGameScreenState extends State<IstoGameScreen>
           ? () => setState(() => _cowrieRollingPlayerIndex = player.index)
           : null,
       onRollComplete: (value) => _handleRollComplete(player.index, value),
+    );
+  }
+
+  Widget _buildGameBoard() {
+    return GameBoard(
+      players: _players,
+      tokens: _turnController.tokens,
+      movableTokenIds:
+          _isMoveAnimating || !_isHumanTurn()
+          ? const {}
+          : _turnController.legalTokenIds,
+      innerPathAccess: _turnController.innerPathAccess,
+      movePaths: _activeMovePaths,
+      moveDelays: _activeMoveDelays,
+      pairPromptTokenIds: _visiblePairCandidate?.tokenIds,
+      centerChoiceTokenId: _centerChoiceTokenId,
+      onJoinPairPrompt: _handleJoinPairPrompt,
+      onDismissPairPrompt: _handlePlaySinglePairPrompt,
+      onGoCenterPrompt: _handleGoCenterPrompt,
+      onCircleAheadPrompt: _handleCircleAheadPrompt,
+      onTokenTap: _handleTokenTap,
     );
   }
 
@@ -585,40 +626,23 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                                       child: AnimatedPlayerRow(
                                         visible: !showWinRanking,
                                         isTopRow: true,
-                                        left: _buildPlayerSlot(0),
-                                        right: _buildPlayerSlot(1),
+                                        left: _buildSeatSlot(0),
+                                        right: _buildSeatSlot(1),
                                       ),
                                     ),
                                     const SizedBox(height: gap),
                                     Center(
                                       child: SizedBox.square(
                                         dimension: boardSize,
-                                        child: GameBoard(
-                                          players: _players,
-                                          tokens: _turnController.tokens,
-                                          movableTokenIds:
-                                              _isMoveAnimating ||
-                                                  !_isHumanTurn()
-                                              ? const {}
-                                              : _turnController.legalTokenIds,
-                                          innerPathAccess:
-                                              _turnController.innerPathAccess,
-                                          movePaths: _activeMovePaths,
-                                          moveDelays: _activeMoveDelays,
-                                          pairPromptTokenIds:
-                                              _visiblePairCandidate?.tokenIds,
-                                          centerChoiceTokenId:
-                                              _centerChoiceTokenId,
-                                          onJoinPairPrompt:
-                                              _handleJoinPairPrompt,
-                                          onDismissPairPrompt:
-                                              _handlePlaySinglePairPrompt,
-                                          onGoCenterPrompt:
-                                              _handleGoCenterPrompt,
-                                          onCircleAheadPrompt:
-                                              _handleCircleAheadPrompt,
-                                          onTokenTap: _handleTokenTap,
-                                        ),
+                                        child: _usesBoardViewRotation
+                                            ? Transform.rotate(
+                                                angle: BoardViewLayout
+                                                    .boardRotationRadians(
+                                                  widget.setup.humanPlayerIndex,
+                                                ),
+                                                child: _buildGameBoard(),
+                                              )
+                                            : _buildGameBoard(),
                                       ),
                                     ),
                                     const SizedBox(height: gap),
@@ -627,8 +651,8 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                                       child: AnimatedPlayerRow(
                                         visible: !showWinRanking,
                                         isTopRow: false,
-                                        left: _buildPlayerSlot(2),
-                                        right: _buildPlayerSlot(3),
+                                        left: _buildSeatSlot(2),
+                                        right: _buildSeatSlot(3),
                                       ),
                                     ),
                                   ],
