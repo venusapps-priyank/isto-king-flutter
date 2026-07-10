@@ -5,20 +5,38 @@ import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/player_count_icons.dart';
+import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 
 class GameSetupDialog extends StatefulWidget {
-  const GameSetupDialog({required this.profile, super.key});
+  const GameSetupDialog({
+    required this.profile,
+    this.rulesSettings = GameRulesSettings.defaults,
+    this.isPassAndPlay = false,
+    this.onOpenRules,
+    super.key,
+  });
 
   final UserProfile profile;
+  final GameRulesSettings rulesSettings;
+  final bool isPassAndPlay;
+  final VoidCallback? onOpenRules;
 
   static Future<void> show(
     BuildContext context, {
     required UserProfile profile,
+    GameRulesSettings rulesSettings = GameRulesSettings.defaults,
+    bool isPassAndPlay = false,
+    VoidCallback? onOpenRules,
   }) {
     return showRoyalDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (_) => GameSetupDialog(profile: profile),
+      builder: (_) => GameSetupDialog(
+        profile: profile,
+        rulesSettings: rulesSettings,
+        isPassAndPlay: isPassAndPlay,
+        onOpenRules: onOpenRules,
+      ),
     );
   }
 
@@ -29,6 +47,7 @@ class GameSetupDialog extends StatefulWidget {
 class _GameSetupDialogState extends State<GameSetupDialog> {
   int _playerCount = 4;
   Color _chipColor = RoyalColors.yellow;
+  late GameRulesSettings _rulesSettings;
 
   static const _chipColors = [
     RoyalColors.red,
@@ -37,12 +56,25 @@ class _GameSetupDialogState extends State<GameSetupDialog> {
     RoyalColors.blue,
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _rulesSettings = widget.rulesSettings;
+  }
+
+  void _onManageRulesTap() {
+    Navigator.of(context).pop();
+    widget.onOpenRules?.call();
+  }
+
   void _onContinue() {
     final setup = GameSetupConfig(
       playerCount: _playerCount,
       chipColor: _chipColor,
       humanPlayerName: widget.profile.name,
       humanPlayerAvatarAsset: widget.profile.avatarAsset,
+      rulesSettings: _rulesSettings,
+      isPassAndPlay: widget.isPassAndPlay,
     );
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
@@ -91,25 +123,33 @@ class _GameSetupDialogState extends State<GameSetupDialog> {
                   ],
                 ],
               ),
+              if (!widget.isPassAndPlay) ...[
+                SizedBox(height: sectionGap),
+                const _SectionHeading(
+                  number: 2,
+                  label: 'Choose Your Chip Color',
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (final color in _chipColors)
+                      _ChipColorButton(
+                        color: color,
+                        size: chipSize,
+                        isSelected: _chipColor == color,
+                        onTap: () => setState(() => _chipColor = color),
+                      ),
+                  ],
+                ),
+              ],
               SizedBox(height: sectionGap),
-              const _SectionHeading(number: 2, label: 'Choose Your Chip Color'),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  for (final color in _chipColors)
-                    _ChipColorButton(
-                      color: color,
-                      size: chipSize,
-                      isSelected: _chipColor == color,
-                      onTap: () => setState(() => _chipColor = color),
-                    ),
-                ],
+              _SectionHeading(
+                number: widget.isPassAndPlay ? 2 : 3,
+                label: 'Rules',
               ),
-              SizedBox(height: sectionGap),
-              const _SectionHeading(number: 3, label: 'Rules'),
               const SizedBox(height: 10),
-              _RulesButton(onTap: () {}),
+              _RulesButton(onTap: _onManageRulesTap),
               SizedBox(height: contentWidth < 280 ? 18 : 22),
               Row(
                 children: [

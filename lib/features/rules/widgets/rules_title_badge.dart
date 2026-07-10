@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/data/store_assets.dart';
+import 'package:isto_king/data/rules_assets.dart';
 
-class StoreTitleBadge extends StatelessWidget {
-  const StoreTitleBadge({super.key});
+class RulesTitleBadge extends StatelessWidget {
+  const RulesTitleBadge({super.key});
 
   static const _maxWidth = 330.0;
   static const _aspectRatio = 2172 / 724;
@@ -19,7 +19,7 @@ class StoreTitleBadge extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: _aspectRatio,
               child: Image.asset(
-                storeLabelAsset,
+                rulesLabelAsset,
                 fit: BoxFit.contain,
                 alignment: Alignment.center,
               ),

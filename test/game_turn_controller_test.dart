@@ -73,10 +73,10 @@ void main() {
       final controller = GameTurnController(activePlayers: {0, 3});
 
       expect(controller.tokens, hasLength(8));
-      expect(
-        controller.tokens.map((token) => token.playerIndex).toSet(),
-        {0, 3},
-      );
+      expect(controller.tokens.map((token) => token.playerIndex).toSet(), {
+        0,
+        3,
+      });
     });
 
     test('auto-selects one of several equivalent home tokens', () {
@@ -533,6 +533,35 @@ void main() {
       final killerPath = result!.animationPaths[movingRed.id]!;
       final killerDuration = MoveAnimationTiming.durationForPath(killerPath);
       expect(result.animationDelays[capturedGreen.id], killerDuration);
+    });
+
+    test('restores turn state from json', () {
+      final controller = GameTurnController(activePlayers: {0, 3})
+        ..currentPlayerIndex = 0;
+      final firstRed = tokenFor(controller, 0, 0);
+      final secondRed = tokenFor(controller, 0, 1);
+      placeToken(firstRed, 0);
+      placeToken(secondRed, 0);
+      expect(controller.lockTokenPair([firstRed.id, secondRed.id]), isTrue);
+
+      controller.handleRollComplete(0, 2);
+      controller.playerStates[0].hasKilledOpponent = true;
+
+      final restored = GameTurnController.fromJson(
+        controller.toJson(),
+        activePlayers: {0, 3},
+      );
+      final restoredFirstRed = tokenFor(restored, 0, 0);
+      final restoredSecondRed = tokenFor(restored, 0, 1);
+
+      expect(restored.currentPlayerIndex, 0);
+      expect(restored.pendingRoll, 2);
+      expect(restored.legalTokenIds, contains(firstRed.id));
+      expect(restored.playerStates[0].hasKilledOpponent, isTrue);
+      expect(restoredFirstRed.pathIndex, 0);
+      expect(restoredFirstRed.pairedTokenId, restoredSecondRed.id);
+      expect(restoredSecondRed.pairedTokenId, restoredFirstRed.id);
+      expect(restored.tokens.map((token) => token.playerIndex).toSet(), {0, 3});
     });
   });
 }

@@ -14,6 +14,8 @@ class CowrieRollPanel extends StatefulWidget {
     required this.shellCount,
     required this.shellSize,
     this.alignRight = false,
+    this.enableTap = true,
+    this.autoRollSerial = 0,
     this.onRollStarted,
     this.onRollComplete,
     super.key,
@@ -26,6 +28,8 @@ class CowrieRollPanel extends StatefulWidget {
   final int shellCount;
   final double shellSize;
   final bool alignRight;
+  final bool enableTap;
+  final int autoRollSerial;
   final VoidCallback? onRollStarted;
   final ValueChanged<int>? onRollComplete;
 
@@ -44,6 +48,15 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
   void initState() {
     super.initState();
     _cowries = List<bool>.filled(widget.shellCount, false);
+    _scheduleAutoRollIfNeeded();
+  }
+
+  void _scheduleAutoRollIfNeeded() {
+    if (widget.autoRollSerial <= 0 || !widget.canRoll || _isRolling) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _rollCowries();
+    });
   }
 
   @override
@@ -61,6 +74,9 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
       _cowries = List<bool>.filled(widget.shellCount, false);
       _rollingCowries = null;
       _isRolling = false;
+    }
+    if (widget.autoRollSerial != oldWidget.autoRollSerial) {
+      _scheduleAutoRollIfNeeded();
     }
   }
 
@@ -111,7 +127,7 @@ class _CowrieRollPanelState extends State<CowrieRollPanel> {
       label: 'Roll cowries',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _rollCowries,
+        onTap: widget.enableTap ? _rollCowries : null,
         child: SizedBox(
           width: double.infinity,
           height: widget.shellSize,
