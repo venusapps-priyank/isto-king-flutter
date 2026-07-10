@@ -312,7 +312,7 @@ class _TitleBadge extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final nameWidth =
-            constraints.maxWidth.clamp(160.0, 240.0).toDouble();
+            (constraints.maxWidth * 0.82).clamp(220.0, 360.0).toDouble();
 
         return Image.asset(
           gameNameAsset,
