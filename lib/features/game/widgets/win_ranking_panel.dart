@@ -287,9 +287,9 @@ class _WinRankingPanelState extends State<WinRankingPanel> {
                 ),
               ),
               Positioned(
+                top: bgTopInset + bgHeight + _buttonGapBelowBg,
                 left: 12,
                 right: 12,
-                bottom: _buttonAreaBottomPadding,
                 child: WinActionButtons(
                   onPlayAgain: _handlePlayAgain,
                   onHome: widget.onHome,
