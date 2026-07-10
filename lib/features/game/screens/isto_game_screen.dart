@@ -589,21 +589,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
               bottom: false,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final height = constraints.maxHeight;
-                  final compact = height < 820;
-                  final horizontalPadding = width < 410 ? 12.0 : 16.0;
-                  final topBarHeight = compact ? 58.0 : 66.0;
-                  final cardHeight = compact ? 90.0 : 100.0;
-                  const gap = 7.0;
-                  final boardMaxWidth = width - horizontalPadding * 2;
-                  final centeredSectionHeight = height;
-                  final boardMaxHeight =
-                      centeredSectionHeight - cardHeight * 2 - gap * 2;
-                  final boardSize = math.max(
-                    280.0,
-                    math.min(boardMaxWidth, boardMaxHeight),
-                  );
+                  final layout = _GameScreenLayout.from(constraints);
                   final showWinRanking =
                       _turnController.isGameOver || _showWinRankingPreview;
                   final isActualGameOver = _turnController.isGameOver;
@@ -612,7 +598,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                     children: [
                       Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
+                          horizontal: layout.horizontalPadding,
                         ),
                         child: Stack(
                           children: [
@@ -622,7 +608,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SizedBox(
-                                      height: cardHeight,
+                                      height: layout.cardHeight,
                                       child: AnimatedPlayerRow(
                                         visible: !showWinRanking,
                                         isTopRow: true,
@@ -630,10 +616,10 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                                         right: _buildSeatSlot(1),
                                       ),
                                     ),
-                                    const SizedBox(height: gap),
+                                    SizedBox(height: layout.sectionGap),
                                     Center(
                                       child: SizedBox.square(
-                                        dimension: boardSize,
+                                        dimension: layout.boardSize,
                                         child: _usesBoardViewRotation
                                             ? Transform.rotate(
                                                 angle: BoardViewLayout
@@ -645,9 +631,9 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                                             : _buildGameBoard(),
                                       ),
                                     ),
-                                    const SizedBox(height: gap),
+                                    SizedBox(height: layout.sectionGap),
                                     SizedBox(
-                                      height: cardHeight,
+                                      height: layout.cardHeight,
                                       child: AnimatedPlayerRow(
                                         visible: !showWinRanking,
                                         isTopRow: false,
@@ -663,7 +649,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                               top: 0,
                               left: 0,
                               right: 0,
-                              height: topBarHeight,
+                              height: layout.topBarHeight,
                               child: TopGameBar(
                                 onBackTap: _handleHomeTap,
                                 onSettingsTap: _handleSettingsTap,
@@ -695,6 +681,81 @@ class _IstoGameScreenState extends State<IstoGameScreen>
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GameScreenLayout {
+  const _GameScreenLayout({
+    required this.horizontalPadding,
+    required this.topBarHeight,
+    required this.cardHeight,
+    required this.sectionGap,
+    required this.boardSize,
+  });
+
+  final double horizontalPadding;
+  final double topBarHeight;
+  final double cardHeight;
+  final double sectionGap;
+  final double boardSize;
+
+  factory _GameScreenLayout.from(BoxConstraints constraints) {
+    final width = constraints.maxWidth;
+    final height = constraints.maxHeight;
+    final compact = height < 820;
+    final shortHeight = height <= 720;
+    final mediumCompact =
+        width >= 480 && width <= 600 && height <= 760;
+    final horizontalPadding = mediumCompact
+        ? 14.0
+        : width < 410
+        ? 12.0
+        : 16.0;
+    final topBarHeight = mediumCompact
+        ? 52.0
+        : compact
+        ? 58.0
+        : 66.0;
+    final cardHeight = mediumCompact
+        ? 82.0
+        : shortHeight
+        ? 86.0
+        : compact
+        ? 90.0
+        : 100.0;
+    final sectionGap = mediumCompact
+        ? 6.0
+        : shortHeight
+        ? 6.0
+        : 7.0;
+    final boardWidthFactor = mediumCompact
+        ? 0.72
+        : shortHeight
+        ? 0.82
+        : 1.0;
+    final boardMaxCap = mediumCompact
+        ? 388.0
+        : shortHeight
+        ? 430.0
+        : double.infinity;
+    final minBoardSize = mediumCompact ? 240.0 : 280.0;
+
+    final boardMaxWidth =
+        (width - horizontalPadding * 2) * boardWidthFactor;
+    final boardMaxHeight =
+        height - topBarHeight - cardHeight * 2 - sectionGap * 2;
+    final boardSize = math
+        .min(boardMaxWidth, boardMaxHeight)
+        .clamp(minBoardSize, boardMaxCap)
+        .toDouble();
+
+    return _GameScreenLayout(
+      horizontalPadding: horizontalPadding,
+      topBarHeight: topBarHeight,
+      cardHeight: cardHeight,
+      sectionGap: sectionGap,
+      boardSize: boardSize,
     );
   }
 }

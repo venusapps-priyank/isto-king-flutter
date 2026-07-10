@@ -78,17 +78,27 @@ class _PlayerCardState extends State<PlayerCard> {
       builder: (context, constraints) {
         final rollCallbacksEnabled = widget.isActive && widget.showShells;
         final height = constraints.maxHeight;
+        final compactCard = height < 88;
         final avatarSize = height * 0.68;
         final cardLeft = avatarSize * 0.36;
         final cardTop = height * 0.12;
         final cardBottom = height * 0.03;
+        final cardInnerHeight = height - cardTop - cardBottom;
         final contentLeft = avatarSize * 0.76;
         final nameSize = height < 96 ? 15.0 : 17.0;
         final contentWidth = constraints.maxWidth - cardLeft - contentLeft - 9;
-        final shellSize = math.min(
-          height < 96 ? 38.0 : 42.0,
-          contentWidth / 2.95,
-        );
+        final verticalPadding = compactCard ? 6.0 : 8.0;
+        final nameRowHeight = nameSize + (compactCard ? 2.0 : 4.0);
+        final maxShellSize = height < 96 ? 38.0 : 42.0;
+        final heightLimitedShell =
+            cardInnerHeight - verticalPadding * 2 - nameRowHeight;
+        final shellSize = math
+            .min(
+              maxShellSize,
+              math.min(contentWidth / 2.95, heightLimitedShell),
+            )
+            .clamp(24.0, maxShellSize)
+            .toDouble();
         final avatarTop = height * 0.14;
         final overlaySize = avatarSize * 0.4;
         final overlayInset = overlaySize * 0.12;
@@ -139,8 +149,8 @@ class _PlayerCardState extends State<PlayerCard> {
                       padding: EdgeInsets.only(
                         left: widget.avatarOnRight ? 9 : contentLeft,
                         right: widget.avatarOnRight ? contentLeft : 9,
-                        top: 8,
-                        bottom: 8,
+                        top: verticalPadding,
+                        bottom: verticalPadding,
                       ),
                       child: Column(
                         crossAxisAlignment: widget.avatarOnRight
@@ -148,7 +158,7 @@ class _PlayerCardState extends State<PlayerCard> {
                             : CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            height: nameSize + 4,
+                            height: nameRowHeight,
                             width: double.infinity,
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
