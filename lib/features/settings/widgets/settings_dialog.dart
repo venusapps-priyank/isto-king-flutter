@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/core/widgets/royal_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+const _kPrivacyPolicyUrl =
+    'https://venusapps.com/apps/isto-king/f-privacy-policy.html';
+const _kTermsAndConditionsUrl =
+    'https://venusapps.com/apps/isto-king/f-terms-and-conditions.html';
 
 class SettingsDialog extends StatefulWidget {
   const SettingsDialog({super.key});
@@ -22,10 +28,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
   bool _backgroundMusic = true;
   bool _vibration = true;
   // String _boardTheme = 'Classic';
-  String _language = 'English';
+  // String _language = 'English';
 
   // static const _boardThemes = ['Classic', 'Royal', 'Night'];
-  static const _languages = ['English', 'Hindi', 'Marathi'];
+  // static const _languages = ['English', 'Hindi', 'Marathi'];
 
   void _resetToDefaults() {
     setState(() {
@@ -33,39 +39,44 @@ class _SettingsDialogState extends State<SettingsDialog> {
       _backgroundMusic = true;
       _vibration = true;
       // _boardTheme = 'Classic';
-      _language = 'English';
+      // _language = 'English';
     });
   }
 
-  Future<void> _pickOption({
-    required String title,
-    required List<String> options,
-    required String current,
-    required ValueChanged<String> onSelected,
-  }) async {
-    final selected = await showRoyalDialog<String>(
-      context: context,
-      builder: (ctx) => RoyalDialog(
-        title: title,
-        maxWidth: 280,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final option in options) ...[
-              _SettingsPickerTile(
-                label: option,
-                isSelected: option == current,
-                onTap: () => Navigator.of(ctx).pop(option),
-              ),
-              if (option != options.last) const SizedBox(height: 8),
-            ],
-          ],
-        ),
-      ),
-    );
-
-    if (selected != null) onSelected(selected);
+  Future<void> _openLink(String url) async {
+    final uri = Uri.parse(url);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
+
+  // Future<void> _pickOption({
+  //   required String title,
+  //   required List<String> options,
+  //   required String current,
+  //   required ValueChanged<String> onSelected,
+  // }) async {
+  //   final selected = await showRoyalDialog<String>(
+  //     context: context,
+  //     builder: (ctx) => RoyalDialog(
+  //       title: title,
+  //       maxWidth: 280,
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           for (final option in options) ...[
+  //             _SettingsPickerTile(
+  //               label: option,
+  //               isSelected: option == current,
+  //               onTap: () => Navigator.of(ctx).pop(option),
+  //             ),
+  //             if (option != options.last) const SizedBox(height: 8),
+  //           ],
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  //
+  //   if (selected != null) onSelected(selected);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -110,16 +121,26 @@ class _SettingsDialogState extends State<SettingsDialog> {
           //     onSelected: (v) => setState(() => _boardTheme = v),
           //   ),
           // ),
-          _SettingsNavRow(
-            icon: Icons.language_rounded,
-            label: 'Language',
-            value: _language,
-            onTap: () => _pickOption(
-              title: 'Language',
-              options: _languages,
-              current: _language,
-              onSelected: (v) => setState(() => _language = v),
-            ),
+          // _SettingsNavRow(
+          //   icon: Icons.language_rounded,
+          //   label: 'Language',
+          //   value: _language,
+          //   onTap: () => _pickOption(
+          //     title: 'Language',
+          //     options: _languages,
+          //     current: _language,
+          //     onSelected: (v) => setState(() => _language = v),
+          //   ),
+          // ),
+          _SettingsLinkRow(
+            icon: Icons.privacy_tip_outlined,
+            label: 'Privacy Policy',
+            onTap: () => _openLink(_kPrivacyPolicyUrl),
+          ),
+          _SettingsLinkRow(
+            icon: Icons.description_outlined,
+            label: 'Terms and Conditions',
+            onTap: () => _openLink(_kTermsAndConditionsUrl),
           ),
           const SizedBox(height: 18),
           _SettingsResetButton(onTap: _resetToDefaults),
@@ -207,17 +228,15 @@ class _SettingsToggleRow extends StatelessWidget {
   }
 }
 
-class _SettingsNavRow extends StatelessWidget {
-  const _SettingsNavRow({
+class _SettingsLinkRow extends StatelessWidget {
+  const _SettingsLinkRow({
     required this.icon,
     required this.label,
-    required this.value,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
-  final String value;
   final VoidCallback onTap;
 
   @override
@@ -244,16 +263,6 @@ class _SettingsNavRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: RoyalColors.brown.withValues(alpha: 0.7),
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(width: 4),
               Icon(
                 Icons.chevron_right_rounded,
                 size: 22,
@@ -266,6 +275,66 @@ class _SettingsNavRow extends StatelessWidget {
     );
   }
 }
+
+// class _SettingsNavRow extends StatelessWidget {
+//   const _SettingsNavRow({
+//     required this.icon,
+//     required this.label,
+//     required this.value,
+//     required this.onTap,
+//   });
+//
+//   final IconData icon;
+//   final String label;
+//   final String value;
+//   final VoidCallback onTap;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Material(
+//       color: Colors.transparent,
+//       child: InkWell(
+//         onTap: onTap,
+//         borderRadius: BorderRadius.circular(10),
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(vertical: 8),
+//           child: Row(
+//             children: [
+//               Icon(icon, size: 20, color: RoyalColors.brown),
+//               const SizedBox(width: 10),
+//               Expanded(
+//                 child: Text(
+//                   label,
+//                   style: const TextStyle(
+//                     fontSize: 14.5,
+//                     fontWeight: FontWeight.w700,
+//                     color: RoyalColors.darkBrown,
+//                     height: 1.2,
+//                   ),
+//                 ),
+//               ),
+//               Text(
+//                 value,
+//                 style: TextStyle(
+//                   fontSize: 13.5,
+//                   fontWeight: FontWeight.w600,
+//                   color: RoyalColors.brown.withValues(alpha: 0.7),
+//                   height: 1.2,
+//                 ),
+//               ),
+//               const SizedBox(width: 4),
+//               Icon(
+//                 Icons.chevron_right_rounded,
+//                 size: 22,
+//                 color: RoyalColors.brown.withValues(alpha: 0.65),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class _RoyalToggle extends StatelessWidget {
   const _RoyalToggle({required this.value, required this.onChanged});
@@ -355,58 +424,58 @@ class _SettingsResetButton extends StatelessWidget {
   }
 }
 
-class _SettingsPickerTile extends StatelessWidget {
-  const _SettingsPickerTile({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFFFF8EB) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? RoyalColors.gold : const Color(0xFFD4B07A),
-              width: isSelected ? 2.2 : 1.4,
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    color: isSelected
-                        ? RoyalColors.darkBrown
-                        : RoyalColors.brown,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                const Icon(
-                  Icons.check_rounded,
-                  color: RoyalColors.gold,
-                  size: 20,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+// class _SettingsPickerTile extends StatelessWidget {
+//   const _SettingsPickerTile({
+//     required this.label,
+//     required this.isSelected,
+//     required this.onTap,
+//   });
+//
+//   final String label;
+//   final bool isSelected;
+//   final VoidCallback onTap;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Material(
+//       color: Colors.transparent,
+//       child: InkWell(
+//         onTap: onTap,
+//         borderRadius: BorderRadius.circular(12),
+//         child: Container(
+//           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+//           decoration: BoxDecoration(
+//             color: isSelected ? const Color(0xFFFFF8EB) : Colors.transparent,
+//             borderRadius: BorderRadius.circular(12),
+//             border: Border.all(
+//               color: isSelected ? RoyalColors.gold : const Color(0xFFD4B07A),
+//               width: isSelected ? 2.2 : 1.4,
+//             ),
+//           ),
+//           child: Row(
+//             children: [
+//               Expanded(
+//                 child: Text(
+//                   label,
+//                   style: TextStyle(
+//                     fontSize: 14.5,
+//                     fontWeight: FontWeight.w800,
+//                     color: isSelected
+//                         ? RoyalColors.darkBrown
+//                         : RoyalColors.brown,
+//                   ),
+//                 ),
+//               ),
+//               if (isSelected)
+//                 const Icon(
+//                   Icons.check_rounded,
+//                   color: RoyalColors.gold,
+//                   size: 20,
+//                 ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
