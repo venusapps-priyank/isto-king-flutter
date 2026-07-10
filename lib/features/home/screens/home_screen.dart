@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _gameEntryAssets = [
     ...avatarAssets,
     playTogetherAsset,
-    gameLogoAsset,
+    gameNameAsset,
     'assets/images/corner_mandala.png',
     'assets/images/cowrie_open.png',
     'assets/images/cowrie_closed.png',
@@ -311,11 +311,12 @@ class _TitleBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth.clamp(160.0, 220.0).toDouble();
+        final nameWidth =
+            constraints.maxWidth.clamp(160.0, 240.0).toDouble();
 
         return Image.asset(
-          gameLogoAsset,
-          width: width,
+          gameNameAsset,
+          width: nameWidth,
           fit: BoxFit.contain,
         );
       },
