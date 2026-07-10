@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
 import 'package:isto_king/core/widgets/royal_screen_frame.dart';
 import 'package:isto_king/features/home/screens/main_shell_screen.dart';
 import 'package:isto_king/features/wallet/coin_wallet.dart';
@@ -53,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       ),
-      child: Scaffold(
+      child: AppScreenScaffold(
         body: RoyalScreenFrame(
           child: Center(
             child: Image.asset(

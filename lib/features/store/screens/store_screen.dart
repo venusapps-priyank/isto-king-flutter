@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
 import 'package:isto_king/data/store_assets.dart';
 import 'package:isto_king/data/store_catalog.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
@@ -58,9 +59,8 @@ class _StoreScreenState extends State<StoreScreen> {
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
 
-    return Scaffold(
-      body: Stack(
-        children: [
+    final content = Stack(
+      children: [
           const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(color: RoyalColors.parchment),
@@ -139,8 +139,11 @@ class _StoreScreenState extends State<StoreScreen> {
           const _BottomCorner(isLeft: true),
           const _BottomCorner(isLeft: false),
         ],
-      ),
     );
+
+    if (widget.embedded) return content;
+
+    return AppScreenScaffold(body: content);
   }
 }
 

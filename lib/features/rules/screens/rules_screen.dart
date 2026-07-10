@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
 import 'package:isto_king/data/rules_assets.dart';
 import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
@@ -61,9 +62,8 @@ class _RulesScreenState extends State<RulesScreen> {
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
 
-    return Scaffold(
-      body: Stack(
-        children: [
+    final content = Stack(
+      children: [
           const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(color: RoyalColors.parchment),
@@ -130,11 +130,14 @@ class _RulesScreenState extends State<RulesScreen> {
             height: topInset,
             child: const ColoredBox(color: RoyalColors.outerRed),
           ),
-          const _BottomCorner(isLeft: true),
-          const _BottomCorner(isLeft: false),
-        ],
-      ),
+        const _BottomCorner(isLeft: true),
+        const _BottomCorner(isLeft: false),
+      ],
     );
+
+    if (widget.embedded) return content;
+
+    return AppScreenScaffold(body: content);
   }
 }
 

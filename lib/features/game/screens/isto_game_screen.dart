@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
@@ -494,7 +495,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
 
-    return Scaffold(
+    return AppScreenScaffold(
       body: DecoratedBox(
         decoration: const BoxDecoration(color: RoyalColors.parchment),
         child: Stack(
@@ -514,6 +515,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
             const _BottomCornerMandala(isLeft: true),
             const _BottomCornerMandala(isLeft: false),
             SafeArea(
+              bottom: false,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
 import 'package:isto_king/core/widgets/royal_screen_frame.dart';
 import 'package:isto_king/data/avatar_assets.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
@@ -71,10 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: RoyalScreenFrame(
-        bottomSafeArea: !widget.embedded,
-        child: LayoutBuilder(
+    final content = RoyalScreenFrame(
+      child: LayoutBuilder(
           builder: (context, constraints) {
             final layout = _HomeLayout.from(
               constraints,
@@ -140,8 +139,11 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-      ),
     );
+
+    if (widget.embedded) return content;
+
+    return AppScreenScaffold(body: content);
   }
 }
 

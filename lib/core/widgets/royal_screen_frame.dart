@@ -6,13 +6,11 @@ class RoyalScreenFrame extends StatelessWidget {
   const RoyalScreenFrame({
     required this.child,
     super.key,
-    this.bottomSafeArea = true,
   });
 
   static const cornerAsset = 'assets/images/corner_mandala.png';
 
   final Widget child;
-  final bool bottomSafeArea;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +39,7 @@ class RoyalScreenFrame extends StatelessWidget {
           ),
           const _CornerMandala(isLeft: true),
           const _CornerMandala(isLeft: false),
-          SafeArea(bottom: bottomSafeArea, child: child),
+          SafeArea(bottom: false, child: child),
         ],
       ),
     );
