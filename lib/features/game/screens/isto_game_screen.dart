@@ -415,13 +415,6 @@ class _IstoGameScreenState extends State<IstoGameScreen>
     _scheduleComputerTurn();
   }
 
-  void _showWinPanelPreview() {
-    if (_turnController.isGameOver) return;
-    setState(() {
-      _showWinRankingPreview = true;
-    });
-  }
-
   void _dismissWinPanelPreview() {
     setState(() {
       _showWinRankingPreview = false;
@@ -617,7 +610,6 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                               child: TopGameBar(
                                 onBackTap: _handleHomeTap,
                                 onSettingsTap: _handleSettingsTap,
-                                onCoinAddTap: _showWinPanelPreview,
                               ),
                             ),
                           ],
