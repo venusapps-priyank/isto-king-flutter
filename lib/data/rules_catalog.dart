@@ -148,12 +148,6 @@ const gameRuleSections = [
     title: 'Turns & Winning',
     rules: [
       GameRuleInfo(
-        title: 'Turn Order',
-        description:
-            'Play order is Blue → Green → Red → Yellow.',
-        iconType: GameRuleIconType.turnOrder,
-      ),
-      GameRuleInfo(
         title: 'Auto Move',
         description:
             'When only one legal move exists, it is played automatically.',

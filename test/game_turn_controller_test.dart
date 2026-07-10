@@ -57,16 +57,16 @@ void main() {
   });
 
   group('GameTurnController', () {
-    test('uses the reversed player turn order', () {
+    test('uses position-based turn order', () {
       final controller = GameTurnController();
-      final blueToken = tokenFor(controller, 3, 0);
+      final yellowToken = tokenFor(controller, 2, 0);
+
+      expect(controller.currentPlayerIndex, 2);
+
+      controller.handleRollComplete(2, 1);
+      controller.moveToken(yellowToken.id);
 
       expect(controller.currentPlayerIndex, 3);
-
-      controller.handleRollComplete(3, 1);
-      controller.moveToken(blueToken.id);
-
-      expect(controller.currentPlayerIndex, 1);
     });
 
     test('only exposes tokens for active players', () {
