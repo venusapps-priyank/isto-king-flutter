@@ -26,7 +26,6 @@ class SettingsDialog extends StatefulWidget {
 class _SettingsDialogState extends State<SettingsDialog> {
   bool _soundEffects = true;
   bool _backgroundMusic = true;
-  bool _vibration = true;
   // String _boardTheme = 'Classic';
   // String _language = 'English';
 
@@ -37,7 +36,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
     setState(() {
       _soundEffects = true;
       _backgroundMusic = true;
-      _vibration = true;
       // _boardTheme = 'Classic';
       // _language = 'English';
     });
@@ -99,14 +97,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
             label: 'Background Music',
             value: _backgroundMusic,
             onChanged: (v) => setState(() => _backgroundMusic = v),
-          ),
-          const _SettingsDivider(),
-          const _SettingsSectionLabel('VIBRATION'),
-          _SettingsToggleRow(
-            icon: Icons.vibration_rounded,
-            label: 'Vibration',
-            value: _vibration,
-            onChanged: (v) => setState(() => _vibration = v),
           ),
           const _SettingsDivider(),
           const _SettingsSectionLabel('OTHER'),
