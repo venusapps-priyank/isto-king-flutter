@@ -17,7 +17,7 @@ class DailyRewardRewardGrid extends StatelessWidget {
         final width = constraints.maxWidth;
         final gap = width < 330 ? 4.0 : 6.0;
         final unitWidth = (width - gap * 3) / 4;
-        final rowHeight = unitWidth * 1.32;
+        final rowHeight = unitWidth * 1.36;
         final gridHeight = rowHeight * 2 + gap;
         final scale = (unitWidth / 68).clamp(0.72, 1.18);
         final grandScale = (scale * 1.14).clamp(0.72, 1.28);

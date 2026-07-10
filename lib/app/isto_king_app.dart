@@ -1,22 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/home/screens/main_shell_screen.dart';
-import 'package:isto_king/features/wallet/coin_wallet.dart';
+import 'package:isto_king/features/splash/screens/splash_screen.dart';
 
-class IstoKingApp extends StatefulWidget {
+class IstoKingApp extends StatelessWidget {
   const IstoKingApp({super.key});
-
-  @override
-  State<IstoKingApp> createState() => _IstoKingAppState();
-}
-
-class _IstoKingAppState extends State<IstoKingApp> {
-  @override
-  void initState() {
-    super.initState();
-    CoinWallet.instance.ensureLoaded();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +23,7 @@ class _IstoKingAppState extends State<IstoKingApp> {
           colorScheme: ColorScheme.fromSeed(seedColor: RoyalColors.red),
           fontFamily: 'Georgia',
         ),
-        home: const MainShellScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

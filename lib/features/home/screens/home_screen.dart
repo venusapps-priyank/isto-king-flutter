@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/core/widgets/royal_screen_frame.dart';
 import 'package:isto_king/data/avatar_assets.dart';
-import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
 import 'package:isto_king/data/home_assets.dart';
@@ -28,7 +28,6 @@ class HomeScreen extends StatefulWidget {
   final bool embedded;
 
   static const _boardAsset = 'assets/images/full-board.png';
-  static const _cornerAsset = 'assets/images/corner_mandala.png';
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -42,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _gameEntryAssets = [
     ...avatarAssets,
     playTogetherAsset,
+    gameLogoAsset,
     'assets/images/corner_mandala.png',
     'assets/images/cowrie_open.png',
     'assets/images/cowrie_closed.png',
@@ -71,103 +71,74 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(color: RoyalColors.parchment),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: ScreenOrnamentPainter(
-                  topInset: topInset,
-                  topCornerScale: 0.5,
-                  bottomCornerScale: 1.38,
-                  bottomConnectorHeight: 28,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              height: topInset,
-              child: const ColoredBox(color: RoyalColors.outerRed),
-            ),
-            const _BottomCorner(isLeft: true),
-            const _BottomCorner(isLeft: false),
-            SafeArea(
-              bottom: !widget.embedded,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final layout = _HomeLayout.from(
-                    constraints,
-                    embedded: widget.embedded,
-                  );
+      body: RoyalScreenFrame(
+        bottomSafeArea: !widget.embedded,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final layout = _HomeLayout.from(
+              constraints,
+              embedded: widget.embedded,
+            );
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: layout.headerPadding,
-                        child: HomeTopBar(
-                          profile: _profile,
-                          onEditProfileTap: _onEditProfileTap,
-                          onSettingsTap: () =>
-                              SettingsDialog.show(context),
-                        ),
-                      ),
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, contentConstraints) {
-                            return SingleChildScrollView(
-                              padding: layout.contentPadding,
-                              child: ConstrainedBox(
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: layout.headerPadding,
+                  child: HomeTopBar(
+                    profile: _profile,
+                    onEditProfileTap: _onEditProfileTap,
+                    onSettingsTap: () => SettingsDialog.show(context),
+                  ),
+                ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, contentConstraints) {
+                      return SingleChildScrollView(
+                        padding: layout.contentPadding,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: contentConstraints.maxHeight,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(height: layout.profileTitleGap),
+                              const _TitleBadge(),
+                              SizedBox(height: layout.titleBoardGap),
+                              ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  minHeight: contentConstraints.maxHeight,
+                                  maxWidth: layout.boardMaxWidth,
+                                  maxHeight: layout.boardMaxHeight,
                                 ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: layout.profileTitleGap),
-                                    const _TitleBadge(),
-                                    SizedBox(height: layout.titleBoardGap),
-                                    ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxWidth: layout.boardMaxWidth,
-                                        maxHeight: layout.boardMaxHeight,
-                                      ),
-                                      child: Image.asset(
-                                        HomeScreen._boardAsset,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    ),
-                                    SizedBox(height: layout.boardActionGap),
-                                    _HomeActionButtons(
-                                      buttonGap: layout.actionButtonGap,
-                                      onPlayNow: () =>
-                                          widget.onShowGameSetup?.call(true),
-                                      onPassAndPlay: () =>
-                                          widget.onShowGameSetup?.call(false),
-                                      onOnlinePlay: () =>
-                                          OnlineComingSoonDialog.show(context),
-                                    ),
-                                    if (widget.embedded)
-                                      SizedBox(height: layout.bottomGap),
-                                  ],
+                                child: Image.asset(
+                                  HomeScreen._boardAsset,
+                                  fit: BoxFit.contain,
                                 ),
                               ),
-                            );
-                          },
+                              SizedBox(height: layout.boardActionGap),
+                              _HomeActionButtons(
+                                buttonGap: layout.actionButtonGap,
+                                onPlayNow: () =>
+                                    widget.onShowGameSetup?.call(true),
+                                onPassAndPlay: () =>
+                                    widget.onShowGameSetup?.call(false),
+                                onOnlinePlay: () =>
+                                    OnlineComingSoonDialog.show(context),
+                              ),
+                              if (widget.embedded)
+                                SizedBox(height: layout.bottomGap),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -238,9 +209,9 @@ class _HomeLayout {
       ),
       titleBoardGap: _sectionGap(
         height,
-        ratio: veryShortHeight ? 0.022 : shortHeight ? 0.03 : 0.042,
-        min: veryShortHeight ? 10 : shortHeight ? 14 : 20,
-        max: veryShortHeight ? 18 : shortHeight ? 28 : 44,
+        ratio: veryShortHeight ? 0.008 : shortHeight ? 0.012 : 0.016,
+        min: veryShortHeight ? 4 : shortHeight ? 6 : 8,
+        max: veryShortHeight ? 8 : shortHeight ? 12 : 16,
       ),
       boardActionGap: _sectionGap(
         height,
@@ -338,100 +309,14 @@ class _TitleBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth.clamp(260.0, 330.0).toDouble();
-        final scale = (width / 330).clamp(0.78, 1.0).toDouble();
+        final width = constraints.maxWidth.clamp(160.0, 220.0).toDouble();
 
-        return ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 330),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30 * scale),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFFFF5DF), Color(0xFFF6E3C0)],
-              ),
-              border: Border.all(
-                color: const Color(0xFF8D4317),
-                width: 2.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: RoyalColors.darkRed.withValues(alpha: 0.24),
-                  blurRadius: 10 * scale,
-                  offset: Offset(0, 4 * scale),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                20 * scale,
-                14 * scale,
-                20 * scale,
-                12 * scale,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'GAME TIME',
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 44 * scale,
-                      fontWeight: FontWeight.w900,
-                      color: RoyalColors.darkRed,
-                      height: 0.85,
-                    ),
-                  ),
-                  SizedBox(height: 6 * scale),
-                  Text(
-                    'Fun · Together · Forever',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 15 * scale,
-                      fontWeight: FontWeight.w700,
-                      color: RoyalColors.brown,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return Image.asset(
+          gameLogoAsset,
+          width: width,
+          fit: BoxFit.contain,
         );
       },
-    );
-  }
-}
-
-class _BottomCorner extends StatelessWidget {
-  const _BottomCorner({required this.isLeft});
-
-  static const _imageSize = 170.0;
-
-  final bool isLeft;
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final imageSize = (screenWidth * 0.42).clamp(126.0, _imageSize).toDouble();
-    final offset = -imageSize / 2;
-
-    return Positioned(
-      left: isLeft ? offset : null,
-      right: isLeft ? null : offset,
-      bottom: offset,
-      width: imageSize,
-      height: imageSize,
-      child: IgnorePointer(
-        child: Opacity(
-          opacity: 0.94,
-          child: Image.asset(
-            HomeScreen._cornerAsset,
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
     );
   }
 }

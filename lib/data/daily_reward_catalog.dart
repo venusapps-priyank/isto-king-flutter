@@ -37,7 +37,7 @@ const dailyRewardDefinitions = [
     day: 7,
     kind: DailyRewardKind.festivalChest,
     label: 'Festival Chest',
-    imageAsset: storeMoneyAsset,
+    imageAsset: storePotAsset,
     coinAmount: 1000,
   ),
 ];

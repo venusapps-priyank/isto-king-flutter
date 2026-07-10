@@ -80,6 +80,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/avatar/
+    - assets/app_icons/
     - assets/images/
     - assets/store/
   #   - images/a_dot_burr.jpeg

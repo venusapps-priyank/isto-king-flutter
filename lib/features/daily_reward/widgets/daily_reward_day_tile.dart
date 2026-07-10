@@ -18,8 +18,8 @@ class DailyRewardDayTile extends StatelessWidget {
     final isAvailable = reward.status == DailyRewardStatus.available;
     final isLocked = reward.status == DailyRewardStatus.locked;
     final isGrandPrize = reward.kind == DailyRewardKind.festivalChest;
-    final padding = 4.0 * scale;
-    final footerHeight = 14.0 * scale;
+    final padding = 3.5 * scale;
+    final footerHeight = 15.0 * scale;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
@@ -67,13 +67,17 @@ class DailyRewardDayTile extends StatelessWidget {
             ),
             SizedBox(
               height: footerHeight,
+              width: double.infinity,
               child: Center(
-                child: _FooterStatus(
-                  isClaimed: isClaimed,
-                  isAvailable: isAvailable,
-                  isLocked: isLocked,
-                  isGrandPrize: isGrandPrize,
-                  scale: scale,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: _FooterStatus(
+                    isClaimed: isClaimed,
+                    isAvailable: isAvailable,
+                    isLocked: isLocked,
+                    isGrandPrize: isGrandPrize,
+                    scale: scale,
+                  ),
                 ),
               ),
             ),
@@ -141,7 +145,7 @@ class _DayBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 2 * scale),
+      padding: EdgeInsets.symmetric(vertical: 1.5 * scale),
       decoration: BoxDecoration(
         color: RoyalColors.outerRed,
         borderRadius: BorderRadius.circular(5 * scale),
@@ -155,6 +159,7 @@ class _DayBanner extends StatelessWidget {
             color: const Color(0xFFFFE39D),
             fontWeight: FontWeight.w900,
             fontSize: 9 * scale,
+            height: 1,
             letterSpacing: 0.4,
           ),
         ),
@@ -172,13 +177,14 @@ class _RewardVisual extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isGrandPrize = reward.kind == DailyRewardKind.festivalChest;
-    final imageHeight = isGrandPrize ? 34 * scale : 28 * scale;
+    final imageHeight = isGrandPrize ? 38 * scale : 28 * scale;
+    final imageAsset = reward.imageAsset ?? storeMoneyAsset;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
-          storeMoneyAsset,
+          imageAsset,
           height: imageHeight,
           fit: BoxFit.contain,
         ),
@@ -192,6 +198,7 @@ class _RewardVisual extends StatelessWidget {
                   : RoyalColors.darkBrown,
               fontWeight: FontWeight.w900,
               fontSize: 12 * scale,
+              height: 1,
             ),
           ),
         ] else if (reward.label != null) ...[
@@ -237,8 +244,8 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 5 * scale,
-        vertical: 1.5 * scale,
+        horizontal: 4 * scale,
+        vertical: 1 * scale,
       ),
       decoration: BoxDecoration(
         color: color,
