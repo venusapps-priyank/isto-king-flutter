@@ -187,12 +187,52 @@ void main() {
       final redToken = tokenFor(controller, 0, 0);
       placeToken(redToken, IstoBoardPaths.outerPathLength - 1);
 
+      expect(controller.innerPathAccess[0], isFalse);
+
       controller.handleRollComplete(0, 1);
       controller.moveToken(redToken.id);
 
       expect(redToken.pathIndex, 0);
       expect(redToken.isFinished, isFalse);
     });
+
+    test(
+      'enters the inner path without a kill when no kill opportunity remains',
+      () {
+        final controller = GameTurnController()..currentPlayerIndex = 0;
+        final redToken = tokenFor(controller, 0, 0);
+        placeToken(redToken, IstoBoardPaths.outerPathLength - 1);
+
+        for (final opponentIndex in [1, 2, 3]) {
+          final opponentPath = IstoBoardPaths.pathForPlayer(opponentIndex);
+          for (var tokenIndex = 0; tokenIndex < 4; tokenIndex++) {
+            final opponentToken = tokenFor(
+              controller,
+              opponentIndex,
+              tokenIndex,
+            );
+            if (tokenIndex.isEven) {
+              placeToken(
+                opponentToken,
+                IstoBoardPaths.outerPathLength + tokenIndex,
+              );
+            } else {
+              placeToken(opponentToken, opponentPath.length - 2);
+              finishToken(opponentToken);
+            }
+          }
+        }
+
+        expect(controller.playerStates[0].hasKilledOpponent, isFalse);
+        expect(controller.innerPathAccess[0], isTrue);
+
+        controller.handleRollComplete(0, 1);
+        controller.moveToken(redToken.id);
+
+        expect(redToken.pathIndex, IstoBoardPaths.outerPathLength);
+        expect(controller.cellForToken(redToken), const BoardCell(3, 1));
+      },
+    );
 
     test('enters the inner path after kill permission', () {
       final controller = GameTurnController()..currentPlayerIndex = 0;

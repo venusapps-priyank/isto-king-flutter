@@ -154,7 +154,10 @@ class GameTurnController {
       _rankedPlayerIndexes.length >= activePlayerIndexes.length - 1;
 
   List<bool> get innerPathAccess => List<bool>.unmodifiable(
-    playerStates.map((state) => !mustKillForInner || state.hasKilledOpponent),
+    List<bool>.generate(
+      playerStates.length,
+      (playerIndex) => _canEnterInnerPath(playerIndex),
+    ),
   );
 
   int? rankForPlayer(int playerIndex) {
@@ -567,10 +570,10 @@ class GameTurnController {
     final proposedIndex = currentIndex + moveSteps;
     final path = IstoBoardPaths.pathForPlayer(token.playerIndex);
     final alreadyInside = currentIndex >= IstoBoardPaths.outerPathLength;
-    final canEnterInner =
-        !mustKillForInner ||
-        playerStates[token.playerIndex].hasKilledOpponent ||
-        alreadyInside;
+    final canEnterInner = _canEnterInnerPath(
+      token.playerIndex,
+      alreadyInside: alreadyInside,
+    );
 
     if (!canEnterInner && proposedIndex >= IstoBoardPaths.outerPathLength) {
       return proposedIndex % IstoBoardPaths.outerPathLength;
@@ -597,6 +600,29 @@ class GameTurnController {
     return currentIndex >= IstoBoardPaths.outerPathLength &&
         currentIndex < centerIndex &&
         currentIndex + moveSteps == centerIndex;
+  }
+
+  bool _canEnterInnerPath(int playerIndex, {bool alreadyInside = false}) {
+    return alreadyInside ||
+        !mustKillForInner ||
+        playerStates[playerIndex].hasKilledOpponent ||
+        !_hasRemainingKillOpportunityFor(playerIndex);
+  }
+
+  bool _hasRemainingKillOpportunityFor(int playerIndex) {
+    for (final token in _tokens) {
+      if (token.playerIndex == playerIndex ||
+          !activePlayerIndexes.contains(token.playerIndex) ||
+          rankForPlayer(token.playerIndex) != null ||
+          token.isFinished) {
+        continue;
+      }
+
+      if (token.isAtStart || token.pathIndex < IstoBoardPaths.outerPathLength) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _canLandOn(TokenState movingToken, BoardCell destination) {
