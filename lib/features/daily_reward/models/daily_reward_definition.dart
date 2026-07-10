@@ -1,4 +1,4 @@
-import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward.dart';
 
 class DailyRewardDefinition {
   const DailyRewardDefinition({

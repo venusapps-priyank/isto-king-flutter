@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/game/painters/coin_painter.dart';
+import 'package:istochaka/features/game/painters/coin_painter.dart';
 
 class CoinIcon extends StatelessWidget {
   const CoinIcon({required this.size, super.key});

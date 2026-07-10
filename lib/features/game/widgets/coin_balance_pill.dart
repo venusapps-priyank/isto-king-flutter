@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/daily_reward/widgets/daily_reward_dialog.dart';
-import 'package:isto_king/features/game/widgets/coin_icon.dart';
-import 'package:isto_king/features/wallet/coin_wallet.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/daily_reward/widgets/daily_reward_dialog.dart';
+import 'package:istochaka/features/game/widgets/coin_icon.dart';
+import 'package:istochaka/features/wallet/coin_wallet.dart';
 
 class CoinBalancePill extends StatelessWidget {
   const CoinBalancePill({this.onAddTap, super.key});

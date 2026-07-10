@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
 
 class HomeCtaButton extends StatelessWidget {
   const HomeCtaButton({

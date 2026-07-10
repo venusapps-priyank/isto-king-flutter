@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/data/rules_assets.dart';
-import 'package:isto_king/features/rules/models/game_rule_definition.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/data/rules_assets.dart';
+import 'package:istochaka/features/rules/models/game_rule_definition.dart';
 
 class RulesRuleIcon extends StatelessWidget {
   const RulesRuleIcon({

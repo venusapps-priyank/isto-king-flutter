@@ -1,6 +1,6 @@
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/models/game_setup_config.dart';
-import 'package:isto_king/features/game/models/player_info.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/models/game_setup_config.dart';
+import 'package:istochaka/features/game/models/player_info.dart';
 
 const baseGamePlayers = [
   PlayerInfo(

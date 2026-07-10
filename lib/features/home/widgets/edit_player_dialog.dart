@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:isto_king/data/avatar_assets.dart';
-import 'package:isto_king/features/home/models/user_profile.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/core/widgets/royal_dialog.dart';
+import 'package:istochaka/data/avatar_assets.dart';
+import 'package:istochaka/features/home/models/user_profile.dart';
 
 class EditPlayerDialog extends StatefulWidget {
   const EditPlayerDialog({required this.initialProfile, super.key});

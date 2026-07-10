@@ -1,12 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/logic/cowrie_logic.dart';
-import 'package:isto_king/features/game/logic/isto_board_paths.dart';
-import 'package:isto_king/features/game/logic/move_animation_timing.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
-import 'package:isto_king/features/game/models/token_state.dart';
+import 'package:istochaka/features/game/controllers/game_turn_controller.dart';
+import 'package:istochaka/features/game/logic/cowrie_logic.dart';
+import 'package:istochaka/features/game/logic/isto_board_paths.dart';
+import 'package:istochaka/features/game/logic/move_animation_timing.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/token_state.dart';
 
 void main() {
   group('CowrieLogic', () {

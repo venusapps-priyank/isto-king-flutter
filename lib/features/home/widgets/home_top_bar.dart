@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
-import 'package:isto_king/features/home/models/user_profile.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/widgets/coin_balance_pill.dart';
+import 'package:istochaka/features/home/models/user_profile.dart';
 
 class HomeTopBar extends StatelessWidget {
   const HomeTopBar({

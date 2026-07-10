@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/data/rules_assets.dart';
+import 'package:istochaka/data/rules_assets.dart';
 
 class RulesTitleBadge extends StatelessWidget {
   const RulesTitleBadge({super.key});

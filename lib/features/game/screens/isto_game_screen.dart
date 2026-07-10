@@ -1,26 +1,26 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/data/computer_names_repository.dart';
-import 'package:isto_king/data/player_config.dart';
-import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
-import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/logic/board_view_layout.dart';
-import 'package:isto_king/features/game/data/saved_game_repository.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
-import 'package:isto_king/features/game/models/game_setup_config.dart';
-import 'package:isto_king/features/game/models/player_info.dart';
-import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
-import 'package:isto_king/features/game/widgets/animated_player_row.dart';
-import 'package:isto_king/features/game/widgets/game_board.dart';
-import 'package:isto_king/features/game/widgets/pause_game_dialog.dart';
-import 'package:isto_king/features/game/widgets/player_card.dart';
-import 'package:isto_king/features/game/widgets/top_game_bar.dart';
-import 'package:isto_king/features/daily_reward/widgets/daily_reward_dialog.dart';
-import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/core/widgets/app_screen_scaffold.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/data/computer_names_repository.dart';
+import 'package:istochaka/data/player_config.dart';
+import 'package:istochaka/features/game/controllers/computer_turn_orchestrator.dart';
+import 'package:istochaka/features/game/controllers/game_turn_controller.dart';
+import 'package:istochaka/features/game/logic/board_view_layout.dart';
+import 'package:istochaka/features/game/data/saved_game_repository.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/game_setup_config.dart';
+import 'package:istochaka/features/game/models/player_info.dart';
+import 'package:istochaka/features/game/painters/screen_ornament_painter.dart';
+import 'package:istochaka/features/game/widgets/animated_player_row.dart';
+import 'package:istochaka/features/game/widgets/game_board.dart';
+import 'package:istochaka/features/game/widgets/pause_game_dialog.dart';
+import 'package:istochaka/features/game/widgets/player_card.dart';
+import 'package:istochaka/features/game/widgets/top_game_bar.dart';
+import 'package:istochaka/features/daily_reward/widgets/daily_reward_dialog.dart';
+import 'package:istochaka/features/game/widgets/win_ranking_panel.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
 
 class IstoGameScreen extends StatefulWidget {
   const IstoGameScreen({

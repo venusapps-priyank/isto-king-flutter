@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
 
 class GameSetupConfig {
   const GameSetupConfig({

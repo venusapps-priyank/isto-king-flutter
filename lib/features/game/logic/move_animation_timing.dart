@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:isto_king/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
 
 class MoveAnimationTiming {
   MoveAnimationTiming._();

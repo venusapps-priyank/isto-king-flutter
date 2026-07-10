@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/game/widgets/coin_balance_pill.dart';
-import 'package:isto_king/features/game/widgets/round_icon_button.dart';
+import 'package:istochaka/features/game/widgets/coin_balance_pill.dart';
+import 'package:istochaka/features/game/widgets/round_icon_button.dart';
 
 class TopGameBar extends StatelessWidget {
   const TopGameBar({

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/widgets/coin_icon.dart';
-import 'package:isto_king/features/store/models/store_item.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/widgets/coin_icon.dart';
+import 'package:istochaka/features/store/models/store_item.dart';
 
 class StoreItemCard extends StatelessWidget {
   const StoreItemCard({

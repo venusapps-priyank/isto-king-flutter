@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
 
 /// Root scaffold for full-screen routes. Lifts the entire background above the
 /// system navigation bar and fills that inset with the app background color.

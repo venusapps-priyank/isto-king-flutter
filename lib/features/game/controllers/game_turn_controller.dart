@@ -1,9 +1,9 @@
-import 'package:isto_king/data/game_constants.dart';
-import 'package:isto_king/features/game/logic/isto_board_paths.dart';
-import 'package:isto_king/features/game/logic/move_animation_timing.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
-import 'package:isto_king/features/game/models/player_game_state.dart';
-import 'package:isto_king/features/game/models/token_state.dart';
+import 'package:istochaka/data/game_constants.dart';
+import 'package:istochaka/features/game/logic/isto_board_paths.dart';
+import 'package:istochaka/features/game/logic/move_animation_timing.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/player_game_state.dart';
+import 'package:istochaka/features/game/models/token_state.dart';
 
 class MoveResolution {
   const MoveResolution({

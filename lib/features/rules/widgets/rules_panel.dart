@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/data/rules_catalog.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
-import 'package:isto_king/features/rules/widgets/rules_row.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/data/rules_catalog.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/features/rules/widgets/rules_row.dart';
 
 class RulesPanel extends StatelessWidget {
   const RulesPanel({

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/game/widgets/player_card.dart';
+import 'package:istochaka/features/game/widgets/player_card.dart';
 
 class PlayerRow extends StatelessWidget {
   const PlayerRow({required this.left, required this.right, super.key});

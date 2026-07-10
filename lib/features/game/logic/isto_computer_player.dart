@@ -1,7 +1,7 @@
-import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/logic/isto_board_paths.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
-import 'package:isto_king/features/game/models/token_state.dart';
+import 'package:istochaka/features/game/controllers/game_turn_controller.dart';
+import 'package:istochaka/features/game/logic/isto_board_paths.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/token_state.dart';
 
 class IstoComputerPlayer {
   bool shouldJoinPair(

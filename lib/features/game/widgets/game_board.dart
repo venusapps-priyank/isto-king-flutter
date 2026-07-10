@@ -1,14 +1,14 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/game/logic/isto_board_paths.dart';
-import 'package:isto_king/features/game/logic/move_animation_timing.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
-import 'package:isto_king/features/game/models/player_info.dart';
-import 'package:isto_king/features/game/models/token_state.dart';
-import 'package:isto_king/features/game/painters/game_board_painter.dart';
-import 'package:isto_king/features/game/widgets/game_token.dart';
-import 'package:isto_king/features/game/widgets/path_animated_token.dart';
+import 'package:istochaka/features/game/logic/isto_board_paths.dart';
+import 'package:istochaka/features/game/logic/move_animation_timing.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/player_info.dart';
+import 'package:istochaka/features/game/models/token_state.dart';
+import 'package:istochaka/features/game/painters/game_board_painter.dart';
+import 'package:istochaka/features/game/widgets/game_token.dart';
+import 'package:istochaka/features/game/widgets/path_animated_token.dart';
 
 const _defaultTokenSizeFactor = 0.4;
 const _tokenJoinAnimationDuration = Duration(milliseconds: 260);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/painters/screen_ornament_painter.dart';
 
 class RoyalScreenFrame extends StatelessWidget {
   const RoyalScreenFrame({

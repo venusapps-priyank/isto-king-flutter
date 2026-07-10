@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
-import 'package:isto_king/features/daily_reward/services/daily_reward_service.dart';
-import 'package:isto_king/features/daily_reward/widgets/daily_reward_reward_grid.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/core/widgets/royal_dialog.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward.dart';
+import 'package:istochaka/features/daily_reward/services/daily_reward_service.dart';
+import 'package:istochaka/features/daily_reward/widgets/daily_reward_reward_grid.dart';
 
 class DailyRewardDialog extends StatefulWidget {
   const DailyRewardDialog({super.key});

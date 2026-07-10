@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
-import 'package:isto_king/features/daily_reward/widgets/daily_reward_day_tile.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward.dart';
+import 'package:istochaka/features/daily_reward/widgets/daily_reward_day_tile.dart';
 
 class DailyRewardRewardGrid extends StatelessWidget {
   const DailyRewardRewardGrid({

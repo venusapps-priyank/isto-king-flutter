@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
 
 class RulesSubtitle extends StatelessWidget {
   const RulesSubtitle({super.key});

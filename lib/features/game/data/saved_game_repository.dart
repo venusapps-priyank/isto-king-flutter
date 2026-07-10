@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/models/game_setup_config.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/features/game/controllers/game_turn_controller.dart';
+import 'package:istochaka/features/game/models/game_setup_config.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SavedGame {

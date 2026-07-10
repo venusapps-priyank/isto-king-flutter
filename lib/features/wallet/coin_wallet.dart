@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:isto_king/features/wallet/data/coin_wallet_repository.dart';
+import 'package:istochaka/features/wallet/data/coin_wallet_repository.dart';
 
 class CoinWallet {
   CoinWallet._();

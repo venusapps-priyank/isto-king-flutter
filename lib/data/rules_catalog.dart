@@ -1,5 +1,5 @@
-import 'package:isto_king/features/rules/models/game_rule_definition.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/features/rules/models/game_rule_definition.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
 
 const gameRuleSections = [
   GameRuleSection(

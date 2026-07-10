@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/store/models/store_item.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/store/models/store_item.dart';
 
 class StoreDailyDeals extends StatelessWidget {
   const StoreDailyDeals({

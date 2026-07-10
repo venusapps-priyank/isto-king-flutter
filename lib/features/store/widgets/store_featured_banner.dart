@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/data/store_assets.dart';
+import 'package:istochaka/data/store_assets.dart';
 
 class StoreFeaturedBanner extends StatelessWidget {
   const StoreFeaturedBanner({super.key});

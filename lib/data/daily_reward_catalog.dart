@@ -1,6 +1,6 @@
-import 'package:isto_king/data/store_assets.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward_definition.dart';
+import 'package:istochaka/data/store_assets.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward_definition.dart';
 
 const dailyRewardDefinitions = [
   DailyRewardDefinition(

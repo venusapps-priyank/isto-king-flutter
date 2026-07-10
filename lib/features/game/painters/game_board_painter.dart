@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/models/board_player_home.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/models/board_player_home.dart';
 
 class GameBoardPainter extends CustomPainter {
   const GameBoardPainter({

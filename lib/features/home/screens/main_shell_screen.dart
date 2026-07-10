@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
-import 'package:isto_king/features/game/data/saved_game_repository.dart';
-import 'package:isto_king/features/game/screens/isto_game_screen.dart';
-import 'package:isto_king/features/home/models/user_profile.dart';
-import 'package:isto_king/features/home/screens/home_screen.dart';
-import 'package:isto_king/features/home/widgets/continue_game_dialog.dart';
-import 'package:isto_king/features/home/widgets/game_setup_dialog.dart';
-import 'package:isto_king/features/home/widgets/home_bottom_nav_bar.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
-import 'package:isto_king/features/rules/screens/rules_screen.dart';
-import 'package:isto_king/features/store/screens/store_coming_soon_screen.dart';
+import 'package:istochaka/core/widgets/app_screen_scaffold.dart';
+import 'package:istochaka/features/game/data/saved_game_repository.dart';
+import 'package:istochaka/features/game/screens/isto_game_screen.dart';
+import 'package:istochaka/features/home/models/user_profile.dart';
+import 'package:istochaka/features/home/screens/home_screen.dart';
+import 'package:istochaka/features/home/widgets/continue_game_dialog.dart';
+import 'package:istochaka/features/home/widgets/game_setup_dialog.dart';
+import 'package:istochaka/features/home/widgets/home_bottom_nav_bar.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/features/rules/screens/rules_screen.dart';
+import 'package:istochaka/features/store/screens/store_coming_soon_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});

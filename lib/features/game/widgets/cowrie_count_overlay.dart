@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
 
 class CowrieCountOverlay extends StatelessWidget {
   const CowrieCountOverlay({

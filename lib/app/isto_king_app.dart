@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/splash/screens/splash_screen.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/splash/screens/splash_screen.dart';
 
 class IstoKingApp extends StatelessWidget {
   const IstoKingApp({super.key});

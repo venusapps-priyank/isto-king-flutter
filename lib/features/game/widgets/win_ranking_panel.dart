@@ -4,9 +4,9 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/models/player_info.dart';
-import 'package:isto_king/features/game/widgets/win_action_buttons.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/models/player_info.dart';
+import 'package:istochaka/features/game/widgets/win_action_buttons.dart';
 
 const _matchResultBannerAsset = 'assets/images/match_result_banner.png';
 const _firstRankCrownAsset = 'assets/images/rank_crown_1.png';

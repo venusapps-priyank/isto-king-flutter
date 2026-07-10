@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/data/game_constants.dart';
-import 'package:isto_king/features/game/widgets/cowrie_count_overlay.dart';
-import 'package:isto_king/features/game/widgets/cowrie_roll_panel.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/data/game_constants.dart';
+import 'package:istochaka/features/game/widgets/cowrie_count_overlay.dart';
+import 'package:istochaka/features/game/widgets/cowrie_roll_panel.dart';
 
 const _firstRankCrownAsset = 'assets/images/rank_crown_1.png';
 

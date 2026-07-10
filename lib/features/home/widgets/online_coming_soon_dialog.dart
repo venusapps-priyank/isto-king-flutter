@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:isto_king/data/home_assets.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/core/widgets/royal_dialog.dart';
+import 'package:istochaka/data/home_assets.dart';
 
 class OnlineComingSoonDialog extends StatelessWidget {
   const OnlineComingSoonDialog({super.key});

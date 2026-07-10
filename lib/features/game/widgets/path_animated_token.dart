@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
 
 class PathAnimatedToken extends StatefulWidget {
   const PathAnimatedToken({

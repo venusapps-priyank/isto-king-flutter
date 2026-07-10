@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:isto_king/features/game/logic/cowrie_animation_constants.dart';
+import 'package:istochaka/features/game/logic/cowrie_animation_constants.dart';
 
 class CowrieShell extends StatefulWidget {
   const CowrieShell({

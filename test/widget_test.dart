@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isto_king/app/isto_king_app.dart';
-import 'package:isto_king/data/player_config.dart';
-import 'package:isto_king/features/game/models/board_cell.dart';
-import 'package:isto_king/features/game/models/token_state.dart';
-import 'package:isto_king/features/game/painters/game_board_painter.dart';
-import 'package:isto_king/features/game/widgets/game_board.dart';
-import 'package:isto_king/features/game/widgets/game_token.dart';
-import 'package:isto_king/features/game/widgets/path_animated_token.dart';
-import 'package:isto_king/features/game/widgets/player_card.dart';
+import 'package:istochaka/app/isto_king_app.dart';
+import 'package:istochaka/data/player_config.dart';
+import 'package:istochaka/features/game/models/board_cell.dart';
+import 'package:istochaka/features/game/models/token_state.dart';
+import 'package:istochaka/features/game/painters/game_board_painter.dart';
+import 'package:istochaka/features/game/widgets/game_board.dart';
+import 'package:istochaka/features/game/widgets/game_token.dart';
+import 'package:istochaka/features/game/widgets/path_animated_token.dart';
+import 'package:istochaka/features/game/widgets/player_card.dart';
 
 void main() {
   for (final size in [const Size(390, 844), const Size(430, 932)]) {

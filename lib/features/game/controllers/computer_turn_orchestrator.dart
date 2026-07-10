@@ -1,5 +1,5 @@
-import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/logic/isto_computer_player.dart';
+import 'package:istochaka/features/game/controllers/game_turn_controller.dart';
+import 'package:istochaka/features/game/logic/isto_computer_player.dart';
 
 class ComputerTurnOrchestrator {
   ComputerTurnOrchestrator({IstoComputerPlayer? computerPlayer})

@@ -1,8 +1,8 @@
-import 'package:isto_king/data/daily_reward_catalog.dart';
-import 'package:isto_king/features/daily_reward/data/daily_reward_repository.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward_definition.dart';
-import 'package:isto_king/features/wallet/coin_wallet.dart';
+import 'package:istochaka/data/daily_reward_catalog.dart';
+import 'package:istochaka/features/daily_reward/data/daily_reward_repository.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward_definition.dart';
+import 'package:istochaka/features/wallet/coin_wallet.dart';
 
 class DailyRewardService {
   DailyRewardService({

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/data/store_assets.dart';
-import 'package:isto_king/features/store/models/store_item.dart';
+import 'package:istochaka/data/store_assets.dart';
+import 'package:istochaka/features/store/models/store_item.dart';
 
 const featuredBundles = [
   FeaturedBundle(

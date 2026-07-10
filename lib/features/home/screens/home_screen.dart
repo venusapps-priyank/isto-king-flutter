@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
-import 'package:isto_king/core/widgets/royal_screen_frame.dart';
-import 'package:isto_king/data/avatar_assets.dart';
-import 'package:isto_king/features/home/models/user_profile.dart';
-import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
-import 'package:isto_king/data/home_assets.dart';
-import 'package:isto_king/features/home/widgets/home_cta_button.dart';
-import 'package:isto_king/features/home/widgets/home_top_bar.dart';
-import 'package:isto_king/features/home/widgets/online_coming_soon_dialog.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
-import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/core/widgets/app_screen_scaffold.dart';
+import 'package:istochaka/core/widgets/royal_screen_frame.dart';
+import 'package:istochaka/data/avatar_assets.dart';
+import 'package:istochaka/features/home/models/user_profile.dart';
+import 'package:istochaka/features/home/widgets/edit_player_dialog.dart';
+import 'package:istochaka/data/home_assets.dart';
+import 'package:istochaka/features/home/widgets/home_cta_button.dart';
+import 'package:istochaka/features/home/widgets/home_top_bar.dart';
+import 'package:istochaka/features/home/widgets/online_coming_soon_dialog.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/features/settings/widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({

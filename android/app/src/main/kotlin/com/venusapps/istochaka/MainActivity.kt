@@ -1,4 +1,4 @@
-package com.example.isto_king
+package com.venusapps.istochaka
 
 import io.flutter.embedding.android.FlutterActivity
 

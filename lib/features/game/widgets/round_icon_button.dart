@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
 
 class RoundIconButton extends StatelessWidget {
   const RoundIconButton({required this.icon, this.onTap, super.key});

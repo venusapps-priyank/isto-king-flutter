@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/core/widgets/app_screen_scaffold.dart';
-import 'package:isto_king/data/rules_assets.dart';
-import 'package:isto_king/features/game/painters/screen_ornament_painter.dart';
-import 'package:isto_king/features/home/models/user_profile.dart';
-import 'package:isto_king/features/home/widgets/edit_player_dialog.dart';
-import 'package:isto_king/features/home/widgets/home_top_bar.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
-import 'package:isto_king/features/rules/widgets/rules_panel.dart';
-import 'package:isto_king/features/rules/widgets/rules_subtitle.dart';
-import 'package:isto_king/features/rules/widgets/rules_title_badge.dart';
-import 'package:isto_king/features/settings/widgets/settings_dialog.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/core/widgets/app_screen_scaffold.dart';
+import 'package:istochaka/data/rules_assets.dart';
+import 'package:istochaka/features/game/painters/screen_ornament_painter.dart';
+import 'package:istochaka/features/home/models/user_profile.dart';
+import 'package:istochaka/features/home/widgets/edit_player_dialog.dart';
+import 'package:istochaka/features/home/widgets/home_top_bar.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/features/rules/widgets/rules_panel.dart';
+import 'package:istochaka/features/rules/widgets/rules_subtitle.dart';
+import 'package:istochaka/features/rules/widgets/rules_title_badge.dart';
+import 'package:istochaka/features/settings/widgets/settings_dialog.dart';
 
 class RulesScreen extends StatefulWidget {
   const RulesScreen({

@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/data/saved_game_repository.dart';
-import 'package:isto_king/features/game/models/game_setup_config.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/features/game/controllers/game_turn_controller.dart';
+import 'package:istochaka/features/game/data/saved_game_repository.dart';
+import 'package:istochaka/features/game/models/game_setup_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/data/store_assets.dart';
-import 'package:isto_king/features/daily_reward/models/daily_reward.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/data/store_assets.dart';
+import 'package:istochaka/features/daily_reward/models/daily_reward.dart';
 class DailyRewardDayTile extends StatelessWidget {
   const DailyRewardDayTile({
     required this.reward,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/core/theme/royal_colors.dart';
-import 'package:isto_king/core/widgets/royal_dialog.dart';
-import 'package:isto_king/features/game/models/game_setup_config.dart';
-import 'package:isto_king/features/game/screens/isto_game_screen.dart';
-import 'package:isto_king/features/home/models/user_profile.dart';
-import 'package:isto_king/features/home/widgets/player_count_icons.dart';
-import 'package:isto_king/features/rules/models/game_rules_settings.dart';
+import 'package:istochaka/core/theme/royal_colors.dart';
+import 'package:istochaka/core/widgets/royal_dialog.dart';
+import 'package:istochaka/features/game/models/game_setup_config.dart';
+import 'package:istochaka/features/game/screens/isto_game_screen.dart';
+import 'package:istochaka/features/home/models/user_profile.dart';
+import 'package:istochaka/features/home/widgets/player_count_icons.dart';
+import 'package:istochaka/features/rules/models/game_rules_settings.dart';
 
 class GameSetupDialog extends StatefulWidget {
   const GameSetupDialog({
