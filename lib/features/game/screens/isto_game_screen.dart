@@ -5,7 +5,7 @@ import 'package:isto_king/core/theme/royal_colors.dart';
 import 'package:isto_king/data/player_config.dart';
 import 'package:isto_king/features/game/controllers/computer_turn_orchestrator.dart';
 import 'package:isto_king/features/game/controllers/game_turn_controller.dart';
-import 'package:isto_king/features/game/data/saved_pass_and_play_game_repository.dart';
+import 'package:isto_king/features/game/data/saved_game_repository.dart';
 import 'package:isto_king/features/game/models/board_cell.dart';
 import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/game/models/player_info.dart';
@@ -40,8 +40,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
   );
   late final ComputerTurnOrchestrator _computerTurns =
       ComputerTurnOrchestrator();
-  final SavedPassAndPlayGameRepository _savedGameRepository =
-      SavedPassAndPlayGameRepository();
+  final SavedGameRepository _savedGameRepository = SavedGameRepository();
   bool _isMoveAnimating = false;
   int _moveAnimationCycle = 0;
   final List<int> _rollResetSerials = List<int>.filled(4, 0);
@@ -70,7 +69,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
     );
   }
 
-  bool get _shouldPersistMatch => widget.setup.isPassAndPlay;
+  bool get _shouldPersistMatch => true;
 
   bool _isPlayerActive(int playerIndex) {
     return widget.setup.activePlayerIndexSet.contains(playerIndex);
@@ -164,14 +163,13 @@ class _IstoGameScreenState extends State<IstoGameScreen>
   Future<void> _saveGameIfNeeded() async {
     if (!_shouldPersistMatch) return;
     if (_turnController.isGameOver) {
-      await _savedGameRepository.clear();
+      await _savedGameRepository.clear(
+        isPassAndPlay: widget.setup.isPassAndPlay,
+      );
       return;
     }
     await _savedGameRepository.save(
-      SavedPassAndPlayGame(
-        setup: widget.setup,
-        turnController: _turnController,
-      ),
+      SavedGame(setup: widget.setup, turnController: _turnController),
     );
   }
 

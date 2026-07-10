@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isto_king/features/game/data/saved_pass_and_play_game_repository.dart';
+import 'package:isto_king/features/game/data/saved_game_repository.dart';
 import 'package:isto_king/features/game/screens/isto_game_screen.dart';
 import 'package:isto_king/features/home/models/user_profile.dart';
 import 'package:isto_king/features/home/screens/home_screen.dart';
@@ -21,8 +21,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   HomeNavTab _selectedTab = HomeNavTab.home;
   UserProfile _profile = UserProfile.defaultProfile;
   GameRulesSettings _rulesSettings = GameRulesSettings.defaults;
-  final SavedPassAndPlayGameRepository _savedGameRepository =
-      SavedPassAndPlayGameRepository();
+  final SavedGameRepository _savedGameRepository = SavedGameRepository();
 
   int get _tabIndex => switch (_selectedTab) {
     HomeNavTab.rules => 0,
@@ -39,29 +38,29 @@ class _MainShellScreenState extends State<MainShellScreen> {
   }
 
   Future<void> _showGameSetupDialog({bool isPassAndPlay = false}) async {
-    if (isPassAndPlay) {
-      final savedGame = await _savedGameRepository.load();
-      if (!mounted) return;
+    final savedGame = await _savedGameRepository.load(
+      isPassAndPlay: isPassAndPlay,
+    );
+    if (!mounted) return;
 
-      if (savedGame != null) {
-        final choice = await ContinueGameDialog.show(context);
-        if (!mounted || choice == null) return;
+    if (savedGame != null) {
+      final choice = await ContinueGameDialog.show(context);
+      if (!mounted || choice == null) return;
 
-        if (choice == ContinueGameChoice.continueGame) {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => IstoGameScreen(
-                setup: savedGame.setup,
-                initialTurnController: savedGame.turnController,
-              ),
+      if (choice == ContinueGameChoice.continueGame) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => IstoGameScreen(
+              setup: savedGame.setup,
+              initialTurnController: savedGame.turnController,
             ),
-          );
-          return;
-        }
-
-        await _savedGameRepository.clear();
-        if (!mounted) return;
+          ),
+        );
+        return;
       }
+
+      await _savedGameRepository.clear(isPassAndPlay: isPassAndPlay);
+      if (!mounted) return;
     }
 
     return GameSetupDialog.show(

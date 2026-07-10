@@ -37,7 +37,7 @@ class ContinueGameDialog extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           RoyalDialogActionButton(
-            label: 'Continue',
+            label: 'Resume',
             icon: Icons.play_arrow_rounded,
             backgroundColor: RoyalColors.green,
             onTap: () =>

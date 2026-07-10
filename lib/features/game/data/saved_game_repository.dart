@@ -5,22 +5,19 @@ import 'package:isto_king/features/game/models/game_setup_config.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SavedPassAndPlayGame {
-  const SavedPassAndPlayGame({
-    required this.setup,
-    required this.turnController,
-  });
+class SavedGame {
+  const SavedGame({required this.setup, required this.turnController});
 
   static const _version = 1;
 
   final GameSetupConfig setup;
   final GameTurnController turnController;
 
-  factory SavedPassAndPlayGame.fromJson(Map<String, dynamic> json) {
+  factory SavedGame.fromJson(Map<String, dynamic> json) {
     final setup = GameSetupConfig.fromJson(
       (json['setup'] as Map?)?.cast<String, dynamic>() ?? const {},
     );
-    return SavedPassAndPlayGame(
+    return SavedGame(
       setup: setup,
       turnController: GameTurnController.fromJson(
         (json['turnController'] as Map?)?.cast<String, dynamic>() ?? const {},
@@ -41,42 +38,52 @@ class SavedPassAndPlayGame {
     };
   }
 
-  bool get canResume => setup.isPassAndPlay && !turnController.isGameOver;
+  bool get canResume => !turnController.isGameOver;
 }
 
-class SavedPassAndPlayGameRepository {
-  static const _storageKey = 'saved_pass_and_play_game';
+class SavedGameRepository {
+  static const _passAndPlayStorageKey = 'saved_pass_and_play_game';
+  static const _vsComputerStorageKey = 'saved_vs_computer_game';
 
-  Future<SavedPassAndPlayGame?> load() async {
+  Future<SavedGame?> load({required bool isPassAndPlay}) async {
     final preferences = await SharedPreferences.getInstance();
-    final encoded = preferences.getString(_storageKey);
+    final storageKey = _storageKeyFor(isPassAndPlay: isPassAndPlay);
+    final encoded = preferences.getString(storageKey);
     if (encoded == null || encoded.isEmpty) return null;
 
     try {
       final json = jsonDecode(encoded) as Map<String, dynamic>;
-      if (json['version'] != SavedPassAndPlayGame._version) {
-        await clear();
+      if (json['version'] != SavedGame._version) {
+        await clear(isPassAndPlay: isPassAndPlay);
         return null;
       }
-      final savedGame = SavedPassAndPlayGame.fromJson(json);
-      if (!savedGame.canResume) {
-        await clear();
+      final savedGame = SavedGame.fromJson(json);
+      if (!savedGame.canResume ||
+          savedGame.setup.isPassAndPlay != isPassAndPlay) {
+        await clear(isPassAndPlay: isPassAndPlay);
         return null;
       }
       return savedGame;
     } on Object {
-      await clear();
+      await clear(isPassAndPlay: isPassAndPlay);
       return null;
     }
   }
 
-  Future<void> save(SavedPassAndPlayGame game) async {
+  Future<void> save(SavedGame game) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(_storageKey, jsonEncode(game.toJson()));
+    await preferences.setString(
+      _storageKeyFor(isPassAndPlay: game.setup.isPassAndPlay),
+      jsonEncode(game.toJson()),
+    );
   }
 
-  Future<void> clear() async {
+  Future<void> clear({required bool isPassAndPlay}) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.remove(_storageKey);
+    await preferences.remove(_storageKeyFor(isPassAndPlay: isPassAndPlay));
+  }
+
+  String _storageKeyFor({required bool isPassAndPlay}) {
+    return isPassAndPlay ? _passAndPlayStorageKey : _vsComputerStorageKey;
   }
 }
