@@ -15,6 +15,7 @@ import 'package:isto_king/features/game/widgets/game_board.dart';
 import 'package:isto_king/features/game/widgets/pause_game_dialog.dart';
 import 'package:isto_king/features/game/widgets/player_card.dart';
 import 'package:isto_king/features/game/widgets/top_game_bar.dart';
+import 'package:isto_king/features/daily_reward/widgets/daily_reward_dialog.dart';
 import 'package:isto_king/features/game/widgets/win_ranking_panel.dart';
 import 'package:isto_king/features/rules/models/game_rules_settings.dart';
 
@@ -610,6 +611,7 @@ class _IstoGameScreenState extends State<IstoGameScreen>
                               child: TopGameBar(
                                 onBackTap: _handleHomeTap,
                                 onSettingsTap: _handleSettingsTap,
+                                onCoinAddTap: () => DailyRewardDialog.show(context),
                               ),
                             ),
                           ],

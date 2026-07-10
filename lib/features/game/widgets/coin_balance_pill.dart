@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isto_king/core/theme/royal_colors.dart';
+import 'package:isto_king/features/daily_reward/widgets/daily_reward_dialog.dart';
 import 'package:isto_king/features/game/widgets/coin_icon.dart';
 
 class CoinBalancePill extends StatelessWidget {
@@ -42,7 +43,7 @@ class CoinBalancePill extends StatelessWidget {
           ),
           const SizedBox(width: 7),
           GestureDetector(
-            onTap: onAddTap,
+            onTap: onAddTap ?? () => DailyRewardDialog.show(context),
             child: const CircleAvatar(
               radius: 13,
               backgroundColor: Color(0xFF3AAA45),

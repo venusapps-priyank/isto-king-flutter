@@ -15,7 +15,7 @@ class IstoKingApp extends StatelessWidget {
         statusBarBrightness: Brightness.dark,
       ),
       child: MaterialApp(
-        title: 'Isto King',
+        title: 'Chaka',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
